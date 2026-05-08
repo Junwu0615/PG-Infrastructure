@@ -4,10 +4,64 @@
 
 <br>
 
-### *A.　Service Architecture*
+### *A.　Roadmap*
 
 <details>
-<summary><b><i>　a.1.　Data Core & Orchestration </i></b></summary>
+<summary><b><i>　Project Tree </i></b></summary>
+<ul>
+
+```bash
+tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
+tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
+
+.
+└── infra
+    ├── docker-compose
+    │   ├── ansible
+    │   │   └── roles
+    │   │       └── monitoring
+    │   │           ├── handlers
+    │   │           ├── tasks
+    │   │           ├── templates
+    │   │           └── vars
+    │   ├── docker
+    │   │   ├── airflow
+    │   │   ├── elk
+    │   │   │   └── logstash
+    │   │   │       └── pipeline
+    │   │   ├── iot-platform
+    │   │   │   ├── config
+    │   │   │   │   └── connectors
+    │   │   │   │       ├── sink
+    │   │   │   │       └── source
+    │   │   │   └── dockerfile
+    │   │   ├── monitoring
+    │   │   ├── portainer
+    │   │   ├── postgresql
+    │   │   │   └── init
+    │   │   └── powa
+    │   │       └── init
+    │   ├── terraform
+    │   │   └── modules
+    │   │       ├── docker_container
+    │   │       ├── monitoring
+    │   │       └── portainer
+    │   └── wsl2
+    ├── gcp
+    ├── k3s
+    ├── kubeadm
+    └── minikube
+```
+
+</ul>
+</details>
+
+<br>
+
+### *B.　Service Architecture*
+
+<details>
+<summary><b><i>　b.1.　Data Core & Orchestration </i></b></summary>
 <ul>
 
 |**Service**|**Description**|**Port**|
@@ -23,7 +77,7 @@
 
 
 <details>
-<summary><b><i>　a.2.　Event Streaming & IoT Platform </i></b></summary>
+<summary><b><i>　b.2.　Event Streaming & IoT Platform </i></b></summary>
 <ul>
 
 |**Service**|**Description**|**Port**|
@@ -38,7 +92,7 @@
 
 
 <details>
-<summary><b><i>　a.3.　Lakehouse Architecture </i></b></summary>
+<summary><b><i>　b.3.　Lakehouse Architecture </i></b></summary>
 <ul>
 
 |**Service**|**Description**|**Port**|
@@ -52,7 +106,7 @@
 
 
 <details>
-<summary><b><i>　a.4.　Monitoring & Logging </i></b></summary>
+<summary><b><i>　b.4.　Monitoring & Logging </i></b></summary>
 <ul>
 
 |**Service**|**Description**|**Port**|
@@ -71,7 +125,7 @@
 
 
 <details>
-<summary><b><i>　a.5.　DevOps & Security </i></b></summary>
+<summary><b><i>　b.5.　DevOps & Security </i></b></summary>
 <ul>
 
 |**Service**|**Description**|**Port**|
@@ -89,10 +143,10 @@
 <br>
 
 
-### *B.　Command Platform ( Makefile Execute )*
+### *C.　Command Platform ( Makefile Execute )*
 
 <details>
-<summary><b><i>　b.1.　Docker Compose</i></b></summary>
+<summary><b><i>　c.1.　Docker Compose</i></b></summary>
 <ul>
 
 ```bash
@@ -113,7 +167,7 @@ make down
 
 
 <details>
-<summary><b><i>　b.2.　Terraform + Ansible + Compose </i></b></summary>
+<summary><b><i>　c.2.　Terraform + Ansible + Compose </i></b></summary>
 <ul>
 
 ```bash
@@ -143,7 +197,7 @@ make destroy
 
 
 <details>
-<summary><b><i>　b.3.　K8s ( Helm + Terraform + Ansible ) </i></b></summary>
+<summary><b><i>　c.3.　K8s ( Helm + Terraform + Ansible ) </i></b></summary>
 <ul>
 
 ```bash
@@ -154,7 +208,7 @@ make destroy
 
 
 <details>
-<summary><b><i>　b.4.　Other </i></b></summary>
+<summary><b><i>　c.4.　Other </i></b></summary>
 <ul>
 
 ```bash
