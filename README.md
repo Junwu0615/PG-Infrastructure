@@ -15,37 +15,83 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 .
+├── README.md
 └── infra
     ├── docker-compose
+    │   ├── Makefile
     │   ├── ansible
+    │   │   ├── inventory.ini
+    │   │   ├── playbook.yml
     │   │   └── roles
     │   │       └── monitoring
     │   │           ├── handlers
+    │   │           │   └── main.yml
     │   │           ├── tasks
+    │   │           │   └── main.yml
     │   │           ├── templates
+    │   │           │   └── prometheus.yml.j2
     │   │           └── vars
+    │   │               └── main.yml
     │   ├── docker
     │   │   ├── airflow
+    │   │   │   ├── deploy_dags.sh
+    │   │   │   └── docker-compose.yaml
     │   │   ├── elk
+    │   │   │   ├── docker-compose.yaml
+    │   │   │   ├── elasticsearch.yaml
     │   │   │   └── logstash
+    │   │   │       ├── logstash.yaml
     │   │   │       └── pipeline
+    │   │   │           └── logstash.conf
     │   │   ├── iot-platform
     │   │   │   ├── config
-    │   │   │   │   └── connectors
-    │   │   │   │       ├── sink
-    │   │   │   │       └── source
-    │   │   │   └── dockerfile
+    │   │   │   │   ├── connectors
+    │   │   │   │   │   ├── sink
+    │   │   │   │   │   │   ├── sink-inst-prod-orders.json
+    │   │   │   │   │   │   ├── sink-inst-prod-records.json
+    │   │   │   │   │   │   └── sink-inst-status-logs.json
+    │   │   │   │   │   └── source
+    │   │   │   │   │       └── source-cp-mach-order.json
+    │   │   │   │   └── mosquitto.conf
+    │   │   │   ├── dockerfile
+    │   │   │   │   └── Dockerfile.kafka
+    │   │   │   ├── kafka-compose.yaml
+    │   │   │   └── mqtt-compose.yaml
     │   │   ├── monitoring
+    │   │   │   ├── docker-compose.yaml
+    │   │   │   ├── htap_grafana.json
+    │   │   │   └── prometheus.yaml
     │   │   ├── portainer
+    │   │   │   └── docker-compose.yaml
     │   │   ├── postgresql
+    │   │   │   ├── Dockerfile
+    │   │   │   ├── docker-compose.yaml
     │   │   │   └── init
+    │   │   │       └── init.sql
     │   │   └── powa
+    │   │       ├── Dockerfile
+    │   │       ├── docker-compose.yaml
     │   │       └── init
+    │   │           └── powa.sql
+    │   ├── docker-compose.yaml
     │   ├── terraform
-    │   │   └── modules
-    │   │       ├── docker_container
-    │   │       ├── monitoring
-    │   │       └── portainer
+    │   │   ├── main.tf
+    │   │   ├── modules
+    │   │   │   ├── docker_container
+    │   │   │   │   ├── main.tf
+    │   │   │   │   ├── outputs.tf
+    │   │   │   │   └── variables.tf
+    │   │   │   ├── monitoring
+    │   │   │   │   ├── main.tf
+    │   │   │   │   ├── outputs.tf
+    │   │   │   │   └── variables.tf
+    │   │   │   └── portainer
+    │   │   │       ├── main.tf
+    │   │   │       ├── outputs.tf
+    │   │   │       └── variables.tf
+    │   │   ├── outputs.tf
+    │   │   ├── terraform.tfvars
+    │   │   └── variables.tf
     │   └── wsl2
     ├── gcp
     ├── k3s
@@ -143,14 +189,14 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 <br>
 
 
-### *C.　Command Platform ( Makefile Execute )*
+### *C.　Command Platform*
 
 <details>
 <summary><b><i>　c.1.　Docker Compose</i></b></summary>
 <ul>
 
 ```bash
-cd docker-compose
+cd infra/docker-compose
 
 # initialization
 make init
@@ -171,7 +217,7 @@ make down
 <ul>
 
 ```bash
-cd docker-compose
+cd infra/docker-compose
 
 # initialization
 make init
