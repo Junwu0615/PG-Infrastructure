@@ -104,6 +104,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 <br>
 
+
 ### *B.　Service Architecture*
 
 <details>
@@ -290,3 +291,35 @@ make kafka-all-clean
 
 
 <br>
+
+
+### *D.　Service Support Form*
+
+|**Service**|**Docker**|**Terraform**|**MiniKube**|**K3s**|**Kubeadm**|**GCP**|
+|--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| **PostgreSQL** | O | - | O | O | O | - |
+| **PgAdmin** | O | - | - | - | - | - |
+| **Apache Airflow** | O | - | - | - | - | - |
+| **Superset** | O | - | - | - | - | - |
+| **MQTT Broker** | O | - | - | - | - | - |
+| **Apache Kafka** | O | - | - | - | - | - |
+| **Kafka UI** | O | - | - | - | - | - |
+| **Schema Registry** | O | - | - | - | - | - |
+| **Debezium** | O | - | - | - | - | - |
+| **Apache Iceberg** | O | - | - | - | - | - |
+| **Apache Flink** | O | - | - | - | - | - |
+| **Postgres Exporter** | O | O | - | - | - | - |
+| **Node Exporter** | O | O | - | - | - | - |
+| **Prometheus** | O | O | - | - | - | - |
+| **Grafana** | O | O | - | - | - | - |
+| **Loki** | O | - | - | - | - | - |
+| **Elasticsearch** | O | - | - | - | - | - |
+| **Logstash** | O | - | - | - | - | - |
+| **Kibana** | O | - | - | - | - | - |
+| **Gitlab** | O | - | - | - | - | - |
+| **Jenkins** | O | - | - | - | - | - |
+| **Docker-Registry** | O | - | - | - | - | - |
+| **Portainer** | O | O | - | - | - | - |
+| **HashiCorp Vault** | O | - | - | - | - | - |
+
+<br><br><br>
