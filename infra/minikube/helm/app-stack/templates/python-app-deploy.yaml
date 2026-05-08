@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
       - name: python-worker
-        image: python:3.9-slim
-        command: ["python", "-c", "import psycopg2; # 這裡放你的連線腳本"]
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["python", "app.py"]
         envFrom:
           - configMapRef:
               name: app-config

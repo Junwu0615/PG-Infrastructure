@@ -10,12 +10,9 @@ logs
 
 infra/docker-compose/terraform/.terraform
 infra/docker-compose/terraform/.terraform.lock.hcl
-
 infra/docker-compose/docker/portainer/data
-
 infra/docker-compose/docker/iot-platform/data/*
 infra/docker-compose/docker/iot-platform/config/passwd
-
 infra/docker-compose/docker/airflow/config
 infra/docker-compose/docker/airflow/dags
 infra/docker-compose/docker/airflow/logs
@@ -23,3 +20,5 @@ infra/docker-compose/docker/airflow/plugins
 infra/docker-compose/docker/airflow/airflow.cfg
 infra/docker-compose/docker/airflow/airflow-webserver.pid
 infra/docker-compose/docker/airflow/webserver_config.py
+
+infra/minikube/minikube-linux-amd64

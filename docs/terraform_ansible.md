@@ -67,4 +67,4 @@ ansible-playbook deploy_config.yml --tags reload
 ansible-galaxy collection install community.docker
 ```
 
-<br>
+<br><br><br>

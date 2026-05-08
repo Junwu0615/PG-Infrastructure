@@ -1,0 +1,5 @@
+# values-dev.yaml
+
+replicaCount: 1
+dbPassword: "dev-password"
+storageClass: "standard" # MiniKube 預設

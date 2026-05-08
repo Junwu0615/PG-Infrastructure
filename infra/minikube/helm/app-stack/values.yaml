@@ -1,0 +1,13 @@
+# values.yaml
+
+replicaCount: 1
+
+image:
+  repository: my-python-app
+  tag: v1
+  pullPolicy: IfNotPresent
+
+postgres:
+  storage: 1Gi
+  user: postgres
+  dbName: myapp
