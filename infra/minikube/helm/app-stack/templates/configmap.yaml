@@ -1,0 +1,20 @@
+# helm/app-stack/templates/configmap.yaml
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DB_HOST: "postgres-service"
+  DB_NAME: "myapp"
+
+---
+# helm/app-stack/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secret
+type: Opaque
+data:
+  # 這裡通常由 Helm 傳入 Base64 編碼後的字串
+  DB_PASSWORD: {{ .Values.dbPassword | b64enc | quote }}

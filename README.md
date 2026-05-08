@@ -322,4 +322,12 @@ make kafka-all-clean
 | **Portainer** | O | O | - | - | - | - |
 | **HashiCorp Vault** | O | - | - | - | - | - |
 
+<br>
+
+### *E.　Notice*
+- #### *e.1.　[Service Startup](./docs/service_startup.md)*
+- #### *e.2.　[WSL2 Docker Engine](./docs/wsl2_docker_engine.md)*
+- #### *e.3.　[Terraform & Ansible](./docs/terraform_ansible.md)*
+- #### *e.4.　[Kubernetes](./docs/k8s.md)*
+
 <br><br><br>
