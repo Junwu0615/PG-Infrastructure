@@ -34,8 +34,8 @@ def connect_db():
 
             cur.close()
             conn.close()
-            print("Connection test passed. Sleeping for 60s...")
-            time.sleep(60)  # 保持 Pod 運行，方便你進去查看狀態
+            print("Connection test passed. Sleeping for 10s...")
+            time.sleep(10)  # 保持 Pod 運行，方便你進去查看狀態
 
         except OperationalError as e:
             print(f"The error '{e}' occurred. Retrying in 5 seconds...")

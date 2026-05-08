@@ -29,13 +29,9 @@ spec:
                 key: DB_PASSWORD
 ---
 apiVersion: v1
-kind: Service
+kind: ConfigMap
 metadata:
-  name: python-service
-spec:
-  selector:
-    app: python-app
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 5000
+  name: app-config
+data:
+  DB_HOST: "postgres-service"
+  DB_NAME: "myapp"
