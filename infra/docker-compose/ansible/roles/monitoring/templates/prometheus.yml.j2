@@ -1,0 +1,12 @@
+# ansible/roles/monitoring/templates/prometheus.yml.j2
+
+
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+{% for target in prometheus_targets %}
+  - job_name: '{{ target.name }}'
+    static_configs:
+      - targets: ['{{ target.host }}:{{ target.port }}']
+{% endfor %}

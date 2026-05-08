@@ -1,0 +1,19 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:${PORTAINER_VERSION:-latest}
+    ports:
+      - '9000:9000'   # http://localhost:9000
+#      - '9443:9443'   # https://localhost:9443
+    env_file:
+      - .env
+    volumes:
+      # 用 WSL2 啟動，避免遇到路徑映射問題
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - portainer_data:/data
+    security_opt: # 允許 Portainer 在 Linux 上以 root 權限執行，某些功能可能需要
+      - no-new-privileges:true
+    restart: unless-stopped
+
+
+volumes:
+  portainer_data:

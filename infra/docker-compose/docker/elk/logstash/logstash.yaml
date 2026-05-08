@@ -1,0 +1,19 @@
+# 節點名稱
+node.name: logstash-01
+
+# 設定配置文件的路徑（在 Docker 中通常在啟動時指定，這裡維持預設）
+path.config: /usr/share/logstash/pipeline/*.conf
+
+# 性能調優
+pipeline.workers: 2    # 建議設為 CPU 核心數
+pipeline.batch.size: 125 # 每次處理的事件數量，越大吞吐量越高但延遲越高
+
+# 日誌等級 (debug, info, warn, error)
+log.level: info
+
+# 啟用配置文件自動重新載入（改 conf 不用重啟容器）
+config.reload.automatic: true
+config.reload.interval: 3s
+
+# 綁定監控介面 (給 Kibana 監控用)
+http.host: "0.0.0.0"

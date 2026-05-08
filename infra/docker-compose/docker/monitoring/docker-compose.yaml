@@ -1,0 +1,92 @@
+services:
+  postgres_exporter:
+    image: prometheuscommunity/postgres-exporter:${POSTGRES_EXPORTER_VERSION:-latest}
+    ports:
+      - '9187:9187'
+    env_file:
+      - .env
+    environment:
+      DATA_SOURCE_NAME: 'postgresql://postgres_exporter:exporter@host.docker.internal:5432/postgres?sslmode=disable'
+    command:
+      - '--collector.stat_bgwriter' # TPS / IO / tuples
+      - '--collector.stat_database' # checkpoint / write
+      - '--collector.stat_user_tables' # table activity
+      - '--collector.wal' # WAL throughput
+      - '--collector.locks' # lock contention 貌似預設即開
+      - '--collector.database' # DB size
+      - '--auto-discover-databases' # 自動抓所有 database 的 metrics
+      - '--collector.postmaster' # Table size / index size
+#      - '--collector.replication' # Replication status 若未來做 HTAP replica
+    networks:
+      - monitoring_default
+    extra_hosts:
+      - 'host.docker.internal:172.19.0.1'
+    restart: unless-stopped
+
+  node_exporter:
+    image: prom/node-exporter:${NODE_EXPORTER_VERSION:-latest}
+    ports:
+      - '9100:9100'
+    env_file:
+      - .env
+    pid: host
+    volumes:
+      - '/proc:/host/proc:ro'
+      - '/sys:/host/sys:ro'
+#      - '/:/rootfs:ro,rslave' # WIN 路徑錯誤，不刻意執行
+      - '/:/rootfs:ro'
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+
+      # 避免 pseudo filesystem
+      - '--collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|overlay|proc|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$'
+
+      # 避免抓 container mount + C、D、E drive mount ( Node Exporter 掃描這些路徑會極度緩慢且容易報錯 )
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|mnt/c|mnt/d|mnt/e)($$|/)'
+#      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|mnt/c|mnt/d|mnt/e)($$|/)'
+
+    networks:
+      - monitoring_default
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:${PROMETHEUS_VERSION:-latest}
+    ports:
+      - '9090:9090'
+    env_file:
+      - .env
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml" # 為了搭配 lifecycle 否則會崩潰 [1]
+      - "--storage.tsdb.path=/prometheus" # [1]
+      - "--web.enable-lifecycle" # 關鍵：開啟此項才支援 POST /-/reload
+    networks:
+      - monitoring_default
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:${GRAFANA_VERSION:-latest}
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring_default
+    restart: unless-stopped
+
+
+networks:
+    monitoring_default:
+        driver: bridge
+
+volumes:
+  grafana_data:
+  prometheus_data:

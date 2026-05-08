@@ -1,0 +1,21 @@
+services:
+  mqtt:
+    image: eclipse-mosquitto:${MQTT_VERSION:-latest}
+    ports:
+      - '1883:1883'
+    env_file:
+      - .env
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./config/passwd:/mosquitto/config/passwd  # 掛載密碼檔
+      - mqtt_data:/mosquitto/data
+    networks:
+      - pg-cluster_iot_network
+
+networks:
+  pg-cluster_iot_network:
+    external: true
+
+volumes:
+  mqtt_data:
+    driver: local

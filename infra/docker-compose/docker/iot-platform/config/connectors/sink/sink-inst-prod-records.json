@@ -1,0 +1,26 @@
+{
+  "name": "sink-inst-prod-records",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "connection.url": "jdbc:postgresql://common-db:5432/pgdatabase?reWriteBatchedInserts=true",
+    "connection.user": "oltp_user",
+    "connection.password": "oltp_pwd",
+    "auto.create": "false",
+    "auto.evolve": "false",
+
+    "tasks.max": "12",
+    "batch.size": "3000",
+    "linger.ms": "100",
+
+    "topics": "inst.prod-records",
+    "table.name.format": "oltp.production_records",
+    "table.types": "TABLE,PARTITIONED TABLE",
+
+    "insert.mode": "insert",
+    "pk.mode": "none",
+
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://schema-registry:8081"
+  }
+}

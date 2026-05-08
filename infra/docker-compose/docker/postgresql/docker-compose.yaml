@@ -1,0 +1,68 @@
+services:
+  common-db:
+    image: postgres-common-db:${POSTGRES_VERSION:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '5432:5432'
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # 安裝 extensions + 建立 schema + 建立帳號 + 設定 schema 權限 + 設定使用時區 + 設定 Default Schema + 設定資源使用上限
+      - ./init:/docker-entrypoint-initdb.d
+
+#    shm_size: '64mb' # 預設
+    shm_size: '16gb' # 自定義
+
+    # 通用基準打開 synchronous_commit=off
+#    command: >
+#      postgres
+#      -c shared_buffers=10GB
+#      -c work_mem=128MB
+#      -c maintenance_work_mem=512MB
+#      -c synchronous_commit=off
+#      -c checkpoint_completion_target=0.9
+#      -c max_connections=100
+
+    # python 已設置 synchronous_commit=off
+    # 加入 pg_stat_statements 和 pg_wait_sampling 以便監控和分析查詢性能
+    # effective_cache_size 設置為系統內存的 4 倍，以便 PostgreSQL 更好地估計查詢計劃
+    # max_wal_size 設置為 4GB，以減少檢查點的頻率，從而提高寫入性能
+    # listen_addresses 設置為 '*' 以允許來自任何 IP 地址的連接，這對於開發環境很有用，但在生產環境中應該更嚴格地限制訪問
+    command: >
+      postgres
+      -c shared_preload_libraries='pg_stat_statements,pg_wait_sampling'
+      -c pg_stat_statements.track=all
+      -c shared_buffers=10GB
+      -c effective_cache_size=40GB
+      -c max_wal_size=4GB
+      -c work_mem=128MB
+      -c maintenance_work_mem=512MB
+      -c checkpoint_completion_target=0.9
+      -c max_connections=200
+      -c listen_addresses=*
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:${POSTGRES_UI_VERSION:-latest}
+    ports:
+      - '5050:80'
+    env_file:
+      - .env
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
+
+
+volumes:
+  postgres_data:
+  pgadmin_data:

@@ -1,0 +1,16 @@
+# ansible/roles/monitoring/vars/main.yml
+
+
+postgres_exporter_host: '{{ main_name }}-postgres_exporter-1'
+#postgres_exporter_host: '{{ host_docker_internal }}'
+node_exporter_host: '{{ main_name }}-node_exporter-1'
+#node_exporter_host: '{{ host_docker_internal }}'
+
+# TODO 宣告 Prometheus 監控目標設定
+prometheus_targets:
+  - name: 'postgres_exporter'
+    host: '{{ postgres_exporter_host }}'
+    port: 9187
+  - name: 'node_exporter'
+    host: '{{ node_exporter_host }}'
+    port: 9100

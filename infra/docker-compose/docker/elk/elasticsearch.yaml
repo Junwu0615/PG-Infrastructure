@@ -1,0 +1,25 @@
+cluster.name: "ooud-application"  # 叢集名稱，同一叢集的節點此名稱必須相同
+node.name: "es-node-01"           # 此節點的唯一名稱
+
+# ----------------------------------------------- #
+
+path.data: /usr/share/elasticsearch/data  # 索引資料存放地
+path.logs: /usr/share/elasticsearch/logs  # 系統日誌存放地
+
+# ----------------------------------------------- #
+
+network.host: 0.0.0.0      # 監聽所有 IP，允許外部連線
+http.port: 9200            # API 存取埠，預設 9200
+
+# ----------------------------------------------- #
+
+# 在 Docker 單機測試時，通常設定為 single-node 模式 # ???
+#discovery.type: single-node
+
+# 如果是多機叢集，則需要列出其他節點的 IP
+# discovery.seed_hosts: ["host1", "host2"]
+# cluster.initial_master_nodes: ["es-node-01"]
+
+
+# 開發測試可關閉，生產環境必須開啟並配置 SSL # ???
+#xpack.security.enabled: false

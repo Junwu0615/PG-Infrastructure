@@ -1,0 +1,17 @@
+ARG KAFKA_CONNECT_VERSION=7.6.1
+FROM confluentinc/cp-kafka-connect:${KAFKA_CONNECT_VERSION}
+
+# 1. 安裝 MQTT 插件
+RUN confluent-hub install --no-prompt confluentinc/kafka-connect-mqtt:latest
+
+# 2. 安裝 JDBC Connector
+RUN confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:latest
+
+# 3. 下載資料庫驅動程式 (JDBC Connector 不內建資料庫 Driver)
+# 以 PostgreSQL 為例，必須把 .jar 檔放入插件目錄中
+USER root
+RUN curl -k -o /usr/share/confluent-hub-components/confluentinc-kafka-connect-jdbc/lib/postgresql-42.7.3.jar \
+    https://jdbc.postgresql.org/download/postgresql-42.7.3.jar
+
+# 4. 設定環境變數，確保 Connect 能找到這些路徑
+ENV CONNECT_PLUGIN_PATH="/usr/share/java,/usr/share/confluent-hub-components"

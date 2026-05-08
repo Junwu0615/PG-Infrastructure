@@ -1,0 +1,12 @@
+[wsl2]
+memory=16GB
+processors=12
+networkingMode=mirrored
+#networkingMode=NAT
+dnsTunneling=true
+firewall=true
+#localhostForwarding=true
+
+[experimental]
+autoMemoryReclaim=gradual
+sparseVhd=true
