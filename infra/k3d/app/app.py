@@ -34,10 +34,20 @@ def connect_db():
 
             logging.warning(f'  - Connection test passed.')
             logging.warning(f'  - Sleeping for {SLEEP_TIME}s...\n\n')
+
+            # TODO [ 測試 13： 健康檢查 ] 連線成功，更新「我很好」的標記檔案
+            with open('/tmp/healthy', 'w') as f:
+                f.write('ok')
+
             time.sleep(SLEEP_TIME)
 
         except OperationalError as e:
             logging.error(f'⚠️ Retrying in {SLEEP_TIME} seconds...', exc_info=True)
+
+            # TODO [ 測試 13： 健康檢查 ] 連線失敗，刪除標記檔案
+            if os.path.exists('/tmp/healthy'):
+                os.remove('/tmp/healthy')
+
             time.sleep(SLEEP_TIME)
 
 

@@ -104,14 +104,40 @@ kubectl logs -f -l app=python-app --tail=5
     python3 -c "import socket; s = socket.socket(); s.settimeout(5); print(s.connect_ex(('postgres-service', 5432)) == 0)"
     => True ( 成功 )
     
+
+👁️ 測試 13：自動摘除與恢復
+    情境: 環境因素（DB 斷線）導致服務暫時不可用
+         K8s 透過 Readiness Probe 幫你把「壞掉的 Pod」屏蔽掉，等它好了再放行
     
-👁️ 測試 13：橫向自動伸縮 (HPA - Horizontal Pod Autoscaler)
+    1. 加入 app-deploy.yaml 健康設置 + replica 至少為 2
+    
+    2. 實時觀察 python log
+    kubectl logs -f -l app=python-app --tail=5
+    
+    3. 砍掉 DB 連線 導致 python 報錯
+    kubectl delete pod -l app=postgres
+    
+    4. 觀察是否恢復狀態 ?
+    * python-app-848d7b7889-wgk6w  0/1 Running
+        => DB 消失 → Python 腳本連不上 DB → 腳本刪除 /tmp/healthy → 
+           K8s 發現檔案沒了 → 把這個 Pod 標記為 Unready (0/1)
+    
+    * 最後自動復原 ...
+    
+    
+👁️ 測試 14：零停機更新與回滾 ( Rolling Update & Rollback )
+    情境: 更新 python-app 從 v4 到 v5，且在更新過程中，我們持續對 API 發送請求，確保一次失敗都沒有
+    
+    1. 加入 app-deploy.yaml 健康設置 + replica 至少為 2
+    
+    2. 實時觀察 python log
+    kubectl logs -f -l app=python-app --tail=5
+    
+    3. 砍掉 DB 連線 導致 python 報錯
+    kubectl delete pod -l app=postgres
+    
+    4. 觀察是否重新回滾 ?
 
-👁️ 測試 14：零停機更新與回滾 (Rolling Update & Rollback)
-
-👁️ 測試 15：持久化儲存與節點漂移 (PV / PVC / Local Path)
-
-👁️ 測試 16：Ingress 流量入口 (Traefik)
 ```
 
 <br><br><br>

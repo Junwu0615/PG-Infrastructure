@@ -7,7 +7,16 @@ metadata:
   annotations:
     reloader.stakater.com/auto: "true" # 測試 5：配置更新自動觸發重啟 ( Reloader )
 spec:
-  replicas: {{ .Values.replicaCount }}
+{{/*  replicas: {{ .Values.replicaCount }}*/}}
+
+  # 測試 13：零停機更新與回滾 (Rolling Update & Rollback)
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1       # 更新時最多可以多開幾個 Pod
+      maxUnavailable: 0 # 更新時最少要維持幾個 Pod 在線
+
   selector:
     matchLabels:
       app: python-app
@@ -33,3 +42,15 @@ spec:
               secretKeyRef:
                 name: db-secret
                 key: DB_PASSWORD
+
+        # 測試 13： 健康檢查
+          # HTTP Get：看網頁路徑是否回傳 200
+          # TCP Socket：看某個 Port 有沒有開
+          # [ 目前簡易腳本 ] Exec Command：在容器內執行一個指令，回傳 0 就算成功
+        readinessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 5 # 給 Python 啟動的一點緩衝時間
+          periodSeconds: 5       # 每 5 秒檢查一次
