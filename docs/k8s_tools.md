@@ -152,4 +152,19 @@ minikube version
     curl -H "Host: myapp.local" $(minikube ip)
 ```
 
+<br>
+
+### *D.　Install K3s*
+```
+# 1. 安裝
+curl -sfL https://get.k3s.io | sh -
+
+# 2. 驗證
+k3s --version
+```
+
+#### *使用方式*
+```
+```
+
 <br><br><br>

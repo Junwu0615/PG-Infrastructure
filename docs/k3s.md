@@ -9,5 +9,37 @@
     - K8s 本身：一旦機器開著，K8s 服務就是常駐的（Daemon），你不再需要手動 start 它
 ```
 
+<br>
+
+### *B.　單節點*
+```
+# 獲取存取權限 => 當前使用者可以操作 kubectl
+sudo chmod 644 /etc/rancher/k3s/k3s.yaml
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+
+# 映像檔遷移問題
+[1] 暴力解 | 既有映像檔傳入
+docker save my-app:v4 | sudo k3s ctr images import -
+[2] 建立 Docker Registry 優雅拉取
+```
+
+<br>
+
+### *C.　多節點*
+```
+# 第 1 台
+    # 獲取 Token
+    sudo cat /var/lib/rancher/k3s/server/node-token
+    # 獲取 Server IP
+    hostname -I | awk '{print $1}'
+    
+# 第 2 - N 台
+    curl -sfL https://get.k3s.io | K3S_URL=https://<SERVER_IP>:6443 K3S_TOKEN=<NODE_TOKEN> sh -
+
+
+# 可檢視機器名字出現在列表
+kubectl get nodes
+```
 
 <br><br><br>
