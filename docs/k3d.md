@@ -128,16 +128,25 @@ kubectl logs -f -l app=python-app --tail=5
 👁️ 測試 14：零停機更新與回滾 ( Rolling Update & Rollback )
     情境: 更新 python-app 從 v4 到 v5，且在更新過程中，我們持續對 API 發送請求，確保一次失敗都沒有
     
-    1. 加入 app-deploy.yaml 健康設置 + replica 至少為 2
+    1. 發布必死的版本 ( 根本沒建立 ver999 ) 
+    make deploy ver=999
     
-    2. 實時觀察 python log
-    kubectl logs -f -l app=python-app --tail=5
+    2. 觀察 kubectl get pods -w -o wide
+    python-app-7b67f67f77-52d5t    0/1     ImagePullBackOff  
+    python-app-848d7b7889-n7v22    1/1     Running           
+    python-app-848d7b7889-wgk6w    1/1     Running           
     
-    3. 砍掉 DB 連線 導致 python 報錯
-    kubectl delete pod -l app=postgres
+    3. 效果原因 ( # helm/app-stack/templates/app/app-deploy.yaml )
+    rollingUpdate:
+      maxSurge: 1       # 更新時最多可以多開幾個 Pod # 只允許一個額外的新 Pod 出現嘗試交接，所以不會有無窮無盡的新 Pod 塞爆你的節點
+      maxUnavailable: 0 # 更新時最少要維持幾個 Pod 在線 # 強制要求「舊的必須都在，新的才能上」
     
-    4. 觀察是否重新回滾 ?
-
+    [ 回滾 4.1 ] 無腦回滾上一版
+    kubectl rollout undo deployment python-app
+    
+    [ 回滾 4.2 ] 檢視歷史紀錄 + 指定回滾版本
+    kubectl rollout history deployment python-app
+    kubectl rollout undo deployment python-app --to-revision=5
 ```
 
 <br><br><br>

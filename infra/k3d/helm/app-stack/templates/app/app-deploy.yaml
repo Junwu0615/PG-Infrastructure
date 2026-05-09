@@ -6,6 +6,7 @@ metadata:
   name: python-app
   annotations:
     reloader.stakater.com/auto: "true" # 測試 5：配置更新自動觸發重啟 ( Reloader )
+    kubernetes.io/change-cause: "Deploying version {{ .Values.image.tag }}"
 spec:
 {{/*  replicas: {{ .Values.replicaCount }}*/}}
 
@@ -14,8 +15,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1       # 更新時最多可以多開幾個 Pod
-      maxUnavailable: 0 # 更新時最少要維持幾個 Pod 在線
+      maxSurge: 1       # 更新時最多可以多開幾個 Pod # 只允許一個額外的新 Pod 出現嘗試交接，所以不會有無窮無盡的新 Pod 塞爆你的節點
+      maxUnavailable: 0 # 更新時最少要維持幾個 Pod 在線 # 強制要求「舊的必須都在，新的才能上」
 
   selector:
     matchLabels:

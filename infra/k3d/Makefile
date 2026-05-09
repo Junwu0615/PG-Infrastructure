@@ -45,8 +45,15 @@ deploy:
 		echo "Error: 必須指定服務名稱，ex: make deploy ver=v1"; \
 		exit 1; \
 	fi
-	@echo "* 僅安裝/更新 (不清理)"
-	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) -f $(VALUES_PATH) --set image.tag=$(ver)
+
+	@# 如果沒有傳入 msg，就用預設訊息
+	$(eval MSG=$(if $(msg),"$(msg)","Deploy version $(ver)"))
+
+	@echo "* 僅安裝/更新 (不清理), changeCause: $(msg)"
+	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) \
+ 		-f $(VALUES_PATH) \
+		--set image.tag=$(ver) \
+		--set 'annotations.changeCause=$(MSG)'
 	@echo "✅ <make deploy> done."
 
 redeploy: clean build
@@ -55,8 +62,15 @@ redeploy: clean build
 		echo "Error: 必須指定服務名稱，ex: make redeploy ver=v1"; \
 		exit 1; \
 	fi
-	@echo "* 重新部署中"
-	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) -f $(VALUES_PATH) --set image.tag=$(ver)
+
+	@# 如果沒有傳入 msg，就用預設訊息
+	$(eval MSG=$(if $(msg),"$(msg)","Deploy version $(ver)"))
+
+	@echo "* 重新部署中, changeCause: $(msg)"
+	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) \
+ 		-f $(VALUES_PATH) \
+		--set image.tag=$(ver) \
+		--set 'annotations.changeCause=$(MSG)'
 	@echo "✅ <make redeploy> done."
 
 rollback:
