@@ -19,12 +19,12 @@ spec:
       - name: postgres
         image: postgres:15-alpine
         env:
-        - name: POSTGRES_DB
+        - name: POSTGRES_DB # 手動一對一指定
           valueFrom:
             configMapKeyRef:
               name: app-config
               key: DB_NAME
-        - name: POSTGRES_PASSWORD
+        - name: POSTGRES_PASSWORD # 手動一對一指定
           valueFrom:
             secretKeyRef:
               name: db-secret

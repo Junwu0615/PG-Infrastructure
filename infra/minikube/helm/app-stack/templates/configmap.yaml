@@ -8,4 +8,4 @@ metadata:
 data:
   DB_HOST: "postgres-service"
   DB_NAME: "myapp"
-  APP_MODE: "dev"
+  APP_MODE: "stage"

@@ -190,110 +190,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 <br>
 
 
-### *C.　Command Platform*
-
-<details>
-<summary><b><i>　c.1.　Docker Compose</i></b></summary>
-<ul>
-
-```bash
-cd infra/docker-compose
-
-# initialization
-make init
-make build
-
-# depends on 'Compose' service
-make up
-
-# service shutdown
-make down
-```
-</ul>
-</details>
-
-
-<details>
-<summary><b><i>　c.2.　Terraform + Ansible + Compose </i></b></summary>
-<ul>
-
-```bash
-cd infra/docker-compose
-
-# initialization
-make init
-make build
-make setup
-
-# depends on 'Compose' service
-make postgresql
-make airflow
-make mqtt
-make kafka
-make elk
-
-# depends on 'Terraform' + 'Ansible' services ( Monitoring + Portainer )
-make all
-
-# service shutdown
-make down
-make destroy
-```
-</ul>
-</details>
-
-
-<details>
-<summary><b><i>　c.3.　K8s ( Helm + Terraform + Ansible ) </i></b></summary>
-<ul>
-
-```bash
-...
-```
-</ul>
-</details>
-
-
-<details>
-<summary><b><i>　c.4.　Other </i></b></summary>
-<ul>
-
-```bash
-# Common
-make ps
-make prune
-make get-chown-all
-make list-configs
-make refresh
-
-# Airflow
-make copy-dag
-
-# Terraform + Ansible
-make graph
-make infra
-make config
-make reload
-
-# Kafka Connect
-make kafka-connect-create
-make kafka-connect-upsert
-make kafka-connect-status
-
-# Kafka Cleanup
-make kafka-connect-clean
-make kafka-topic-clean
-make kafka-schema-clean
-make kafka-all-clean
-```
-</ul>
-</details>
-
-
-<br>
-
-
-### *D.　Service Support Form*
+### *C.　Service Support Form*
 
 |**Service**|**Docker**|**Terraform**|**MiniKube**|**K3s**|**Kubeadm**|**GCP**|
 |--:|:--:|:--:|:--:|:--:|:--:|:--:|
@@ -324,10 +221,15 @@ make kafka-all-clean
 
 <br>
 
-### *E.　Notice*
-- #### *e.1.　[Service Startup](./docs/service_startup.md)*
-- #### *e.2.　[WSL2 Docker Engine](./docs/wsl2_docker_engine.md)*
-- #### *e.3.　[Terraform & Ansible](./docs/terraform_ansible.md)*
-- #### *e.4.　[Kubernetes](./docs/k8s.md)*
+### *D.　Notice*
+- #### *d.1.　[Dev Startup Service](./docs/dev_startup_service.md)*
+- #### *d.2.　[WSL2 Docker Engine](./docs/wsl2_docker_engine.md)*
+- #### *d.3.　[Terraform & Ansible](./docs/terraform_ansible.md)*
+- #### *d.4.　[Docker Compose + Terraform & Ansible](./docs/docker_compose.md)*
+- #### *d.5.　[K8s Tools](./docs/k8s_tools.md)*
+- #### *d.6.　[MiniKube](./docs/minikube.md)*
+- #### *d.7.　[K3s](./docs/k3s.md)*
+- #### *d.8.　[Kubeadm](./docs/kubeadm.md)*
+- #### *d.9.　[GCP](./docs/gcp.md)*
 
 <br><br><br>
