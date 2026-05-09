@@ -1,6 +1,6 @@
 ## *Kubernetes*
 
-### *A.　WSL2 ( Ubuntu ) Tools *
+### *A.　K8s Tools ( WSL2 Ubuntu )*
 - ### *a.1.　Install K9s*
     ```
     curl -sS https://webinstall.dev/k9s | bash
@@ -18,6 +18,8 @@
   l ：Logs（查看日誌）
   esc ：返回上一層
   ```
+  
+<br>
 
 - ### *a.2.　Install kubectl*
     ```
@@ -68,6 +70,8 @@
     kubectl logs -f -l app=python-app
     ```
   
+<br>
+
 - ### *a.3.　Install Helm*
     ```
     # 透過管道把下載下來的腳本內容，直接丟給 bash 直譯器去執行，而不在硬碟留下 .sh 檔案
@@ -99,6 +103,7 @@
     helm history my-dev-release
     ```
 
+<br>
 
 - ### *a.4.　Install MiniKube*
     ```
@@ -118,8 +123,8 @@
 
 <br><br>
 
-### *MiniKube*
-- #### *A.　說明*
+### *B.　MiniKube*
+- #### *b.1.　說明*
     ```
     k8s-manifests : 原始部署方式
     helm : 進階抽象部署方式 => 優先體驗
@@ -139,7 +144,7 @@
 
 <br>
 
-- #### *B.　Minikube 完整生命週期*
+- #### *b.2.　Minikube 完整生命週期*
 ```
 # 初始化 (Provisioning)
     [每次] # Start: 指定使用 docker driver
@@ -175,7 +180,7 @@ minikube delete
     下次需要重新 minikube start --driver=docker
 ```
 
-- #### *C.　Makefile Command*
+- #### *b.3.　Makefile Command*
 ```
 # 建構測試腳本映像檔
 make build
@@ -190,7 +195,7 @@ make clean
 make redeploy
 ```
 
-- #### *D.　測試驗證*
+- #### *b.4.　測試驗證*
 ```
 # 若要訪問對外開口的應用
     # 1. 確認取得 minikube ip
@@ -203,8 +208,8 @@ make redeploy
 <br><br>
 
 
-### *K3s*
-- #### *A.　K3s 完整生命週期*
+### *C.　K3s*
+- #### *c.1.　K3s 完整生命週期*
 ```
 當從 MiniKube 進化到 K3s + VM 時，生命週期的管理對象會改變：
     - Terraform 階段：負責機器的「生與死」（建立 VM 或銷毀 VM）
@@ -216,7 +221,7 @@ make redeploy
 
 <br><br>
 
-### *Kubeadm*
+### *D.　Kubeadm*
 ```
 ```
 
