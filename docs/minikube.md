@@ -7,17 +7,17 @@ k8s-manifests : 原始部署方式
 helm : 進階抽象部署方式 => 優先體驗
 ```
 
-| 組件 | 對應項目 | 若更新是否自動重啟 Pod | 核心作用 |
-|--:|:--|:--:|:--|
-| **Pod** | Python 容器 / DB 容器 | - | K8s 最小調度單位。Pod 內容器共用 Network Namespace，可用 localhost 互相通訊。 |
-| **Deployment** | `python-app-deploy.yaml` | 自動 ( Image / Env ) | 管理 Pod 的狀態、版本與副本數。負責**自我修復 (Self-healing)**，Pod 掛了會自動重啟。 |
-| **Service** | `db-deploy.yaml` | 不需重啟 | **穩定入口**。Pod IP 會變，但 Service 提供固定 DNS 名稱，解決服務發現問題。 |
-| **Ingress** | `ingress.yaml` | 不需重啟 | **L7 負載均衡器**。根據網域名稱 (Domain) 或路徑 (Path) 將流量導向對應的 Service。 |
-| **ConfigMap** | `configmap.yaml` | 手動重啟 | 存放**非敏感配置**（如資料庫主機名）。修改時不需重新構建 Image。 |
-| **Secret** | `secret.yaml` | 手動重啟 | 存放**敏感資訊**（如密碼）。內容採 Base64 編碼，避免明文外洩。 |
-| **PV / PVC** | `db-pvc.yaml` | - | **持久化存儲**。PV 是資源池，PVC 是申請單，確保資料不會隨容器消失。 |
-| **Helm Chart** | `helm/app-stack/` | - | **K8s 包管理器**。將多個 YAML 範本化，實現「一套代碼，多種環境配置」。 |
-| **Kubectl** | 命令列工具 | - | 與 K8s API Server 通訊的橋樑，所有操作的起點。 |
+| 組件 | 對應項目 | 若更新是否<br>自動重啟 Pod | 核心作用 |
+|--:|:--:|:--:|:--|
+| **Pod** | Python 容器 / DB 容器 | - | K8s 最小調度單位<br>Pod 內容器共用 Network Namespace，可用 localhost 互相通訊 |
+| **Deployment** | `python-app-deploy.yaml` | 自動<br>( Image / Env ) | 管理 Pod 的狀態、版本與副本數<br>負責**自我修復 (Self-healing)**，Pod 掛了會自動重啟 |
+| **Service** | `db-deploy.yaml` | 不需重啟 | **穩定入口**<br>Service 提供固定 DNS 名稱 ( Pod IP 動態 )，解決服務發現問題 |
+| **Ingress** | `ingress.yaml` | 不需重啟 | **L7 負載均衡器**<br>根據網域名稱 (Domain) 或路徑 (Path) 將流量導向對應的 Service |
+| **ConfigMap** | `configmap.yaml` | 手動重啟 | 存放**非敏感配置**（如資料庫主機名）|
+| **Secret** | `secret.yaml` | 手動重啟 | 存放**敏感資訊**<br>內容採 Base64 編碼，避免明文外洩 |
+| **PV / PVC** | `db-pvc.yaml` | - | **持久化存儲**<br>PV 是資源池，PVC 是申請單，確保資料不會隨容器消失 |
+| **Helm Chart** | `helm/app-stack/` | - | **K8s 包管理器**<br>將多個 YAML 範本化，實現一套代碼，多種環境配置 |
+| **Kubectl** | 命令列工具 | - | 與 K8s API Server 通訊的橋樑，所有操作的起點 |
 
 <br>
 
