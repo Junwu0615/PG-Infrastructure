@@ -83,9 +83,15 @@ make clean
 
 ### *D.　測試驗證*
 ```
-👁️ 測試 0: 取得需要對外交互的服務位置 確認能訪問服務
-    ex: Portainer
+👁️ 測試 0: 取得需要對外交互的服務位置 確認能訪問服務 ( ex: Portainer )
+    1. [ 前置 ; 操作環境要注意 ] make image_load
+    
+    [2.1] 訪問方式 : 測試
     minikube service portainer-service --url
+    
+    [2.2] [ 忽略 ] 訪問方式 : 用 ingress 設置的方式 ( 未來正式架構 )
+    minikube addons enable ingress
+    minikube tunnel
 
 
 👁️ 測試 1: Pod 故障自癒 ( 模擬服務崩潰 ) 
