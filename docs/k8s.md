@@ -1,88 +1,118 @@
 ## *Kubernetes*
 
-### *K9s*
-- #### *A.　安裝方式*
-```
-curl -sS https://webinstall.dev/k9s | bash
+### *A.　WSL2 ( Ubuntu ) Tools *
+- ### *a.1.　Install K9s*
+    ```
+    curl -sS https://webinstall.dev/k9s | bash
+    
+    [1] 安裝完後，重啟終端機
+    [2] 或輸入 source ~/.config/envman/PATH.env 即可生效
+    ```
+    
+    - #### *使用方式*
+  
+    ```
+    : ：輸入命令（例如 :pod 看 Pod, :node 看節點）
+    / ：過濾關鍵字
+    d ：Describe（查看詳細描述）
+    l ：Logs（查看日誌）
+    esc ：返回上一層
+    ```
 
-安裝完後，重啟終端機或輸入 source ~/.config/envman/PATH.env 即可生效
-```
+- ### *a.2.　Install kubectl*
+    ```
+    # 1. 下載最新穩定版
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    
+    # 2. 安裝至系統路徑 (賦予 root 權限並設定執行位)
+    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    
+    # 3. 清理：刪除當前目錄下的下載檔
+    rm kubectl
+    
+    # 4. 驗證
+    kubectl version --client
+    ```
 
-- #### *B.　使用方式*
+- ### *a.3.　Install MiniKube*
+    ```
+    # 1. 下載最新版的 MiniKube 二進位檔
+    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    
+    # 2. 安裝至系統路徑 (同時重新命名為 minikube)
+    sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    
+    # 3. 清理：刪除當前目錄下的下載檔
+    rm minikube-linux-amd64
+    
+    # 4. 驗證
+    minikube version
+    ```
 
-```
-: ：輸入命令（例如 :pod 看 Pod, :node 看節點）
-
-/ ：過濾關鍵字
-
-d ：Describe（查看詳細描述）
-
-l ：Logs（查看日誌）
-
-esc ：返回上一層
-```
-
-<br><br>
-
-### *WSL2 ( Ubuntu ) 安裝 kubectl*
-```
-# 下載最新穩定版
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-
-# 安裝
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-
-# 驗證
-kubectl version --client
-```
 
 <br><br>
 
 ### *MiniKube*
 - #### *A.　說明*
-```
-k8s-manifests 是原始部署本方式
-helm 是進階抽象部署方式 => 優先體驗
-```
+    ```
+    k8s-manifests : 原始部署方式
+    helm : 進階抽象部署方式 => 優先體驗
+    ```
+    
+    | 組件 | 實作對應項目 | 若更新是否自動重啟 Pod | 核心作用 |
+    |--:|:--|:--:|:--|
+    | **Pod** | Python 容器 / DB 容器 | - | K8s 最小調度單位。Pod 內容器共用 Network Namespace，可用 localhost 互相通訊。 |
+    | **Deployment** | `python-app-deploy.yaml` | 自動 ( Image / Env ) | 管理 Pod 的狀態、版本與副本數。負責**自我修復 (Self-healing)**，Pod 掛了會自動重啟。 |
+    | **Service** | `postgres-service` | 不需重啟 | **穩定入口**。Pod IP 會變，但 Service 提供固定 DNS 名稱，解決服務發現問題。 |
+    | **Ingress** | `app-ingress.yaml` | 不需重啟 | **L7 負載均衡器**。根據網域名稱 (Domain) 或路徑 (Path) 將流量導向對應的 Service。 |
+    | **ConfigMap** | `app-config` | 手動重啟 | 存放**非敏感配置**（如資料庫主機名）。修改時不需重新構建 Image。 |
+    | **Secret** | `db-secret` | 手動重啟 | 存放**敏感資訊**（如密碼）。內容採 Base64 編碼，避免明文外洩。 |
+    | **PV / PVC** | `postgres-pvc` | - | **持久化存儲**。PV 是資源池，PVC 是申請單，確保資料不會隨容器消失。 |
+    | **Helm Chart** | `helm/app-stack/` | - | **K8s 包管理器**。將多個 YAML 範本化，實現「一套代碼，多種環境配置」。 |
+    | **Kubectl** | 命令列工具 | - | 與 K8s API Server 通訊的橋樑，所有操作的起點。 |
 
 <br>
 
-| 組件 | 實作對應項目 | 核心作用 |
-|--:|:--|:--|
-| **Pod** | Python 容器 / DB 容器 | K8s 最小調度單位。Pod 內容器共用 Network Namespace，可用 localhost 互相通訊。 |
-| **Deployment** | `python-app-deploy.yaml` | 管理 Pod 的狀態、版本與副本數。負責**自我修復 (Self-healing)**，Pod 掛了會自動重啟。 |
-| **Service** | `postgres-service` | **穩定入口**。Pod IP 會變，但 Service 提供固定 DNS 名稱，解決服務發現問題。 |
-| **Ingress** | `app-ingress.yaml` | **L7 負載均衡器**。根據網域名稱 (Domain) 或路徑 (Path) 將流量導向對應的 Service。 |
-| **ConfigMap** | `app-config` | [ 若更新要手動重啟 ] 存放**非敏感配置**（如資料庫主機名）。修改時不需重新構建 Image。 |
-| **Secret** | `db-secret` | [ 若更新要手動重啟 ] 存放**敏感資訊**（如密碼）。內容採 Base64 編碼，避免明文外洩。 |
-| **PV / PVC** | `postgres-pvc` | **持久化存儲**。PV 是資源池，PVC 是申請單，確保資料不會隨容器消失。 |
-| **Helm Chart** | `helm/app-stack/` | **K8s 包管理器**。將多個 YAML 範本化，實現「一套代碼，多種環境配置」。 |
-| **Kubectl** | 命令列工具 | 與 K8s API Server 通訊的橋樑，所有操作的起點。 |
-
-<br>
-
-
-- #### *B.　WSL2 ( Ubuntu ) 安裝 MiniKube*
-
+- #### *B.　Minikube 完整生命週期*
 ```
-# 1. 下載最新版的 MiniKube 二進位檔
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+# 初始化 (Provisioning)
+    [每次] # Start: 指定使用 docker driver
+    minikube start --driver=docker
+    發生了什麼:
+        - 下載 K8s 節點鏡像
+        - 建立虛擬環境 (Docker Container)
+        - 持久化狀態： MiniKube 會在電腦
+            建立 ~/.minikube 資料夾，儲存證書、配置與虛擬硬碟狀態
 
-# 2. 安裝至系統路徑
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    [一次性] Addons： 一旦啟用，其設定會紀錄在狀態中，下次啟動時會自動加載    
+    # 啟用 Ingress 控制器 # 負載均衡器
+    minikube addons enable ingress
 
-# 3. 驗證安裝是否成功
-minikube version
 
-# 4. 啟動 minikube，指定使用 docker driver
-minikube start --driver=docker
+# 暫停 + 恢復 (Pause / Unpause)
+minikube pause / minikube unpause
+重要特點： 正在開發，想暫時釋放 CPU 資源，
+    但不想關閉 Pod，這會掛起所有容器進程
 
-# 5. 啟用 Ingress 控制器 # 負載均衡器
-minikube addons enable ingress
+
+# 停止 (Stop)
+minikube stop
+發生了什麼：優雅地關閉 K8s 控制平面與容器
+重要特點：PV/PVC 資料會保留。下次啟動時，只需輸入 minikube start
+（不需要再加 driver 或 addons），它會恢復到關閉前的樣子
+
+
+# 刪除 (Delete) - 徹底關閉
+minikube delete
+發生了什麼：銷毀虛擬環境，清空所有資源
+注意：所有的資料庫資料 (PV) 和配置都會消失
+    下次需要重新 minikube start --driver=docker
 ```
 
-- #### *C.　建立測試腳本 Images*
+- #### *C.　Makefile Command*
 ```
+# 建構測試腳本 Images
+
 cd infra/minikube/app
 
 # 切換環境變數 (讓 Docker 指向 MiniKube 內部的 Daemon)
@@ -159,7 +189,14 @@ curl -H "Host: myapp.local" $(minikube ip)
 
 
 ### *K3s*
+- #### *A.　K3s 完整生命週期*
 ```
+當從 MiniKube 進化到 K3s + VM 時，生命週期的管理對象會改變：
+    - Terraform 階段：負責機器的「生與死」（建立 VM 或銷毀 VM）
+    - Ansible 階段：負責機器的「初始化」（安裝 K3s、設定 Ingress）
+    - K8s 本身：一旦機器開著，K8s 服務就是常駐的（Daemon），你不再需要手動 start 它
+    
+
 ```
 
 <br><br>

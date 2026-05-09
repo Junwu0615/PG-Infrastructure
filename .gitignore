@@ -20,6 +20,3 @@ infra/docker-compose/docker/airflow/plugins
 infra/docker-compose/docker/airflow/airflow.cfg
 infra/docker-compose/docker/airflow/airflow-webserver.pid
 infra/docker-compose/docker/airflow/webserver_config.py
-
-infra/minikube/minikube-linux-amd64
-infra/minikube/kubectl
