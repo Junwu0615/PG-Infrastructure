@@ -144,7 +144,7 @@ make clean
     4. 觀察映像檔使用狀態
 
 
-👁️ 測試 4：錯誤與回滾 ( Rollback )
+👁️ 測試 4： 錯誤與回滾 ( Rollback )
     ☄️ helm => 版本控制指揮官
     1. 查看 Helm 歷史紀錄 ( 確認上一個穩定的 Revision )
         helm history my-dev-release
@@ -156,7 +156,7 @@ make clean
         docker images | grep "my-python-app"
 
 
-👁️ 測試 5：配置更新自動觸發重啟 ( Reloader )
+👁️ 測試 5： 配置更新自動觸發重啟 ( Reloader )
     情境：  K8s 原生的 ConfigMap 更新時，Pod 內的環境變數並不會自動改變。通常需要手動重啟 Pod。
            測試將利用開源工具 `Reloader` 實現「改完設定，Pod 自動轉圈圈更新」。
 
@@ -190,7 +190,7 @@ make clean
         kubectl exec -it $(kubectl get pods -l app=python-app -o name) -- env | grep "APP_MODE"
 
 
-👁️ [ X ] 測試 6：網路層級（Service 斷線測試）
+👁️ [ X ] 測試 6： 網路層級（Service 斷線測試）
     情境：  模擬「服務雖然在，但路徑斷了」~
            這能讓你理解 Service (ClusterIP) 是如何透過 iptables/IPVS 進行負載平衡，
            以及當 Service 被刪除時，客戶端會發生什麼事。
@@ -209,7 +209,7 @@ make clean
         觀察 `curl` 是否在 Service 重建後秒速恢復連線
 
 
-👁️ [ X ] 測試 7：資源限制 (Resource Limit - OOMKilled)
+👁️ [ X ] 測試 7： 資源限制 (Resource Limit - OOMKilled)
     情境： 最經典的「抓戰犯」環節。
           當程式碼有 Memory Leak，或是給的資源太小，K8s 會狠心地殺掉它。
 
@@ -225,13 +225,13 @@ make clean
         在 `Last State` 欄位會明確標註 `Reason: OOMKilled`
 
 
-👁️ [ X ] 測試 8：親和性與反親和性 (Anti-Affinity)
+👁️ [ X ] 測試 8： 親和性與反親和性 (Anti-Affinity)
     目標：  確保你的 DB 與 App 不要住在同一個 Node（避免單一節點損壞時全滅）
     做法：  配置 `podAntiAffinity`，然後觀察 `kubectl get pods -o wide`，
            確認 Pod 是否散佈在不同節點（minikube 可開啟多節點模式 `minikube start -n 2`）
 
 
-👁️ [ X ] 測試 9：存活探針故障 (Liveness Probe Failure)
+👁️ [ X ] 測試 9： 存活探針故障 (Liveness Probe Failure)
     目標：  模擬程式「雖然沒當掉，但死鎖 (Deadlock) 了」
     做法：
            配置 `livenessProbe` 檢查 `/health` 接口

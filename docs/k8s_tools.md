@@ -94,11 +94,18 @@ kubectl port-forward svc/postgres-service 5432:5432
 # 檢查 Service 關聯到的端點 (Endpoints)
 kubectl get endpoints postgres-service
 
-# ⭐ [ 無法虛擬化名稱 ] 檢查具體噴錯原因
+# ⭐⭐⭐ [ 病歷表 ] [ 無法虛擬化名稱 ] 檢查具體噴錯原因
 kubectl describe pod portainer-59cf9d8764-mg54l
 
 # ⭐ [ 無法虛擬化名稱 ] 刪除目前的 Pod ( Deployment 自動開一個新的並重新拉取 )
 kubectl delete pod portainer-59cf9d8764-86m7h
+
+# 標籤問題
+    # 查看所有標籤
+    kubectl get nodes --show-labels
+    
+    # 特定標籤 ( service )
+    kubectl get nodes -L service-type
 ```
   
 <br>
@@ -189,25 +196,13 @@ minikube version
     sudo k3s server --write-kubeconfig-mode 644 --node-name local-k3s --bind-address 127.0.0.1 --tls-san 127.0.0.1
 ```
 
-#### *使用方式*
-```
-```
-
 <br>
 
 ### *E.　Install K3d*
 ```
-1. 安裝 + 驗證
+安裝 + 驗證
 wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 k3d --version
-
-2. 建立集群 (一鍵搞定) : 建立一個包含 1 個 Server 和 2 個 Worker 的集群
-# 集群名稱 = mycluster
-k3d cluster create mycluster --agents 2
-```
-
-#### *使用方式*
-```
 ```
 
 <br><br><br>

@@ -216,7 +216,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 ### *C.　Service Support Form*
 
-|**Service**|**Docker**|**Terraform**|**MiniKube**|**K3s**|**K3d**|**Kubeadm**|**GCP**|
+|**Service**|**Docker**|**Terraform**|**MiniKube**|**K3d**|**K3s**|**Kubeadm**|**GCP**|
 |--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | **PostgreSQL** | O | - | O | O | O | O | - |
 | **PgAdmin** | O | - | - | - | - | - | - |
@@ -252,8 +252,8 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 - #### *d.4.　[Docker Compose + Terraform & Ansible](./docs/docker_compose.md)*
 - #### *d.5.　[K8s Tools](./docs/k8s_tools.md)*
 - #### *d.6.　[MiniKube](./docs/minikube.md)*
-- #### *d.7.　[K3s ... ⚠️ 實作環境衝突 T.T](./docs/k3s.md)*
-- #### *d.8.　[K3d](./docs/k3d.md)*
+- - #### *d.7.　[K3d](./docs/k3d.md)*
+- #### *d.8.　[K3s ... ⚠️ 實作環境衝突 T.T](./docs/k3s.md)*
 - #### *d.9.　[Kubeadm](./docs/kubeadm.md)*
 - #### *d.10.　[GCP](./docs/gcp.md)*
 
