@@ -37,13 +37,15 @@
     ```
 - #### *使用方式*
     ```
-    # 確認已被定義的容器 ( 含不需連線 + 需連線 + ... ) 名稱
+    # 確認已被定義的容器 (含不需連線 + 需連線 + ...) 名稱
     kubectl get pods
+    # ⭐ 常駐觀察
+    kubectl get pods -w
   
-    # 確認 pvc ( 儲存 ) 狀態
+    # 確認 pvc (儲存) 狀態
     kubectl get pvc
   
-    # 檢查已被定義的服務 ( 被連線使用 ) 狀態
+    # 檢查已被定義的服務 (被連線使用) 狀態
     kubectl get svc
 
     # 確認 config 狀態
@@ -57,18 +59,25 @@
     
     # ⭐ [ 僅開發 ] 將 k8s 服務映射到外部 方便外部系統開發 ; 命令列狀態會常駐，除非退出
     kubectl port-forward svc/postgres-service 5432:5432
-      # 內部一律採用 postgres-service 來解偶位置不同問題 ; 因為 k8s 的 IP 會浮動 => 高可用性
+        # 內部一律採用 postgres-service 來解偶位置不同問題 ; 因為 k8s 的 IP 會浮動 => 高可用性
     
-    # ⭐ 進入 pod 內部 ( exec )
-      # ! 無法虛擬化簡稱
-      kubectl exec -it postgres-db-774b56c954-v8bsf -- bash
-      kubectl exec -it python-app-fd66fdf4c -- bash
-      
-      # ⭐ 進階用法
-      kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- psql -U postgres
+    # ⭐ 進入 pod 內部 (exec)
+        # ! 無法虛擬化簡稱
+        kubectl exec -it postgres-db-774b56c954-v8bsf -- bash
+        kubectl exec -it pod/python-app-fd66fdf4c-s4kxv -- bash
+        
+        # ⭐ 進階用法
+        kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- psql -U postgres
   
-      # 直接進入 psql 終端機
-      kubectl exec -it postgres-db-774b56c954-5z6kw -- psql -U postgres
+        # 直接進入 psql 終端機
+        kubectl exec -it postgres-db-774b56c954-5z6kw -- psql -U postgres
+        
+        # 查看儲存資源
+        kubectl exec -it postgres-db-774b56c954-5z6kw -- df -h
+  
+        # 確認環境變數是否被確實注入(查看敏感訊息...)
+        kubectl exec -it pod/python-app-fd66fdf4c-s4kxv -- env
+        kubectl exec -it postgres-db-774b56c954-5z6kw -- env
     
     # 若有動到 configmap.yaml 優雅重啟
     kubectl rollout restart deployment python-app
@@ -94,11 +103,8 @@
   
 - #### *使用方式*
     ```
-    # 一次性刪除該 Release 下所有的 Service, Deployment, ConfigMap, Ingress
-    helm uninstall my-dev-release
-    
     # 部署方式 ( 啟動/更新/移除 )
-        # [1] 啟動/更新 Helm 部署 ( DEV 設置 )
+        # ⭐ [1] 啟動/更新 Helm 部署 ( DEV 設置 )
         helm upgrade --install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
         
         # [2.1] 先解除安裝
@@ -107,11 +113,14 @@
         # [2.2] 再重新安裝
         helm install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
         
-    # 查看目前的 release 列表與版本次數 (REVISION)
+    # ⭐ 查看目前的 release 列表與版本次數 (REVISION)
     helm list
     
-    # 查看該 release 的詳細歷史紀錄
+    # ⭐ 查看該 release 的詳細歷史紀錄
     helm history my-dev-release
+  
+    # ⭐ 一次性刪除該 Release 下所有的 Service, Deployment, ConfigMap, Ingress
+    helm uninstall my-dev-release
     ```
 
 <br>
@@ -130,7 +139,15 @@
     # 4. 驗證
     minikube version
     ```
-
+- #### *使用方式*
+    ```
+    # 若要訪問對外開口的應用
+        # 1. 確認取得 minikube ip
+        minikube ip
+        
+        # 2. 嘗試從 WSL2 內訪問 (假設你的 Ingress Host 設定為 myapp.local)
+        curl -H "Host: myapp.local" $(minikube ip)
+    ```
 
 <br><br>
 
@@ -208,14 +225,32 @@
 
 - #### *b.4.　測試驗證*
     ```
-    # 
+    # 測試 1: Pod 故障自癒 ( 模擬服務崩潰 )
+      # 砍掉 DB => 觀察 python log 開始報錯 => 直到 k8s 將 DB 重啟後恢復連線
+    
+    # 測試 2: 容器層級故障 ( Docker 逃逸測試 )
+      # 用 docker stop python => 觀察 k8s 是否有復原容器
   
-    # 若要訪問對外開口的應用
-        # 1. 確認取得 minikube ip
-        minikube ip
-        
-        # 2. 嘗試從 WSL2 內訪問 (假設你的 Ingress Host 設定為 myapp.local)
-        curl -H "Host: myapp.local" $(minikube ip)
+    # 測試 3: 滾動更新 ( Rolling Update )
+      # 觀察映像檔使用狀態
+      docker images
+  
+      # 改動 Images => 觀察 k8s 是否有熱重啟 ( 透過 logs 檢視 )
+      make build
+  
+      # 更新配置
+      helm upgrade my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
+  
+      # 執行重啟 ( v1 -> v2 )
+      kubectl rollout restart deployment/python-app
+  
+    # 測試 4：設定錯誤與回滾 (Rollback)
+      # 觀察是否回滾到上一版本
+  
+    # 回滾上一版本 (v1)
+    kubectl rollout undo deployment/python-app
+  
+    # 測試 5：配置更新自動觸發重啟 (Reloader)
     ```
 
 <br><br>

@@ -1,12 +1,15 @@
 # values.yaml
 # 應該要與 Docker-Registry ( 需先有服務 才有後續依賴 ) 結合才安全，都私有化
+# 私人映像檔版本管理透過未來在 [CI / CD] 方面確實落實 [自動堆疊 vN]
 
 replicaCount: 1
 
-image: # K8s 會先看本地有沒有 ; 若無則自動去網路 pull
+image:
   repository: my-python-app
   tag: v1
-  pullPolicy: IfNotPresent
+#  tag: v2
+#  pullPolicy: IfNotPresent # K8s 會先看本地有沒有 ; 若無則自動去網路 pull
+  pullPolicy: Always # 強制每次啟動都重新檢查鏡像內容
 
 postgres: # 預設直接 pull
   storage: 1Gi

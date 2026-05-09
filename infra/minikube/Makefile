@@ -5,12 +5,17 @@ VALUES_PATH=./helm/app-stack/values-dev.yaml
 .PHONY: build clean redeploy
 
 build:
-	@echo "* 1. 進入 app 目錄 + 切換環境變數 (minikube)"
+	@echo "1. 檢查是否有版本號且不為空"
+	@if [ -z "$(ver)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make build ver=v1"; \
+		exit 1; \
+	fi
+	@echo "* 2. 進入 app 目錄 + 切換環境變數 (minikube)"
 	cd app && \
 	eval $(minikube docker-env) && \
-	echo "* 2. Build Dockerfile" && \
-	docker build -t my-python-app:v1 -f ./dockerfile/Dockerfile.app . --no-cache && \
-	echo "* 3. Build Done" && \
+	echo "* 3. Build Dockerfile" && \
+	docker build -t my-python-app:$(ver) -f ./dockerfile/Dockerfile.app . --no-cache && \
+	echo "* 4. Build Done" && \
 	docker images | grep my-python-app
 
 clean:

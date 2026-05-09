@@ -18,10 +18,12 @@ spec:
       - name: python-worker
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         command: ["python", "app.py"]
-        envFrom:
+
+        envFrom: # ConfigMap 裡的所有 Data 直接變成環境變數
           - configMapRef:
               name: app-config
-        env:
+
+        env: # 手動一對一指定
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:

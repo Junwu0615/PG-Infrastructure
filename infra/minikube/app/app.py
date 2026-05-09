@@ -1,9 +1,10 @@
 import os, time, logging, psycopg2
 from psycopg2 import OperationalError
 
+SLEEP_TIME = 30
 
 def connect_db():
-    # 從 K8s ConfigMap 與 Secret 注入的環境變數讀取配置
+    # TODO 從 K8s ConfigMap 與 Secret 注入的環境變數讀取配置
     dbname = os.getenv('DB_NAME', 'myapp')
     user = os.getenv('DB_USER', 'postgres')
     password = os.getenv('DB_PASSWORD', 'password123')
@@ -32,12 +33,12 @@ def connect_db():
 
             cur.close()
             conn.close()
-            logging.warning('Connection test passed. Sleeping for 10s...')
-            time.sleep(10)  # 保持 Pod 運行，方便你進去查看狀態
+            logging.warning(f'Connection test passed. Sleeping for {SLEEP_TIME}s...')
+            time.sleep(SLEEP_TIME)  # 保持 Pod 運行，方便你進去查看狀態
 
         except OperationalError as e:
-            logging.error(f' Retrying in 5 seconds...', exc_info=True)
-            time.sleep(5)
+            logging.error(f' Retrying in {SLEEP_TIME} seconds...', exc_info=True)
+            time.sleep(SLEEP_TIME)
 
 
 if __name__ == '__main__':
