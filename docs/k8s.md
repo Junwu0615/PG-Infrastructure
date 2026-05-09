@@ -9,15 +9,15 @@
     [2] 或輸入 source ~/.config/envman/PATH.env 即可生效
     ```
     
-    - #### *使用方式*
-  
-    ```
-    : ：輸入命令（例如 :pod 看 Pod, :node 看節點）
-    / ：過濾關鍵字
-    d ：Describe（查看詳細描述）
-    l ：Logs（查看日誌）
-    esc ：返回上一層
-    ```
+- #### *使用方式*
+
+  ```
+  : ：輸入命令（例如 :pod 看 Pod, :node 看節點）
+  / ：過濾關鍵字
+  d ：Describe（查看詳細描述）
+  l ：Logs（查看日誌）
+  esc ：返回上一層
+  ```
 
 - ### *a.2.　Install kubectl*
     ```
@@ -33,8 +33,74 @@
     # 4. 驗證
     kubectl version --client
     ```
+- #### *使用方式*
+    ```
+    # 檢查服務狀態
+    kubectl get svc
+    
+    # ⭐ 找到 pod 名稱
+    kubectl get pods
+    
+    # ⭐ 確認 log
+    kubectl logs -f -l app=python-app --tail=20
+    
+    # 進入 pod 內部
+    kubectl exec -it python-app-fd66fdf4c-f8g5d -- ping postgres-service
+    
+    # 若有動到 configmap.yaml 優雅重啟
+    kubectl rollout restart deployment python-app
+    
+    # 確認部署狀態
+    kubectl get pvc
+    -- 預期 Bound
+    
+    # 強制移除節點
+    kubectl delete pod -l app=postgres
+    -- 預期 Python Log 會顯示開始報錯重試，直到 K8s 自動把 Postgres Pod 重啟回來後，連線又會恢復。
+    
+    # 檢查 Service 關聯到的端點 (Endpoints)
+    kubectl get endpoints postgres-service
+    
+    # 確認所有組件狀態 (Pod 應該要是 Running)
+    kubectl get pods,pvc,svc,ingress
+    
+    # 查看 Python App 的連線日誌 (這驗證了 Service/ConfigMap/Secret)
+    kubectl logs -f -l app=python-app
+    ```
+  
+- ### *a.3.　Install Helm*
+    ```
+    # 透過管道把下載下來的腳本內容，直接丟給 bash 直譯器去執行，而不在硬碟留下 .sh 檔案
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  
+    # 可確認被丟到哪去
+    which helm
+    ```
+  
+- #### *使用方式*
+    ```
+    # 一次性刪除該 Release 下所有的 Service, Deployment, ConfigMap, Ingress
+    helm uninstall my-dev-release
+    
+    # 部署方式 ( 啟動/更新/移除 )
+        # [1] 啟動/更新 Helm 部署 ( DEV 設置 )
+        helm upgrade --install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
+        
+        # [2.1] 先解除安裝
+        helm uninstall my-dev-release
+        
+        # [2.2] 再重新安裝
+        helm install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
+        
+    # 查看目前的 release 列表與版本次數 (REVISION)
+    helm list
+    
+    # 查看該 release 的詳細歷史紀錄
+    helm history my-dev-release
+    ```
 
-- ### *a.3.　Install MiniKube*
+
+- ### *a.4.　Install MiniKube*
     ```
     # 1. 下載最新版的 MiniKube 二進位檔
     curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
@@ -111,78 +177,27 @@ minikube delete
 
 - #### *C.　Makefile Command*
 ```
-# 建構測試腳本 Images
+# 建構測試腳本映像檔
+make build
 
-cd infra/minikube/app
+# 部署指令
+make deploy
 
-# 切換環境變數 (讓 Docker 指向 MiniKube 內部的 Daemon)
-eval $(minikube docker-env)
+# 徹底清除
+make clean
 
-docker build -t my-python-app:v1 .
-docker images | grep my-python-app
+# 重新部署 ( clean + build + deply )
+make redeploy
 ```
 
-- #### *D.　部署指令*
+- #### *D.　測試驗證*
 ```
-# 安裝 Helm 自動下載配置
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-
-# [1] 啟動/更新 Helm 部署 ( DEV 設置 )
-helm upgrade --install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
-
-# [2.1] 先解除安裝
-helm uninstall my-dev-release
-
-# [2.2] 再重新安裝
-helm install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
-```
-
-
-- #### *E.　測試驗證*
-```
-# 查看目前的 release 列表與版本次數 (REVISION)
-helm list
-
-# 查看該 release 的詳細歷史紀錄
-helm history my-dev-release
-
-# 檢查服務狀態
-kubectl get svc
-
-# ⭐ 找到 pod 名稱
-kubectl get pods
-
-# ⭐ 確認 log
-kubectl logs -f -l app=python-app --tail=20
-
-# 進入 pod 內部
-kubectl exec -it python-app-fd66fdf4c-f8g5d -- ping postgres-service
-
-# 若有動到 configmap.yaml 優雅重啟
-kubectl rollout restart deployment python-app
-
-# 確認部署狀態
-kubectl get pvc
--- 預期 Bound
-
-# 強制移除節點
-kubectl delete pod -l app=postgres
--- 預期 Python Log 會顯示開始報錯重試，直到 K8s 自動把 Postgres Pod 重啟回來後，連線又會恢復。
-
-# 檢查 Service 關聯到的端點 (Endpoints)
-kubectl get endpoints postgres-service
-
-# 確認所有組件狀態 (Pod 應該要是 Running)
-kubectl get pods,pvc,svc,ingress
-
-# 查看 Python App 的連線日誌 (這驗證了 Service/ConfigMap/Secret)
-kubectl logs -f -l app=python-app
-
-# 先取得 minikube ip
-minikube ip
-
-# 嘗試從 WSL2 內訪問 (假設你的 Ingress Host 設定為 myapp.local)
-curl -H "Host: myapp.local" $(minikube ip)
+# 若要訪問對外開口的應用
+    # 1. 確認取得 minikube ip
+    minikube ip
+    
+    # 2. 嘗試從 WSL2 內訪問 (假設你的 Ingress Host 設定為 myapp.local)
+    curl -H "Host: myapp.local" $(minikube ip)
 ```
 
 <br><br>

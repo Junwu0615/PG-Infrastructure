@@ -1,9 +1,32 @@
-.PHONY: clone
+RELEASE_NAME=my-dev-release
+CHART_PATH=./helm/app-stack
+VALUES_PATH=./helm/app-stack/values-dev.yaml
 
-clone:
-	@echo "* 將子專案克隆至上一層"
-	git clone https://github.com/Junwu0615/PG-Infrastructure ../PG-Infrastructure
-	git clone https://github.com/Junwu0615/PG-APP-Core ../PG-APP-Core
-	git clone https://github.com/Junwu0615/PG-Shared-Lib ../PG-Shared-Lib
-	git clone https://github.com/Junwu0615/PG-Edge-Container ../PG-Edge-Container
-	git clone https://github.com/Junwu0615/PG-Airflow-DAGs ../PG-Airflow-DAGs
+.PHONY: build clean redeploy
+
+build:
+	@echo "* 1. 進入 app 目錄 + 切換環境變數 (minikube)"
+	cd app && \
+	eval $(minikube docker-env) && \
+	echo "* 2. Build Dockerfile" && \
+	docker build -t my-python-app:v1 -f ./dockerfile/Dockerfile.app . --no-cache && \
+	echo "* 3. Build Done" && \
+	docker images | grep my-python-app
+
+clean:
+	@echo "* 徹底清除"
+	@echo "1. 正在移除 Helm Release"
+	-helm uninstall $(RELEASE_NAME)
+	@echo "2. 正在強制移除所有殘留資源 (ConfigMap/Secret/PVC)"
+	-kubectl delete configmap app-config
+	-kubectl delete secret db-secret
+	-kubectl delete pvc --all
+	@echo "* 清理完畢"
+
+deploy:
+	@echo "* 僅安裝/更新 (不清理)"
+	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) -f $(VALUES_PATH)
+
+redeploy: clean build
+	@echo "* 重新部署中"
+	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) -f $(VALUES_PATH)
