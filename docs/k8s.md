@@ -218,9 +218,6 @@
   
     # [Helm] 回滾至 Revision 版本1
     make rollback ver=1
-    
-    # [Hybrid] 重新部署 ( clean + build + deploy ) + 指定映像檔 v1
-    make redeploy ver=v1
 
     # [Hybrid] 徹底清除
     make clean
@@ -236,16 +233,31 @@
         kubectl logs -f -l app=python-app --tail=10
   
         # 3. 砍服務
+        # K8s 會認為整棟房子都被拆了，所以會重新蓋一棟房子，Pod 名稱會改變（後面的隨機碼會換）
         kubectl delete pod -l app=postgres
   
         # 4. 是否復原 ? ( python 成功連線 + DB 服務恢復 )
 
     
     👁️ 測試 2: 容器層級故障 ( Docker 逃逸測試 )
-        # 用 docker stop python => 觀察 k8s 是否有復原容器
+        # 1. [持續觀察] 整體 pods ( 含 RESTART 欄位 )
+        kubectl get pods -w
+  
+        # 2. [持續觀察] python logs
+        kubectl logs -f -l app=python-app --tail=10
+  
+        # 3. 砍容器 ( 進入 minikube 內部 ) # RESTART 會計數 +1
+        minikube ssh
+        docker ps | grep python-worker
+  
+        # K8s 認為房子（Pod）還在，只是裡面的房客（Container）昏倒了。
+        # 它會直接在「原有的房子」裡重啟房客，所以 Pod 名稱保持不變，但 RESTARTS 次數會累加。
+        docker stop <CONTAINER_ID>
+  
+        # 4. 是否復原 ? ( 是否有復原容器 )
   
     👁️ 測試 3: 滾動更新 ( Rolling Update )
-        ☄️ helm = 版本控制指揮官
+        ☄️ helm => 版本控制指揮官
         # 1. 觀察映像檔使用狀態
         docker images | grep "my-python-app"
   
@@ -261,7 +273,7 @@
         # 4. 觀察映像檔使用狀態
   
     👁️ 測試 4：設定錯誤與回滾 (Rollback)
-        ☄️ helm = 版本控制指揮官
+        ☄️ helm => 版本控制指揮官
         # 1. 查看 Helm 歷史紀錄 ( 確認上一個穩定的 Revision )
         helm history my-dev-release
   
@@ -272,6 +284,20 @@
         docker images | grep "my-python-app"
   
     👁️ 測試 5：配置更新自動觸發重啟 (Reloader)
+  
+  
+    👁️ 測試 6：網路層級（Service 斷線測試）
+  
+  
+    👁️ 測試 7：資源限制 (Resource Limit - OOMKilled)
+  
+  
+    👁️ 測試 8：親和性與反親和性 (Anti-Affinity)
+  
+  
+    👁️ 測試 9：存活探針故障 (Liveness Probe Failure)
+  
+  
     ```
 
 <br><br>

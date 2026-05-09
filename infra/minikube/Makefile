@@ -21,13 +21,13 @@ build:
 clean:
 	@echo "* 徹底清除"
 	@echo "1. 正在移除 Helm Release"
-	-helm uninstall $(RELEASE_NAME)
+	helm uninstall $(RELEASE_NAME) || true
 	@echo "2. 正在強制移除所有殘留資源 (ConfigMap/Secret/PVC)"
-#	-kubectl delete configmap app-config
-#	-kubectl delete secret db-secret
-#	-kubectl delete pvc --all
-#	kubectl wait --for=delete configmap/app-config --timeout=30s 2>/dev/null || true
-	kubectl delete cm,secret,pvc,deployment,service,ingress --all
+	helm uninstall my-dev-release || true
+	kubectl delete configmap app-config --ignore-not-found
+	kubectl delete secret db-secret --ignore-not-found
+	kubectl delete pvc --all --ignore-not-found
+	kubectl delete cm,deployment,service,ingress --all
 	@echo "* 清理完畢"
 
 deploy:
