@@ -176,7 +176,7 @@ minikube version
 
 <br>
 
-### *D.　[ ⚠️ 實作環境衝突 ] Install K3s*
+### *D.　Install K3s　...　⚠️ 實作環境衝突 T.T*
 ```
 # 建立單節點 ( The Server Node )
     1. 安裝 + 驗證
