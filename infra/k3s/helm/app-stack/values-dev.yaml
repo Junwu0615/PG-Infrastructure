@@ -1,0 +1,6 @@
+# values-dev.yaml
+# 透過外部注入更動預設值 ; 只上傳基本欄位格式
+
+replicaCount: 1
+dbPassword: "dev-password"
+storageClass: "standard" # MiniKube 預設

@@ -17,7 +17,6 @@
 sudo chmod 644 /etc/rancher/k3s/k3s.yaml
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
-
 # 映像檔遷移問題
 [1] 暴力解 | 既有映像檔傳入
 docker save my-app:v4 | sudo k3s ctr images import -
@@ -40,6 +39,16 @@ docker save my-app:v4 | sudo k3s ctr images import -
 
 # 可檢視機器名字出現在列表
 kubectl get nodes
+```
+
+### *D.　測試驗證*
+```
+👁️ 測試 10：親和性實踐 ( K3s 多節點必做 )
+    情境： 希望 Python App 跑在 VM-2，而 Postgres DB 跑在 VM-1
+    
+    1. kubectl label node vm-2 type=frontend
+    2. python-app-deploy.yaml 加入 nodeSelector
+    3. kubectl get pods -o wide
 ```
 
 <br><br><br>

@@ -1,0 +1,33 @@
+# helm/app-stack/templates/postgres/db-deploy.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-db
+  annotations:
+    reloader.stakater.com/auto: "true" # 測試 5：配置更新自動觸發重啟 ( Reloader )
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        env:
+        - name: POSTGRES_DB # 手動一對一指定
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_NAME
+        - name: POSTGRES_PASSWORD # 手動一對一指定
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: DB_PASSWORD
+        ports:
+        - containerPort: 5432

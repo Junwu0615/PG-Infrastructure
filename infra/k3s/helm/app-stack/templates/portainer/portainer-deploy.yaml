@@ -1,0 +1,32 @@
+# helm/app-stack/templates/portainer/portainer-deploy.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portainer
+spec:
+  selector:
+    matchLabels:
+      app: portainer
+  template:
+    metadata:
+      labels:
+        app: portainer
+    spec:
+      containers:
+      - name: portainer
+        image: portainer/portainer-ce:2.21.5
+        ports:
+        - containerPort: 9000
+        - containerPort: 9443
+        volumeMounts:
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+        - name: portainer-data
+          mountPath: /data
+      volumes:
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+      - name: portainer-data
+        emptyDir: {} # 測試用，重啟後資料會消失；正式建議用 PVC

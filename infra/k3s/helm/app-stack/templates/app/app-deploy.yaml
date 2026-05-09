@@ -1,0 +1,33 @@
+# helm/app-stack/templates/app/app-deploy.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-app
+  annotations:
+    reloader.stakater.com/auto: "true" # 測試 5：配置更新自動觸發重啟 ( Reloader )
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: python-app
+  template:
+    metadata:
+      labels:
+        app: python-app
+    spec:
+      containers:
+      - name: python-worker
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        command: ["python", "app.py"]
+
+        envFrom: # ConfigMap 裡的所有 Data 直接變成環境變數
+          - configMapRef:
+              name: app-config
+
+        env: # 手動一對一指定
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: DB_PASSWORD

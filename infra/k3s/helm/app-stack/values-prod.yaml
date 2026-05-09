@@ -1,0 +1,10 @@
+# values-prod.yaml
+# 透過外部注入更動預設值 ; 只上傳基本欄位格式
+
+replicaCount: 3             # 生產環境要高可用
+dbPassword: "super-secret-password-123"
+storageClass: "premium-rwo" # 假設雲端環境
+resources:                  # 生產環境必須限制資源
+  limits:
+    cpu: 500m
+    memory: 512Mi
