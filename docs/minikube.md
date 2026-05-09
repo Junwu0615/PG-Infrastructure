@@ -5,6 +5,15 @@
 ```
 k8s-manifests : 原始部署方式
 helm : 進階抽象部署方式 => 優先體驗
+
+# [ Con't Makefile ] 進入虛擬環境
+eval $(minikube docker-env)
+
+# [ Con't Makefile ] 退出虛擬環境
+eval $(minikube docker-env -u)
+
+# 確認當前環境位置
+docker info | grep Name
 ```
 
 | 組件 | 對應項目 | 若更新是否<br>自動重啟 Pod | 核心作用 |
@@ -74,6 +83,11 @@ make clean
 
 ### *D.　測試驗證*
 ```
+👁️ 測試 0: 取得需要對外交互的服務位置 確認能訪問服務
+    ex: Portainer
+    minikube service portainer-service --url
+
+
 👁️ 測試 1: Pod 故障自癒 ( 模擬服務崩潰 ) 
     1. [持續觀察] 整體 pods
         kubectl get pods -w

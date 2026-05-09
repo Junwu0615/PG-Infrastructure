@@ -50,6 +50,9 @@ kubectl get pvc
 # 檢查已被定義的服務 (被連線使用) 狀態
 kubectl get svc
 
+    # ⭐ 測試 DNS 解析 ( 容器內使用 )
+    nslookup postgres-service
+
 # 確認 ConfigMap 狀態
 kubectl get cm
 
@@ -90,6 +93,12 @@ kubectl port-forward svc/postgres-service 5432:5432
 
 # 檢查 Service 關聯到的端點 (Endpoints)
 kubectl get endpoints postgres-service
+
+# ⭐ [ 無法虛擬化名稱 ] 檢查具體噴錯原因
+kubectl describe pod portainer-59cf9d8764-mg54l
+
+# ⭐ [ 無法虛擬化名稱 ] 刪除目前的 Pod ( Deployment 自動開一個新的並重新拉取 )
+kubectl delete pod portainer-59cf9d8764-86m7h
 ```
   
 <br>

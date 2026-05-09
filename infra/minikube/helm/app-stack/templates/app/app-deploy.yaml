@@ -1,4 +1,4 @@
-# helm/app-stack/templates/python-app-deploy.yaml
+# helm/app-stack/templates/app/app-deploy.yaml
 
 apiVersion: apps/v1
 kind: Deployment

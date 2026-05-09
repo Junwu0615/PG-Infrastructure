@@ -1,4 +1,4 @@
-# helm/app-stack/templates/db-deploy.yaml
+# helm/app-stack/templates/postgres/db-deploy.yaml
 
 apiVersion: apps/v1
 kind: Deployment

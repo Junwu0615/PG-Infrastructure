@@ -2,7 +2,13 @@ RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
 
-.PHONY: build clean redeploy
+.PHONY: pull build clean deploy redeploy rollback
+
+pull:
+	@echo "* 虛擬環境內下載指定映像檔"
+	eval $(minikube docker-env) && \
+	docker pull portainer/portainer-ce:2.21.5 && \
+	docker images | grep portainer
 
 build:
 	@echo "1. 檢查是否有版本號且不為空"
@@ -56,3 +62,9 @@ rollback:
 	fi
 	@echo "* 當前設定錯誤 => 進行回滾"
 	helm rollback $(RELEASE_NAME) $(ver)
+
+prune:
+	@echo "* 清理 build cache + container + image + network + volume"
+	eval $(minikube docker-env) && \
+	docker system prune -a --volumes -f
+

@@ -11,6 +11,13 @@ spec:
   - host: myapp.local
     http:
       paths:
+      - path: /portainer
+        pathType: Prefix
+        backend:
+          service:
+            name: portainer-service
+            port:
+              number: 9000
       - path: /
         pathType: Prefix
         backend:
