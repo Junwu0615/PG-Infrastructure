@@ -4,6 +4,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: python-app
+  annotations:
+    reloader.stakater.com/auto: "true" # 測試 5：配置更新自動觸發重啟 ( Reloader )
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -29,11 +31,3 @@ spec:
               secretKeyRef:
                 name: db-secret
                 key: DB_PASSWORD
----
-apiVersion: v1
-kind: ConfigMap # 如果它只是個 Worker（只會主動去抓資料，沒人會連它），那它不需要 Service
-metadata:
-  name: app-config
-data:
-  DB_HOST: "postgres-service"
-  DB_NAME: "myapp"

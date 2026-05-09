@@ -4,6 +4,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres-db
+  annotations:
+    reloader.stakater.com/auto: "true" # 測試 5：配置更新自動觸發重啟 ( Reloader )
 spec:
   selector:
     matchLabels:
@@ -29,15 +31,3 @@ spec:
               key: DB_PASSWORD
         ports:
         - containerPort: 5432
----
-apiVersion: v1
-kind: Service # DB 需要 Service：因為 Python App 要「找到」它
-metadata:
-  name: postgres-service
-spec:
-  selector:
-    app: postgres
-  ports:
-    - protocol: TCP
-      port: 5432
-      targetPort: 5432

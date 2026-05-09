@@ -1,4 +1,5 @@
 # helm/app-stack/templates/configmap.yaml
+# 測試 5：配置更新自動觸發重啟 ( Reloader )
 
 apiVersion: v1
 kind: ConfigMap
@@ -7,3 +8,4 @@ metadata:
 data:
   DB_HOST: "postgres-service"
   DB_NAME: "myapp"
+  APP_MODE: "dev"

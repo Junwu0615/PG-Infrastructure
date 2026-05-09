@@ -39,6 +39,8 @@
     ```
     # 確認已被定義的容器 (含不需連線 + 需連線 + ...) 名稱
     kubectl get pods
+    # ⭐ 顯示標籤 ( 虛擬化簡稱 查找方便 )
+    kubectl get pods --show-labels
     # ⭐ 常駐觀察
     kubectl get pods -w
   
@@ -48,13 +50,13 @@
     # 檢查已被定義的服務 (被連線使用) 狀態
     kubectl get svc
 
-    # 確認 config 狀態
+    # 確認 ConfigMap 狀態
     kubectl get cm
   
     # ⭐ [ 組合技 ] 確認所有組件狀態
     kubectl get pods,pvc,svc,ingress,cm
 
-    # ⭐ 確認 log
+    # ⭐ 確認 log ( 可用虛擬化名稱 )
     kubectl logs -f -l app=python-app --tail=5
     
     # ⭐ [ 僅開發 ] 將 k8s 服務映射到外部 方便外部系統開發 ; 命令列狀態會常駐，除非退出
@@ -62,29 +64,29 @@
         # 內部一律採用 postgres-service 來解偶位置不同問題 ; 因為 k8s 的 IP 會浮動 => 高可用性
     
     # ⭐ 進入 pod 內部 (exec)
-        ☄️ 無法虛擬化簡稱
-        kubectl exec -it postgres-db-774b56c954-v8bsf -- bash
         kubectl exec -it pod/python-app-fd66fdf4c-s4kxv -- bash
         
-        # ⭐ 進階用法
-        kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- psql -U postgres
+        # ⭐ 進階用法: ☄️ 可虛擬化簡稱
+        kubectl exec -it $(kubectl get pods -l app=python-app -o name) -- bash
+        kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- bash
   
         # 直接進入 psql 終端機
-        kubectl exec -it postgres-db-774b56c954-5z6kw -- psql -U postgres
+        kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- psql -U postgres
         
         # 查看儲存資源
-        kubectl exec -it postgres-db-774b56c954-5z6kw -- df -h
+        kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- df -h
   
         # 確認環境變數是否被確實注入(查看敏感訊息...)
-        kubectl exec -it pod/python-app-fd66fdf4c-s4kxv -- env
-        kubectl exec -it postgres-db-774b56c954-5z6kw -- env
+        kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- env
+        kubectl exec -it $(kubectl get pods -l app=python-app -o name) -- env
     
-    # 若有動到 configmap.yaml 優雅重啟
-    kubectl rollout restart deployment python-app
+    ☄️ 建議直接透過 Helm 統一管理
+        # 若有動到 configmap.yaml 優雅重啟
+        kubectl rollout restart deployment python-app
 
-    # 強制移除節點
-    kubectl delete pod -l app=postgres
-    -- 預期 Python Log 會顯示開始報錯重試，直到 K8s 自動把 Postgres Pod 重啟回來後，連線又會恢復。
+        # 強制移除節點
+        kubectl delete pod -l app=postgres
+        -- 預期 Python Log 會顯示開始報錯重試，直到 K8s 自動把 Postgres Pod 重啟回來後，連線又會恢復。
     
     # 檢查 Service 關聯到的端點 (Endpoints)
     kubectl get endpoints postgres-service
@@ -104,7 +106,7 @@
 - #### *使用方式*
     ```
     # 部署方式 ( 啟動/更新/移除 )
-        # ⭐ [1] 啟動/更新 Helm 部署 ( DEV 設置 )
+        # ⭐ [1] 啟動/更新 Helm 部署 ( DEV 設置 ) + 外部傳入設定: image tags
         helm upgrade --install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml --set image.tag=v1
         
         # [2.1] 先解除安裝
@@ -113,13 +115,13 @@
         # [2.2] 再重新安裝
         helm install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
         
-    # ⭐ 查看目前的 release 列表與版本次數 (REVISION)
+    # ⭐ 查看目前的 release 列表與版本次數 ( REVISION )
     helm list
     
-    # ⭐ 查看該 release 的詳細歷史紀錄
-    helm history my-dev-release
+        # ⭐ 查看該 release 的詳細歷史紀錄
+        helm history my-dev-release
   
-    # ⭐ 一次性刪除該 Release 下所有的 Service, Deployment, ConfigMap, Ingress
+    # 一次性刪除該 Release 下所有的 Service, Deployment, ConfigMap, Ingress
     helm uninstall my-dev-release
     ```
 
@@ -226,78 +228,141 @@
 - #### *b.4.　測試驗證*
     ```
     👁️ 測試 1: Pod 故障自癒 ( 模擬服務崩潰 ) 
-        # 1. [持續觀察] 整體 pods
-        kubectl get pods -w
+        1. [持續觀察] 整體 pods
+            kubectl get pods -w
   
-        # 2. [持續觀察] python logs
-        kubectl logs -f -l app=python-app --tail=10
+        2. [持續觀察] python logs
+            kubectl logs -f -l app=python-app --tail=10
   
-        # 3. 砍服務
-        # K8s 會認為整棟房子都被拆了，所以會重新蓋一棟房子，Pod 名稱會改變（後面的隨機碼會換）
-        kubectl delete pod -l app=postgres
+        3. 砍服務
+            # K8s 會認為整棟房子都被拆了，所以會重新蓋一棟房子，Pod 名稱會改變（後面的隨機碼會換）
+            kubectl delete pod -l app=postgres
   
-        # 4. 是否復原 ? ( python 成功連線 + DB 服務恢復 )
+        4. 是否復原 ? ( python 成功連線 + DB 服務恢復 )
 
     
-    👁️ 測試 2: 容器層級故障 ( Docker 逃逸測試 )
-        # 1. [持續觀察] 整體 pods ( 含 RESTART 欄位 )
-        kubectl get pods -w
+    👁️ 測試 2: 容器層級故障 ( 容器逃逸測試 )
+        1. [持續觀察] 整體 pods ( 含 RESTART 欄位 )
+            kubectl get pods -w
   
-        # 2. [持續觀察] python logs
-        kubectl logs -f -l app=python-app --tail=10
+        2. [持續觀察] python logs
+            kubectl logs -f -l app=python-app --tail=10
   
-        # 3. 砍容器 ( 進入 minikube 內部 ) # RESTART 會計數 +1
-        minikube ssh
-        docker ps | grep python-worker
+        3. 砍容器 ( 進入 minikube 內部 ) # RESTART 會計數 +1
+            minikube ssh
+            docker ps | grep python-worker
   
-        # K8s 認為房子（Pod）還在，只是裡面的房客（Container）昏倒了。
-        # 它會直接在「原有的房子」裡重啟房客，所以 Pod 名稱保持不變，但 RESTARTS 次數會累加。
-        docker stop <CONTAINER_ID>
+            # K8s 認為房子（Pod）還在，只是裡面的房客（Container）昏倒了。
+            # 它會直接在「原有的房子」裡重啟房客，所以 Pod 名稱保持不變，但 RESTARTS 次數會累加。
   
-        # 4. 是否復原 ? ( 是否有復原容器 )
+            docker stop <CONTAINER_ID>
+  
+        4. 是否復原 ? ( 是否有復原容器 )
+  
   
     👁️ 測試 3: 滾動更新 ( Rolling Update )
         ☄️ helm => 版本控制指揮官
-        # 1. 觀察映像檔使用狀態
-        docker images | grep "my-python-app"
+        1. 觀察映像檔使用狀態
+            docker images | grep "my-python-app"
   
-        # 2. 改動 Images => 觀察 k8s 是否有熱重啟 ( 透過 logs 檢視 )
-        make build ver=v2
+        2. 改動 Images => 觀察 k8s 是否有熱重啟 ( 透過 logs 檢視 )
+            make build ver=v2
   
-        # 3. 更新配置
-          - 告訴 helm 當前配置應指向 images v2
-          - 直接執行 upgrade 而非 kubectl rollout
-          - 幕等性
-        make deploy ver=v2
+        3. 更新配置
+            - 告訴 helm 當前配置應指向 images v2
+            - 直接執行 upgrade 而非 kubectl rollout
+            - 幕等性
+            make deploy ver=v2
   
-        # 4. 觀察映像檔使用狀態
+        4. 觀察映像檔使用狀態
   
-    👁️ 測試 4：設定錯誤與回滾 (Rollback)
+  
+    👁️ 測試 4：錯誤與回滾 ( Rollback )
         ☄️ helm => 版本控制指揮官
-        # 1. 查看 Helm 歷史紀錄 ( 確認上一個穩定的 Revision )
-        helm history my-dev-release
+        1. 查看 Helm 歷史紀錄 ( 確認上一個穩定的 Revision )
+            helm history my-dev-release
   
-        # 回滾上一版本 (只的是 REVISION 而非 Images 版本)
-        make rollback ver=5
+        2. 回滾上一版本 (只的是 REVISION 而非 Images 版本)
+            make rollback ver=5
   
-        # 觀察是否回滾到上一版本
-        docker images | grep "my-python-app"
-  
-    👁️ 測試 5：配置更新自動觸發重啟 (Reloader)
+        3. 觀察是否回滾到上一版本
+            docker images | grep "my-python-app"
   
   
-    👁️ 測試 6：網路層級（Service 斷線測試）
+    👁️ 測試 5：配置更新自動觸發重啟 ( Reloader )
+        情境：  K8s 原生的 ConfigMap 更新時，Pod 內的環境變數並不會自動改變。通常需要手動重啟 Pod。
+               測試將利用開源工具 `Reloader` 實現「改完設定，Pod 自動轉圈圈更新」。
+
+        1.1  安裝 Reloader：
+            helm repo add stakater https://stakater.github.io/stakater-charts
+            helm install reloader stakater/reloader
+        1.2 helm list 可發現多一個服務
+  
+        2.  在 Deployment 加入 Annotation：
+            在 Deployment Metadata 中加入 `[reloader.stakater.com/auto](https://reloader.stakater.com/auto): "true"`
+  
+        3.  修改 ConfigMap：
+            kubectl get cm # 確認欲修改的目標
+            
+            載入當前配置
+            kubectl get configmap app-config -o yaml
+            
+            修改一個連線字串或環境變數 => 測試
+            [1] 指令: kubectl edit configmap app-config
+            [2] 直接: helm/app-stack/templates/configmap.yaml
+  
+        4. [持續觀察] 整體 pods ( 含 RESTART 欄位 )
+            kubectl get pods -w
+            會發現 Pod 觸發了 Rolling Update => 證明了配置聯動更新成功
   
   
-    👁️ 測試 7：資源限制 (Resource Limit - OOMKilled)
+    👁️ [ X ] 測試 6：網路層級（Service 斷線測試）
+        情境：  模擬「服務雖然在，但路徑斷了」~
+               這能讓你理解 Service (ClusterIP) 是如何透過 iptables/IPVS 進行負載平衡，
+               以及當 Service 被刪除時，客戶端會發生什麼事。
+
+        1.  持續請求測試：
+            開啟一個臨時 Pod 不斷存取你的 Python App：
+            `kubectl run tracer --image=curlimages/curl -i --tty --rm -- sh`
+            `while true; do curl -s http://python-app-service:port/health; sleep 1; done`
+        2.  刪除 Service：
+            `kubectl delete svc python-app-service`
+        3.  觀察：
+            你會看到 `curl` 開始報錯 (Connection refused)。這模擬了「進入點故障」
+        4.  恢復 Service：
+            重新執行 `make deploy` 或 `kubectl apply`
+        5.  驗證：
+            觀察 `curl` 是否在 Service 重建後秒速恢復連線
   
   
-    👁️ 測試 8：親和性與反親和性 (Anti-Affinity)
+    👁️ [ X ] 測試 7：資源限制 (Resource Limit - OOMKilled)
+        情境： 最經典的「抓戰犯」環節。
+              當程式碼有 Memory Leak，或是給的資源太小，K8s 會狠心地殺掉它。
+  
+        1.  限制資源：
+            在 Helm Chart 的 `resources.limits.memory` 設定一個極小值（例如 `50Mi`）
+        2.  觸發記憶體壓力：
+            在 Python App 寫一個暫時的 API 或是用腳本吃掉記憶體：
+        3.  觀察狀態：
+            `kubectl get pods`
+            你會看到 Pod 狀態變為 **OOMKilled**，然後重啟
+        4.  檢查細節：
+            `kubectl describe pod <pod-name>`
+            在 `Last State` 欄位會明確標註 `Reason: OOMKilled`
   
   
-    👁️ 測試 9：存活探針故障 (Liveness Probe Failure)
+    👁️ [ X ] 測試 8：親和性與反親和性 (Anti-Affinity)
+        目標：  確保你的 DB 與 App 不要住在同一個 Node（避免單一節點損壞時全滅）
+        做法：  配置 `podAntiAffinity`，然後觀察 `kubectl get pods -o wide`，
+               確認 Pod 是否散佈在不同節點（minikube 可開啟多節點模式 `minikube start -n 2`）
   
   
+    👁️ [ X ] 測試 9：存活探針故障 (Liveness Probe Failure)
+        目標：  模擬程式「雖然沒當掉，但死鎖 (Deadlock) 了」
+        做法：
+               配置 `livenessProbe` 檢查 `/health` 接口
+               透過代碼模擬 `/health` 永遠回傳 `500 Error` 或逾時
+               觀察 K8s 如何在不刪除 Pod 的情況下，自動「重啟內部容器」來試圖修復它
     ```
 
 <br><br>
