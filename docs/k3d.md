@@ -98,10 +98,20 @@ kubectl logs -f -l app=python-app --tail=5
     情境： 現在 Pod 散落在兩台機器上，我們來驗證 Service 是否能正確導流
     
     1. 進入 Python Pod
-    kubectl exec -it python-app -- sh
+    kubectl exec -it $(kubectl get pods -l app=python-app -o name) -- sh
     
     2. 在 Pod 裡面測試連線（ 跨越 agent-1 到 agent-0 ）
-    nc -zv postgres-db-service 5432
+    python3 -c "import socket; s = socket.socket(); s.settimeout(5); print(s.connect_ex(('postgres-service', 5432)) == 0)"
+    => True ( 成功 )
+    
+    
+👁️ 測試 13：橫向自動伸縮 (HPA - Horizontal Pod Autoscaler)
+
+👁️ 測試 14：零停機更新與回滾 (Rolling Update & Rollback)
+
+👁️ 測試 15：持久化儲存與節點漂移 (PV / PVC / Local Path)
+
+👁️ 測試 16：Ingress 流量入口 (Traefik)
 ```
 
 <br><br><br>

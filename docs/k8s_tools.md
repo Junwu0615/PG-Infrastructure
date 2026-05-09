@@ -47,6 +47,9 @@ kubectl get pods -w
 # 確認 pvc (儲存) 狀態
 kubectl get pvc
 
+# 確認 節點 狀態
+kubectl get nodes
+
 # 檢查已被定義的服務 (被連線使用) 狀態
 kubectl get svc
 
@@ -57,7 +60,7 @@ kubectl get svc
 kubectl get cm
 
 # ⭐ [ 組合技 ] 確認所有組件狀態
-kubectl get pods,pvc,svc,ingress,cm
+kubectl get pods,pvc,svc,ingress,cm,nodes
 
 # ⭐ 確認 log ( 可用虛擬化名稱 )
 kubectl logs -f -l app=python-app --tail=5
@@ -104,8 +107,11 @@ kubectl delete pod portainer-59cf9d8764-86m7h
     # 查看所有標籤
     kubectl get nodes --show-labels
     
-    # 特定標籤 ( service )
+    ⭐ # 特定標籤 ( service )
     kubectl get nodes -L service-type
+    
+# ⭐ 刪除異常節點 ( 幽靈 )
+kubectl delete node <node name>
 ```
   
 <br>
