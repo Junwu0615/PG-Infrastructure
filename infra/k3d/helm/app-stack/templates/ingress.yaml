@@ -1,0 +1,27 @@
+# helm/app-stack/templates/ingress.yaml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: myapp.local
+    http:
+      paths:
+      - path: /portainer
+        pathType: Prefix
+        backend:
+          service:
+            name: portainer-service
+            port:
+              number: 9000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: python-service
+            port:
+              number: 80

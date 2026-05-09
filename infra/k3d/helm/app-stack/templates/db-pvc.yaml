@@ -1,0 +1,14 @@
+# helm/app-stack/templates/db-pvc.yaml
+# 在 K8s 中，Pod 的硬碟是「臨時的」，Pod 一死，裡面的資料就消失
+# PVC 就像是一塊「外掛硬碟」，它讓資料脫離 Pod 的生命週期。即便你刪掉 DB Pod，只要 PVC 還在，新啟動的 DB Pod 掛載同一個 PVC，資料就會重現
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

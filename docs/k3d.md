@@ -11,11 +11,19 @@
 
 <br>
 
-### *B.　建立單節點 ( The Server Node )*
+### *B.　測試前準備*
 ```
-# 獲取存取權限 => 當前使用者可以操作 kubectl
-sudo chmod 644 /etc/rancher/k3s/k3s.yaml
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+# 1. 獲取存取權限 => 當前使用者可以操作 kubectl
+# ⚠️ 若先前用 k3s 改動設定則 ...
+    unset KUBECONFIG
+    刪除底部設定的 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+    source ~/.bashrc
+
+sudo chmod 644 ~/.kube/config
+k3d kubeconfig get mycluster > ~/.kube/config
+
+# 2. 驗證節點狀態
+kubectl get nodes
 
 # 映像檔遷移問題
 [1] 暴力解 | 既有映像檔傳入
@@ -25,23 +33,7 @@ docker save my-app:v4 | sudo k3s ctr images import -
 
 <br>
 
-### *C.　多節點*
-```
-# 第 1 台
-    # 獲取 Token
-    sudo cat /var/lib/rancher/k3s/server/node-token
-    # 獲取 Server IP
-    hostname -I | awk '{print $1}'
-    
-# 第 2 - N 台
-    curl -sfL https://get.k3s.io | K3S_URL=https://<SERVER_IP>:6443 K3S_TOKEN=<NODE_TOKEN> sh -
-
-
-# 可檢視機器名字出現在列表
-kubectl get nodes
-```
-
-### *D.　測試驗證*
+### *C.　測試驗證*
 ```
 👁️ 測試 10：親和性實踐 ( K3s 多節點必做 )
     情境： 希望 Python App 跑在 VM-2，而 Postgres DB 跑在 VM-1
@@ -49,6 +41,12 @@ kubectl get nodes
     1. kubectl label node vm-2 type=frontend
     2. python-app-deploy.yaml 加入 nodeSelector
     3. kubectl get pods -o wide
+    
+👁️ 測試 11：觀察 Pod 散佈
+    情境： 有了 3 個節點 => 測試 K8s 如何分配任務
+
+    make deploy ver=v4
+    kubectl get pods -o wide
 ```
 
 <br><br><br>

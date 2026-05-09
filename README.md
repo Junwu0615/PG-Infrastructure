@@ -252,8 +252,9 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 - #### *d.4.　[Docker Compose + Terraform & Ansible](./docs/docker_compose.md)*
 - #### *d.5.　[K8s Tools](./docs/k8s_tools.md)*
 - #### *d.6.　[MiniKube](./docs/minikube.md)*
-- #### *d.7.　[K3s](./docs/k3s.md)*
-- #### *d.8.　[Kubeadm](./docs/kubeadm.md)*
-- #### *d.9.　[GCP](./docs/gcp.md)*
+- #### *d.7.　[K3s ... ⚠️ 實作環境衝突 T.T](./docs/k3s.md)*
+- #### *d.8.　[K3d](./docs/k3d.md)*
+- #### *d.9.　[Kubeadm](./docs/kubeadm.md)*
+- #### *d.10.　[GCP](./docs/gcp.md)*
 
 <br><br><br>

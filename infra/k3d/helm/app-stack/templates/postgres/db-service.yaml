@@ -1,0 +1,14 @@
+# helm/app-stack/templates/postgres/db-service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service  # 必須與 ConfigMap 中的 DB_HOST 一致
+spec:
+  selector:
+    app: postgres         # 這裡必須對應到 Deployment 裡的 labels.app
+  ports:
+    - protocol: TCP
+      port: 5432          # Service 對外暴露的連接埠
+      targetPort: 5432    # Pod 內部容器監聽的連接埠
+  type: ClusterIP         # 僅限集群內部存取

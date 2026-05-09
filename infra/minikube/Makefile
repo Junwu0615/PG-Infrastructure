@@ -2,7 +2,7 @@ RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
 
-.PHONY: pull build clean deploy redeploy rollback
+.PHONY: image_load build clean deploy redeploy rollback
 
 image_load:
 	@echo "* 本地映像檔傳入虛擬環境"
