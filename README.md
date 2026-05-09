@@ -2,8 +2,6 @@
 
 ## *⭐ PG-Infrastructure ⭐*
 
-<br>
-
 ### *A.　Roadmap*
 
 <details>
@@ -95,8 +93,34 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   └── wsl2
     ├── gcp
     ├── k3s
+    │   ├── ansible
+    │   │   ├── inventory
+    │   │   └── playbooks
+    │   └── terraform
+    │       ├── environments
+    │       │   └── minikube
+    │       └── modules
     ├── kubeadm
     └── minikube
+        ├── Makefile
+        ├── app
+        │   ├── app.py
+        │   └── dockerfile
+        │       └── Dockerfile.app
+        ├── helm
+        │   └── app-stack
+        │       ├── Chart.yaml
+        │       ├── templates
+        │       │   ├── configmap.yaml
+        │       │   ├── db-deploy.yaml
+        │       │   ├── db-pvc.yaml
+        │       │   ├── ingress.yaml
+        │       │   ├── python-app-deploy.yaml
+        │       │   └── secret.yaml
+        │       ├── values-dev.yaml
+        │       ├── values-prod.yaml
+        │       └── values.yaml
+        └── k8s-manifests
 ```
 
 </ul>

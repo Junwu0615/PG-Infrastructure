@@ -1,7 +1,7 @@
 ## *MiniKube*
 
 
-#### *A.　說明*
+### *A.　說明*
 ```
 k8s-manifests : 原始部署方式
 helm : 進階抽象部署方式 => 優先體驗
@@ -21,7 +21,7 @@ helm : 進階抽象部署方式 => 優先體驗
 
 <br>
 
-#### *B.　Minikube 完整生命週期*
+### *B.　Minikube 完整生命週期*
 ```
 # 初始化 (Provisioning)
     [每次] # Start: 指定使用 docker driver
@@ -57,7 +57,7 @@ minikube delete
     下次需要重新 minikube start --driver=docker
 ```
 
-#### *C.　Makefile Command*
+### *C.　Makefile Command*
 ```
 # [Docker] 建構測試腳本映像檔 + 版本號設定 v1
 make build ver=v1
@@ -72,7 +72,7 @@ make rollback ver=1
 make clean
 ```
 
-#### *D.　測試驗證*
+### *D.　測試驗證*
 ```
 👁️ 測試 1: Pod 故障自癒 ( 模擬服務崩潰 ) 
     1. [持續觀察] 整體 pods
