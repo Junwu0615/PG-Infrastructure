@@ -2,27 +2,74 @@ RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
 
-.PHONY: image_load test_clean
+.PHONY: image_load build clean deploy redeploy rollback
 
 image_load:
+	@echo "1. 檢查是否有版本號且不為空"
+	@if [ -z "$(ver)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make redeploy ver=v1"; \
+		exit 1; \
+	fi
 	@echo "* 本地映像檔傳入虛擬環境"
-	minikube image load portainer/portainer-ce:2.21.5
-	@echo "✅ <make image_load> done."
+	k3d image import my-python-app:$(ver) -c mycluster
 
-test_clean:
-	# 1. 停止 systemd 服務 (如果存在)
-	-sudo systemctl stop k3s
+build:
+	@echo "1. 檢查是否有版本號且不為空"
+	@if [ -z "$(ver)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make build ver=v1"; \
+		exit 1; \
+	fi
+	@echo "* 2. 進入 app 目錄"
+	cd app && \
+	echo "* 3. Build Dockerfile" && \
+	docker build -t my-python-app:$(ver) -f ./dockerfile/Dockerfile.app . --no-cache && \
+	echo "* 4. Build Done" && \
+	docker images | grep my-python-app
+	@echo "✅ <make build> done."
 
-	# 2. 執行官方徹底清理腳本 (會處理掛載點、網路介面與檔案)
-	-if [ -f /usr/local/bin/k3s-killall.sh ]; then sudo /usr/local/bin/k3s-killall.sh; fi
+clean:
+	@echo "* 徹底清除"
+	@echo "1. 正在移除 Helm Release"
+	helm uninstall $(RELEASE_NAME) || true
+	@echo "2. 正在強制移除所有殘留資源 (ConfigMap/Secret/PVC)"
+	helm uninstall my-dev-release || true
+	kubectl delete configmap app-config --ignore-not-found
+	kubectl delete secret db-secret --ignore-not-found
+	kubectl delete pvc --all --ignore-not-found
+	kubectl delete cm,deployment,service,ingress --all
+	@echo "✅ <make clean> done."
 
-	# 3. 強制殺掉殘留的 containerd 進程 (K3s 內嵌版)
-	-sudo pkill -9 k3s
-	-sudo pkill -9 containerd
-	-sudo pkill -9 k3s-agent
+deploy:
+	@echo "1. 檢查是否有版本號且不為空"
+	@if [ -z "$(ver)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make deploy ver=v1"; \
+		exit 1; \
+	fi
+	@echo "* 僅安裝/更新 (不清理)"
+	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) -f $(VALUES_PATH) --set image.tag=$(ver)
+	@echo "✅ <make deploy> done."
 
-	# 4. 清理殘留的網路虛擬介面 (避免下次啟動網路衝突)
-	-sudo ip link delete cni0
-	-sudo ip link delete flannel.1
+redeploy: clean build
+	@echo "1. 檢查是否有版本號且不為空"
+	@if [ -z "$(ver)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make redeploy ver=v1"; \
+		exit 1; \
+	fi
+	@echo "* 重新部署中"
+	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) -f $(VALUES_PATH) --set image.tag=$(ver)
+	@echo "✅ <make redeploy> done."
 
-	@echo "✅ K3s 環境已徹底清理完畢"
+rollback:
+	@echo "1. 檢查是否有版本號且不為空"
+	@if [ -z "$(ver)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make redeploy ver=v1"; \
+		exit 1; \
+	fi
+	@echo "* 當前設定錯誤 => 進行回滾"
+	helm rollback $(RELEASE_NAME) $(ver)
+	@echo "✅ <make rollback> done."
+
+prune:
+	@echo "* 清理 build cache + container + image + network + volume"
+	docker system prune -a --volumes -f
+	@echo "✅ <make prune> done."

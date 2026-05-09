@@ -13,7 +13,7 @@
 
 ### *B.　測試前準備*
 ```
-# 1. 獲取存取權限 => 當前使用者可以操作 kubectl
+1. 獲取存取權限 => 當前使用者可以操作 kubectl
 # ⚠️ 若先前用 k3s 改動設定則 ...
     unset KUBECONFIG
     刪除底部設定的 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
@@ -22,19 +22,26 @@
 sudo chmod 644 ~/.kube/config
 k3d kubeconfig get mycluster > ~/.kube/config
 
-# 2. 驗證節點狀態
+2. 驗證節點狀態
 kubectl get nodes
 
-# 映像檔遷移問題
-[1] 暴力解 | 既有映像檔傳入
-docker save my-app:v4 | sudo k3s ctr images import -
-[2] 建立 Docker Registry 優雅拉取
+3. 建立映像檔 + 傳入虛擬環境 ( mycluster )
+make build ver=v4
+make image_load ver=v4
+
+4. 啟動 ...
+make deploy ver=v4
+
+5. 確認 Python 日誌
+kubectl logs -f -l app=python-app --tail=5
 ```
 
 <br>
 
 ### *C.　測試驗證*
 ```
+👁️ 持續觀察: kubectl get pods -w -o wide
+
 👁️ 測試 10：親和性實踐 ( K3s 多節點必做 )
     情境： 希望 Python App 跑在 VM-2，而 Postgres DB 跑在 VM-1
     

@@ -202,6 +202,7 @@ wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 k3d --version
 
 2. 建立集群 (一鍵搞定) : 建立一個包含 1 個 Server 和 2 個 Worker 的集群
+# 集群名稱 = mycluster
 k3d cluster create mycluster --agents 2
 ```
 

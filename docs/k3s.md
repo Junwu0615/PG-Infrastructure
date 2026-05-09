@@ -41,6 +41,8 @@ docker save my-app:v4 | sudo k3s ctr images import -
 kubectl get nodes
 ```
 
+<br>
+
 ### *D.　測試驗證*
 ```
 👁️ 測試 10：親和性實踐 ( K3s 多節點必做 )
