@@ -62,7 +62,7 @@
         # 內部一律採用 postgres-service 來解偶位置不同問題 ; 因為 k8s 的 IP 會浮動 => 高可用性
     
     # ⭐ 進入 pod 內部 (exec)
-        # ! 無法虛擬化簡稱
+        ☄️ 無法虛擬化簡稱
         kubectl exec -it postgres-db-774b56c954-v8bsf -- bash
         kubectl exec -it pod/python-app-fd66fdf4c-s4kxv -- bash
         
@@ -105,7 +105,7 @@
     ```
     # 部署方式 ( 啟動/更新/移除 )
         # ⭐ [1] 啟動/更新 Helm 部署 ( DEV 設置 )
-        helm upgrade --install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
+        helm upgrade --install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml --set image.tag=v1
         
         # [2.1] 先解除安裝
         helm uninstall my-dev-release
@@ -210,47 +210,68 @@
 
 - #### *b.3.　Makefile Command*
     ```
-    # 建構測試腳本映像檔
-    make build
+    # [Docker] 建構測試腳本映像檔 + 版本號設定 v1
+    make build ver=v1
     
-    # 部署指令
-    make deploy
+    # [Helm] 部署指令 + 指定映像檔 v1
+    make deploy ver=v1
+  
+    # [Helm] 回滾至 Revision 版本1
+    make rollback ver=1
     
-    # 徹底清除
+    # [Hybrid] 重新部署 ( clean + build + deploy ) + 指定映像檔 v1
+    make redeploy ver=v1
+
+    # [Hybrid] 徹底清除
     make clean
-    
-    # 重新部署 ( clean + build + deply )
-    make redeploy
     ```
 
 - #### *b.4.　測試驗證*
     ```
-    # 測試 1: Pod 故障自癒 ( 模擬服務崩潰 )
-      # 砍掉 DB => 觀察 python log 開始報錯 => 直到 k8s 將 DB 重啟後恢復連線
+    👁️ 測試 1: Pod 故障自癒 ( 模擬服務崩潰 ) 
+        # 1. [持續觀察] 整體 pods
+        kubectl get pods -w
+  
+        # 2. [持續觀察] python logs
+        kubectl logs -f -l app=python-app --tail=10
+  
+        # 3. 砍服務
+        kubectl delete pod -l app=postgres
+  
+        # 4. 是否復原 ? ( python 成功連線 + DB 服務恢復 )
+
     
-    # 測試 2: 容器層級故障 ( Docker 逃逸測試 )
-      # 用 docker stop python => 觀察 k8s 是否有復原容器
+    👁️ 測試 2: 容器層級故障 ( Docker 逃逸測試 )
+        # 用 docker stop python => 觀察 k8s 是否有復原容器
   
-    # 測試 3: 滾動更新 ( Rolling Update )
-      # 觀察映像檔使用狀態
-      docker images
+    👁️ 測試 3: 滾動更新 ( Rolling Update )
+        ☄️ helm = 版本控制指揮官
+        # 1. 觀察映像檔使用狀態
+        docker images | grep "my-python-app"
   
-      # 改動 Images => 觀察 k8s 是否有熱重啟 ( 透過 logs 檢視 )
-      make build
+        # 2. 改動 Images => 觀察 k8s 是否有熱重啟 ( 透過 logs 檢視 )
+        make build ver=v2
   
-      # 更新配置
-      helm upgrade my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
+        # 3. 更新配置
+          - 告訴 helm 當前配置應指向 images v2
+          - 直接執行 upgrade 而非 kubectl rollout
+          - 幕等性
+        make deploy ver=v2
   
-      # 執行重啟 ( v1 -> v2 )
-      kubectl rollout restart deployment/python-app
+        # 4. 觀察映像檔使用狀態
   
-    # 測試 4：設定錯誤與回滾 (Rollback)
-      # 觀察是否回滾到上一版本
+    👁️ 測試 4：設定錯誤與回滾 (Rollback)
+        ☄️ helm = 版本控制指揮官
+        # 1. 查看 Helm 歷史紀錄 ( 確認上一個穩定的 Revision )
+        helm history my-dev-release
   
-    # 回滾上一版本 (v1)
-    kubectl rollout undo deployment/python-app
+        # 回滾上一版本 (只的是 REVISION 而非 Images 版本)
+        make rollback ver=5
   
-    # 測試 5：配置更新自動觸發重啟 (Reloader)
+        # 觀察是否回滾到上一版本
+        docker images | grep "my-python-app"
+  
+    👁️ 測試 5：配置更新自動觸發重啟 (Reloader)
     ```
 
 <br><br>
