@@ -1,13 +1,14 @@
 # values.yaml
+# 應該要與 Docker-Registry ( 需先有服務 才有後續依賴 ) 結合才安全，都私有化
 
 replicaCount: 1
 
-image:
+image: # K8s 會先看本地有沒有 ; 若無則自動去網路 pull
   repository: my-python-app
   tag: v1
   pullPolicy: IfNotPresent
 
-postgres:
+postgres: # 預設直接 pull
   storage: 1Gi
   user: postgres
   dbName: myapp

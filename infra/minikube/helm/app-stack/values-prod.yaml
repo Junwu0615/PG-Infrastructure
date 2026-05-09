@@ -1,4 +1,5 @@
 # values-prod.yaml
+# 透過外部注入更動預設值 ; 只上傳基本欄位格式
 
 replicaCount: 3             # 生產環境要高可用
 dbPassword: "super-secret-password-123"

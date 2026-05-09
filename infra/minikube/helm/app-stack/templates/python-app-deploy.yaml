@@ -29,7 +29,7 @@ spec:
                 key: DB_PASSWORD
 ---
 apiVersion: v1
-kind: ConfigMap
+kind: ConfigMap # 如果它只是個 Worker（只會主動去抓資料，沒人會連它），那它不需要 Service
 metadata:
   name: app-config
 data:
