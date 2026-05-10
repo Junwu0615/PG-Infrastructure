@@ -187,6 +187,12 @@ sudo hostnamectl set-hostname worker3
         sudo hostnamectl set-hostname worker1
         sudo reboot
         
+        
+⚠️ FIXME
+設置讓 VM 定時 Ping 宿主機 ( 因為會遇到"虛擬機網路深度睡眠" )
+    >> sudo crontab -e
+    >> * * * * * ping -c 1 192.168.0.15 > /dev/null 2>&1
+        
 ------ 
 * ✅ 外部連線清單如下
 - K3s Server ( master@master  ): ssh master@192.168.0.17
