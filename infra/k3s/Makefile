@@ -21,10 +21,10 @@ status:
 cluster_up:
 	@echo "* 啟動所有 VM ( 透過呼叫 Windows 宿主機指令 )"
 	@echo "1. 正在啟動虛擬機..."
-	@$(VBOX_MANAGE) startvm "master-node" --type headless
+	@$(VBOX_MANAGE) startvm "Master" --type headless
 	@$(VBOX_MANAGE) startvm "worker1" --type headless
-	@$(VBOX_MANAGE) startvm "worker2" --type headless
 	@$(VBOX_MANAGE) startvm "worker3" --type headless
+	@$(VBOX_MANAGE) startvm "worker4" --type headless
 	@echo "2. 等待系統開機與 K3s 就緒 ( 40s )..."
 	@sleep 40
 	@kubectl get nodes -o wide

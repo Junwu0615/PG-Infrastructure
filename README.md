@@ -92,14 +92,64 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │   └── variables.tf
     │   └── wsl2
     ├── gcp
+    ├── k3d
+    │   ├── Makefile
+    │   ├── app
+    │   │   ├── app.py
+    │   │   └── dockerfile
+    │   │       └── Dockerfile.app
+    │   └── helm
+    │       └── app-stack
+    │           ├── Chart.yaml
+    │           ├── templates
+    │           │   ├── app
+    │           │   │   └── app-deploy.yaml
+    │           │   ├── configmap.yaml
+    │           │   ├── db-pvc.yaml
+    │           │   ├── ingress.yaml
+    │           │   ├── portainer
+    │           │   │   ├── portainer-deploy.yaml
+    │           │   │   └── portainer-service.yaml
+    │           │   ├── postgres
+    │           │   │   ├── db-deploy.yaml
+    │           │   │   └── db-service.yaml
+    │           │   └── secret.yaml
+    │           ├── values-dev.yaml
+    │           ├── values-prod.yaml
+    │           └── values.yaml
     ├── k3s
+    │   ├── Makefile
     │   ├── ansible
-    │   │   ├── inventory
-    │   │   └── playbooks
+    │   │   ├── ansible.cfg
+    │   │   ├── hosts.ini
+    │   │   └── scripts
+    │   │       ├── deploy_k3s.yml
+    │   │       ├── init_nodes.yml
+    │   │       └── power_manage.yml
+    │   ├── app
+    │   │   ├── app.py
+    │   │   └── dockerfile
+    │   │       └── Dockerfile.app
+    │   ├── helm
+    │   │   └── app-stack
+    │   │       ├── Chart.yaml
+    │   │       ├── templates
+    │   │       │   ├── app
+    │   │       │   │   └── app-deploy.yaml
+    │   │       │   ├── configmap.yaml
+    │   │       │   ├── db-pvc.yaml
+    │   │       │   ├── ingress.yaml
+    │   │       │   ├── portainer
+    │   │       │   │   ├── portainer-deploy.yaml
+    │   │       │   │   └── portainer-service.yaml
+    │   │       │   ├── postgres
+    │   │       │   │   ├── db-deploy.yaml
+    │   │       │   │   └── db-service.yaml
+    │   │       │   └── secret.yaml
+    │   │       ├── values-dev.yaml
+    │   │       ├── values-prod.yaml
+    │   │       └── values.yaml
     │   └── terraform
-    │       ├── environments
-    │       │   └── minikube
-    │       └── modules
     ├── kubeadm
     └── minikube
         ├── Makefile
@@ -111,11 +161,17 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
         │   └── app-stack
         │       ├── Chart.yaml
         │       ├── templates
+        │       │   ├── app
+        │       │   │   └── app-deploy.yaml
         │       │   ├── configmap.yaml
-        │       │   ├── db-deploy.yaml
         │       │   ├── db-pvc.yaml
         │       │   ├── ingress.yaml
-        │       │   ├── python-app-deploy.yaml
+        │       │   ├── portainer
+        │       │   │   ├── portainer-deploy.yaml
+        │       │   │   └── portainer-service.yaml
+        │       │   ├── postgres
+        │       │   │   ├── db-deploy.yaml
+        │       │   │   └── db-service.yaml
         │       │   └── secret.yaml
         │       ├── values-dev.yaml
         │       ├── values-prod.yaml

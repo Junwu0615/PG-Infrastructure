@@ -324,13 +324,13 @@ make deploy_k3s
 # 檢視狀態 ( pods + nodes )
 make status
 
-# VM 開機
+# VM 開機 ( K3s 集群  )
 make cluster_up
 
-# VM 關機
+# VM 關機 ( K3s 集群  )
 make power_manage action=stop
 
-# VM 重新啟動
+# VM 重新啟動 ( K3s 集群  )
 make power_manage action=reboot
 ```
 
