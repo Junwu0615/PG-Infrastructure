@@ -14,7 +14,7 @@ spec:
         app: portainer
     spec:
       nodeSelector:
-        service-type: management # 強制 Pod => 指定標籤節點
+        service-type: service # 強制 Pod => 指定標籤節點
       containers:
       - name: portainer
         image: portainer/portainer-ce:2.21.5

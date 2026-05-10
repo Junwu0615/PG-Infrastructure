@@ -272,8 +272,21 @@ worker2   Ready    <none>          50m   v1.35.4+k3s1   192.168.0.19   <none>   
 worker3   Ready    <none>          50m   v1.35.4+k3s1   192.168.0.20   <none>        Debian GNU/Linux 13 (trixie)   6.12.86+deb13-amd64   containerd://2.2.3-k3s1
 
 
+# 3. 部署實際服務測試
+make deploy ver=v5
+    # 可發現不成功 因為還沒貼在 k3d 設置的標籤
 
-# 映像檔遷移問題
+    # 貼標籤 ( 有改動標籤配置 )
+    kubectl label nodes worker1 service-type=app --overwrite
+    kubectl label nodes worker2 service-type=app --overwrite
+    kubectl label nodes worker3 service-type=service --overwrite
+    
+    # 確認標籤
+    kubectl get nodes -L service-type
+
+
+# 4. 映像檔遷移問題 ( ImagePullBackOff )
+
 ```
 
 <br>
