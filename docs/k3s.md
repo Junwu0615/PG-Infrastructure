@@ -252,14 +252,14 @@ ansible all -i ./ansible/hosts.ini -m ping
 
 
 # 1. 系統健康檢查與環境初始化
-ansible-playbook -i ./ansible/hosts.ini ansible/init_nodes.yml
+ansible-playbook -i ./ansible/hosts.ini ansible/scripts/init_nodes.yml
 
 
 # 2. 部署 k3s
     - 在 Master 安裝 K3s 並提取 Token
     - 將 Token 動態發送給所有 Worker
     - 讓所有 Worker 自動加入 Master 形成集群
-ansible-playbook -i ./ansible/hosts.ini ansible/deploy_k3s.yml
+ansible-playbook -i ./ansible/hosts.ini ansible/scripts/deploy_k3s.yml
 
 # ✅ 確認整體節點是否都歸對
 kubectl get nodes -o wide
@@ -311,16 +311,27 @@ kubectl logs -f -l app=python-app --tail=5
 
 <br>
 
-### *D.　環境挑戰*
+### *D.　Makefile Command*
 ```
-1. 跨機通訊
-    >> k3d: 所有東西都在同一個 Docker Network
-    >> VM 環境：
-        - 防火牆： Master 的 6443 埠 ( API Server ) 必須開給 Worker
-        - Kubeconfig： 把 Master 裡的 /etc/rancher/k3s/k3s.yaml 
-            拷貝到主開發機 ( Win 11 ) 的 .kube/config，使可直接在 Windows 操控 VM 裡的集群
+# 系統健康檢查與環境初始化
+make init_nodes
 
-2. 
+# 部署 k3s
+make deploy_k3s
+
+------
+
+# 檢視狀態 ( pods + nodes )
+make status
+
+# VM 開機
+make cluster_up
+
+# VM 關機
+make power_manage action=stop
+
+# VM 重新啟動
+make power_manage action=reboot
 ```
 
 <br>
@@ -347,6 +358,8 @@ kubectl logs -f -l app=python-app --tail=5
     
     4. 測試是否能訪問
     http://portainer.local
+        # 若是觸發防護機制 則砍掉節點讓 k8s 重生它
+        kubectl delete pod -l app=portainer
 
 
 👁️ 測試 16： 橫向自動伸縮 ( HPA - Horizontal Pod Autoscaler )

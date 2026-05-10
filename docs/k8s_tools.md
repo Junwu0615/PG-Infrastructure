@@ -97,11 +97,15 @@ kubectl port-forward svc/postgres-service 5432:5432
 # 檢查 Service 關聯到的端點 (Endpoints)
 kubectl get endpoints postgres-service
 
-# ⭐⭐⭐ [ 病歷表 ] [ 無法虛擬化名稱 ] 檢查具體噴錯原因
+# ⭐⭐⭐ [ 病歷表 ] 檢查具體噴錯原因
 kubectl describe pod portainer-59cf9d8764-mg54l
+    # 虛擬化名稱
+    kubectl describe pod -l app=portainer
 
-# ⭐ [ 無法虛擬化名稱 ] 刪除目前的 Pod ( Deployment 自動開一個新的並重新拉取 )
+# ⭐ 刪除目前的 Pod ( Deployment 自動開一個新的並重新拉取 )
 kubectl delete pod portainer-59cf9d8764-86m7h
+    # 虛擬化名稱
+    kubectl delete pod -l app=portainer
 
 # 標籤問題
     # 查看所有標籤
@@ -176,7 +180,7 @@ minikube version
 
 <br>
 
-### *D.　Install K3d*
+### *E.　Install K3d*
 ```
 安裝 + 驗證
 wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
@@ -185,9 +189,9 @@ k3d --version
 
 <br>
 
-### *E.　Install K3s*
+### *F.　Install K3s*
 ```
-直接參考說明檔 docs/k3s.md
+參考說明檔 docs/k3s.md
 ```
 
 <br><br><br>

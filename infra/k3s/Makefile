@@ -1,9 +1,53 @@
 RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
+ANSIBLE_INI_PATH=./ansible/hosts.ini
+ANSIBLE_SCRIPTS_PATH=./ansible/scripts
 
-.PHONY: test_clean rollback deploy clean build
 
+# 找實際位置: Get-ChildItem -Path "C:\Program Files" -Filter VBoxManage.exe -Recurse -ErrorAction SilentlyContinue
+VBOX_MANAGE = "/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
+
+
+.PHONY: shutdown test_clean rollback deploy clean build \
+status cluster_up init_nodes deploy_k3s power_manage
+
+status:
+	@echo "* 檢查 k8s 狀態"
+	kubectl get nodes -o wide
+	#kubectl get pods -A
+	kubectl get pods -o wide
+
+cluster_up:
+	@echo "* 啟動所有 VM ( 透過呼叫 Windows 宿主機指令 )"
+	@echo "1. 正在啟動虛擬機..."
+	@$(VBOX_MANAGE) startvm "master-node" --type headless
+	@$(VBOX_MANAGE) startvm "worker1" --type headless
+	@$(VBOX_MANAGE) startvm "worker2" --type headless
+	@$(VBOX_MANAGE) startvm "worker3" --type headless
+	@echo "2. 等待系統開機與 K3s 就緒 ( 40s )..."
+	@sleep 40
+	@kubectl get nodes -o wide
+
+init_nodes:
+	@echo "* 初始化節點"
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/init_nodes.yml
+	@echo "✅ <make init_nodes> done."
+
+deploy_k3s:
+	@echo "* 部署 k3s"
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/deploy_k3s.yml
+	@echo "✅ <make deploy_k3s> done."
+
+power_manage:
+	@echo "* 電源管理 action = [stop / reboot]"
+	@echo "* 檢查是否有傳入 action 且不為空"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make power_manage action=stop"; \
+		exit 1; \
+	fi
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/power_manage.yml -e "action=$(action)" -K
+	@echo "✅ <make power_manage> done."
 
 test_clean:
 	# 1. 停止 systemd 服務 (如果存在)

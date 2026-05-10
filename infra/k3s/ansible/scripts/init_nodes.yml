@@ -1,4 +1,4 @@
-# ansible/init_nodes.yml
+# ansible/scripts/init_nodes.yml
 
 ---
 - name: 基礎環境檢查與優化
