@@ -4,7 +4,7 @@
 ### *A.　說明*
 ```
 k8s-manifests : 原始部署方式
-helm : 進階抽象部署方式 => 優先體驗
+helm : 進階抽象部署方式 => ⚠️ 優先體驗
 
 # [ Con't Makefile ] 進入虛擬環境
 eval $(minikube docker-env)
@@ -66,6 +66,8 @@ minikube delete
     下次需要重新 minikube start --driver=docker
 ```
 
+<br>
+
 ### *C.　Makefile Command*
 ```
 # [Docker] 建構測試腳本映像檔 + 版本號設定 v1
@@ -80,6 +82,8 @@ make rollback ver=1
 # [Hybrid] 徹底清除
 make clean
 ```
+
+<br>
 
 ### *D.　測試驗證*
 ```
