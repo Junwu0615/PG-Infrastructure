@@ -184,7 +184,7 @@ sudo hostnamectl set-hostname worker3
         sudo reboot
         
 ------ 
-* 外部連線清單如下
+* ✅ 外部連線清單如下
 - K3s Server ( master@master  ): ssh master@192.168.0.17
 - K3s Agent  ( master@worker1 ): ssh master@192.168.0.18
 - K3s Agent  ( master@worker2 ): ssh master@192.168.0.19
@@ -193,28 +193,58 @@ sudo hostnamectl set-hostname worker3
 
 <br>
 
-### *B.　建立單節點 ( Master Node )*
+### *B.　Master / Worker*
 ```
-# 獲取存取權限 => 當前使用者可以操作 kubectl
+* 可直接透過 "外部開發機" 用 SSH 依序進入設定配對
 
-# 映像檔遷移問題
+1. 設定配對
+>> Master
+    # Install K3s
+    curl -sfL https://get.k3s.io | sh -
+    
+    # ⚠️ 取得 Token ( Worker TOKEN )
+    sudo cat /var/lib/rancher/k3s/server/node-token
 
-# Install K3s
-curl -sfL https://get.k3s.io | sh -
+>> Worker ( 第 1 - 3 台 )
+    curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.17:6443 K3S_TOKEN=<Worker TOKEN> sh -
 
-# 取得加入節點用的 Token
-sudo cat /var/lib/rancher/k3s/server/node-token
 
-# 可檢視機器名字出現在列表
-kubectl get nodes
+2. 打通外部主機 kubectl ( Windows / WSL2 -> VM)
+    # [Master] 手動複製配置
+    sudo cat /var/lib/rancher/k3s/server/k3s.yaml
+    
+    # [外部開發機] 貼上配置 | 小調整 https://127.0.0.1:6443 => https://192.168.0.17:6443
+    nano ~/.kube/config-k3s-vm
+
+    # 獲取存取權限 => 當前使用者可以操作 kubectl
+    # 設定 kubectl 識別的 k8s 設定 ( 改為 k3s )
+        [短期]
+        export KUBECONFIG=~/.kube/config-k3s-vm
+        
+        [長期]
+        echo 'export KUBECONFIG=$HOME/.kube/config-k3s-vm' >> ~/.bashrc
+        source ~/.bashrc
+    
+    # 測試是否監控成功 ( 可檢視機器名字出現在列表 )
+    kubectl get nodes -o wide
 ```
 
 <br>
 
-### *C.　多節點 ( Worker Node )*
+### *C.　外部開發機 ( ansible )*
 ```    
-# 第 1 - N 台
-curl -sfL https://get.k3s.io | K3S_URL=https://<MASTER_IP>:6443 K3S_TOKEN=<NODE_TOKEN> sh -
+# ⚠️ SSH KEY 傳入
+    # 對四台機器執行 (只需執行一次)
+    ssh-copy-id master@192.168.0.17
+    ssh-copy-id master@192.168.0.18
+    ssh-copy-id master@192.168.0.19
+    ssh-copy-id master@192.168.0.20
+
+# ⚠️ 統一下發 ping 測試 
+ansible all -i ./ansible/hosts.ini -m ping
+
+
+# 映像檔遷移問題
 ```
 
 <br>

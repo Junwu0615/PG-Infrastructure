@@ -176,39 +176,18 @@ minikube version
 
 <br>
 
-### *D.　Install K3s　...　⚠️ 實作環境衝突 T.T*
-```
-# 建立單節點 ( The Server Node )
-    1. 安裝 + 驗證
-    curl -sfL https://get.k3s.io | sh -
-    k3s --version
-    
-    2. 解決權限問題
-    export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-    echo "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml" >> ~/.bashrc
-    source ~/.bashrc
-    
-    3. 修改檔案權限 ( 不加 sudo 也能跑 )
-    sudo chmod 644 /etc/rancher/k3s/k3s.yaml
-    
-    4. 啟動 k3s + 確認狀態
-    sudo systemctl start k3s
-    sudo systemctl status k3s
-    
-    5. 確認狀態
-    kubectl get nodes
-
-    ⭐ * 手動啟動 K3s 伺服器 (診斷模式)    
-    sudo k3s server --write-kubeconfig-mode 644 --node-name local-k3s --bind-address 127.0.0.1 --tls-san 127.0.0.1
-```
-
-<br>
-
-### *E.　Install K3d*
+### *D.　Install K3d*
 ```
 安裝 + 驗證
 wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 k3d --version
+```
+
+<br>
+
+### *E.　Install K3s*
+```
+直接參考說明檔 docs/k3s.md
 ```
 
 <br><br><br>
