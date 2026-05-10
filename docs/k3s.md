@@ -52,8 +52,8 @@ k3d -> k3s
     >> ❌ 無人值守安裝
     
     >> 敏感設置:
-        [Master Node] acc: master; pwd: 0000
-        [Worker Node] acc: worker; pwd: 123456
+        [Master] acc: master; pwd: 0000
+        [Worker] ⚠️ Clone Master
         
 
 其他
@@ -172,6 +172,10 @@ sudo hostnamectl set-hostname worker3
     
 >> 安裝 K3s 所需的最後組件
     - sudo apt install -y nfs-common
+    
+>> 取消 sudo 密碼認證
+    # sudo visudo ( 必須是末尾加上底下這行 / 不然會被蓋掉設定 )
+    - master  ALL=(ALL) NOPASSWD:ALL
 
 
 開啟 Worker ( ⚠️ Clone Master ) ex: worker1
@@ -232,7 +236,7 @@ sudo hostnamectl set-hostname worker3
 <br>
 
 ### *C.　外部開發機 ( ansible )*
-```    
+```
 # ⚠️ SSH KEY 傳入
     # 對四台機器執行 (只需執行一次)
     ssh-copy-id master@192.168.0.17
@@ -242,6 +246,31 @@ sudo hostnamectl set-hostname worker3
 
 # ⚠️ 統一下發 ping 測試 
 ansible all -i ./ansible/hosts.ini -m ping
+
+------
+✅ 手動運維 => 代碼定義基礎設施 (IaC) 領域
+
+
+# 1. 系統健康檢查與環境初始化
+ansible-playbook -i ./ansible/hosts.ini ansible/init_nodes.yml
+
+
+# 2. 部署 k3s
+    - 在 Master 安裝 K3s 並提取 Token
+    - 將 Token 動態發送給所有 Worker
+    - 讓所有 Worker 自動加入 Master 形成集群
+ansible-playbook -i ./ansible/hosts.ini ansible/deploy_k3s.yml
+
+# 確認整體節點是否都歸對 ( 底下成功展示 )
+kubectl get nodes -o wide
+
+pc@DESKTOP-PC:~$ kubectl get nodes -o wide
+NAME      STATUS   ROLES           AGE   VERSION        INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                       KERNEL-VERSION        CONTAINER-RUNTIME
+master    Ready    control-plane   53m   v1.35.4+k3s1   192.168.0.17   <none>        Debian GNU/Linux 13 (trixie)   6.12.86+deb13-amd64   containerd://2.2.3-k3s1
+worker1   Ready    <none>          50m   v1.35.4+k3s1   192.168.0.18   <none>        Debian GNU/Linux 13 (trixie)   6.12.86+deb13-amd64   containerd://2.2.3-k3s1
+worker2   Ready    <none>          50m   v1.35.4+k3s1   192.168.0.19   <none>        Debian GNU/Linux 13 (trixie)   6.12.86+deb13-amd64   containerd://2.2.3-k3s1
+worker3   Ready    <none>          50m   v1.35.4+k3s1   192.168.0.20   <none>        Debian GNU/Linux 13 (trixie)   6.12.86+deb13-amd64   containerd://2.2.3-k3s1
+
 
 
 # 映像檔遷移問題
@@ -265,6 +294,8 @@ ansible all -i ./ansible/hosts.ini -m ping
 
 ### *E.　測試驗證*
 ```
+👁️ 持續觀察 K8s 如何分配任務: kubectl get pods -w -o wide
+
 👁️ 測試 15： 橫向自動伸縮 (HPA - Horizontal Pod Autoscaler)
 
 👁️ 測試 16： 持久化儲存與節點漂移 (PV / PVC / Local Path)

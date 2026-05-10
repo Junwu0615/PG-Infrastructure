@@ -1,0 +1,31 @@
+# ansible/deploy_k3s.yml
+
+---
+- name: 部署 K3s Master
+  hosts: k3s_master
+  become: yes
+  tasks:
+    - name: 安裝 K3s Server
+      shell: curl -sfL https://get.k3s.io | sh -s - server --tls-san {{ ansible_host }} --write-kubeconfig-mode 644
+      args:
+        creates: /usr/local/bin/k3s # 防止重複安裝
+
+    - name: 讀取 Node Token
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: node_token_b64
+
+    - name: 設定 Token 變數供後續使用
+      set_fact:
+        k3s_token: "{{ node_token_b64.content | b64decode | trim }}"
+
+- name: 部署 K3s Workers
+  hosts: k3s_workers
+  become: yes
+  vars:
+    master_ip: "192.168.0.17"
+  tasks:
+    - name: 加入 K3s 集群
+      shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ master_ip }}:6443 K3S_TOKEN={{ hostvars['master-node'].k3s_token }} sh -"
+      args:
+        creates: /usr/local/bin/k3s-agent # 防止重複安裝
