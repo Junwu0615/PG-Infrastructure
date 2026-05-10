@@ -53,14 +53,131 @@ k3d -> k3s
     
     >> 敏感設置:
         [Master Node] acc: master; pwd: 0000
-        [Worker Node] acc: node; pwd: 123456
+        [Worker Node] acc: worker; pwd: 123456
         
 
 其他
     >> 進階體驗工具： Multipass ( 微型 VM 管理器 ) # ⚠️ 優先 [Terraform + Ansiable]
+
+    
+------
+VM 環境測試
+    >> ping google.com
+    >> 安裝必要工具：sudo, curl, vim
+    >> 帳號加入 sudo 權限
+        - su -  # 切換成 root ( 當初留空會無法使用; 用 sudo -i 繞過去 )
+        - apt update # 更新軟體清單
+        - apt install open-vm-tools -y # 可複製貼上 ( 未來直接依賴 SSH 操控; 不再進入 VM )
+        - apt install sudo curl vim -y
+        - apt install openssh-server -y # 安裝 SSH 伺服器
+        - systemctl enable --now ssh # SSH 啟動並設定開機自啟
+        - usermod -aG sudo master
+        - exit  # 重新登入生效
+    >> K3s 必要工具
+        - sudo apt install git net-tools htop -y
+    
+    
+Windows SSH 公鑰傳進 VM ( 免密碼登入 )
+    >> 產生 SSH Key ( 一路按 Enter 到底 )
+        - ssh-keygen -t ed25519
+    >> 將 Key 傳送到 VM ( master 改成目標帳號 )
+        - cat ~/.ssh/id_ed25519.pub | ssh master@192.168.0.17 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+    >> 手動一步步來
+        - master@master:~$ mv ~/.ssh/authorized_keys ~/.ssh/authorized_keys.bak
+        - master@master:~$ nano ~/.ssh/authorized_keys
+                <金鑰 # cat $HOME\.ssh\id_ed25519.pub # 複製貼上>
+        - master@master:~$ cat ~/.ssh/authorized_keys
+        - master@master:~$ chmod 700 ~/.ssh
+        - master@master:~$ chmod 600 ~/.ssh/authorized_keys
+        - master@master:~$ chown -R master:master ~/.ssh
+        - master@master:~$ chmod 755 /home/master
+        
+------
+⚠️ 設置 VM 固定 IP 位置
+# 既有連線更動
+    # 1. 查看目前的連線名稱 ( 有坑: enp0s3 )
+    sudo nmcli connection show
+    # 應該會看到 "Wired connection 1"
+    
+    # 2. 修改為靜態 IP (請將 192.168.0.15 改成你想要的 IP)
+    sudo nmcli connection modify "Wired connection 1" ifname enp0s3 ipv4.addresses 192.168.0.15/24 ipv4.gateway 192.168.0.1 ipv4.method manual
+    
+    # 3. 設定 DNS
+    sudo nmcli connection modify "Wired connection 1" ifname enp0s3 ipv4.dns "8.8.8.8,1.1.1.1"
+    
+    # 4. 重新啟動連線以生效
+    sudo nmcli connection up "Wired connection 1"
+
+# 刪除既有連線重建
+    # 1. 刪除所有現有的有線連線設定
+    sudo nmcli connection delete "Wired connection 1"
+    
+    # 2. 建立一個全新的連線，並直接綁定到 enp0s3
+    [手動]
+    sudo nmcli connection add type ethernet con-name my-net ifname enp0s3 ipv4.method manual ipv4.addresses 192.168.0.15/24 ipv4.gateway 192.168.0.1 ipv4.dns "8.8.8.8,1.1.1.1"
+    [自動獲取 IP]
+    sudo nmcli connection add type ethernet con-name my-net ifname enp0s3 ipv4.method auto ipv4.dns "8.8.8.8,1.1.1.1"
+    
+    # 3. 啟動它
+    sudo nmcli connection up my-net
+
+
+# 確認設定檔布林
+cat /etc/NetworkManager/NetworkManager.conf
+確認欄位 managed
+    # 若是 False ... false => true
+    sudo nano /etc/NetworkManager/NetworkManager.conf
+    # 重啟服務
+    sudo systemctl restart NetworkManager
+
+# 確認 VM 網卡上的真正 IP ( enp0s3 / ens33)
+ip addr show enp0s3
+
+# 確認 VM Gateway
+ip route
+
+#  確認 SSH 是否在監聽
+sudo ss -tunlp | grep :22
+
+------
+ssh username@vm-ip
+- 先確認
+    - 通常沒防火牆正常: sudo ufw status
+    - VM SSH 是否生效: sudo systemctl status ssh
+    - 將 IP 位置調整與本地一致
+        - [X] sudo nano /etc/network/interfaces
+        - [O] ⚠️ 設置 VM 固定 IP 位置
+- username = 安裝過程中建立的那個使用者帳號
+    - whoami 可確認 ( 可全部固定同一組? )
+- vm-ip = 主開發機位置 ( ex: 192.168.0.17 )
+    - Master       : ssh master@192.168.0.17
+    - Worker Node 1: ssh worker1@192.168.0.17
+    - Worker Node 2: ssh worker2@192.168.0.17
+    - Worker Node 3: ssh worker3@192.168.0.17
+             
+
+⚠️ 設定裝置對外名稱 ( 可覆蓋 ): 
+sudo hostnamectl set-hostname master
+sudo hostnamectl set-hostname worker1
+sudo hostnamectl set-hostname worker2
+sudo hostnamectl set-hostname worker3
+
+------
+開啟 Worker ( ⚠️ Clone Master ) 
+>> 時區設定
+    - sudo timedatectl set-timezone Asia/Taipei
+    
+>> 停用 Swap ( K3s/K8s 必做 )
+    - sudo swapoff -a
+    
+    # 編輯 /etc/fstab，把包含 swap 的那行開頭加個 # 註釋掉
+        - sudo nano /etc/fstab
+    
+>> 安裝 K3s 所需的最後組件
+    - sudo apt install -y nfs-common
 ```
 
-
+<br>
 
 ### *B.　建立單節點 ( Master Node )*
 ```
@@ -88,13 +205,27 @@ curl -sfL https://get.k3s.io | K3S_URL=https://<MASTER_IP>:6443 K3S_TOKEN=<NODE_
 
 <br>
 
-### *D.　測試驗證*
+### *D.　環境挑戰*
 ```
-👁️ 測試 15：橫向自動伸縮 (HPA - Horizontal Pod Autoscaler)
+1. 跨機通訊
+    >> k3d: 所有東西都在同一個 Docker Network
+    >> VM 環境：
+        - 防火牆： Master 的 6443 埠 ( API Server ) 必須開給 Worker
+        - Kubeconfig： 把 Master 裡的 /etc/rancher/k3s/k3s.yaml 
+            拷貝到主開發機 ( Win 11 ) 的 .kube/config，使可直接在 Windows 操控 VM 裡的集群
 
-👁️ 測試 16：持久化儲存與節點漂移 (PV / PVC / Local Path)
+2. 
+```
 
-👁️ 測試 17：Ingress 流量入口 (Traefik)
+<br>
+
+### *E.　測試驗證*
+```
+👁️ 測試 15： 橫向自動伸縮 (HPA - Horizontal Pod Autoscaler)
+
+👁️ 測試 16： 持久化儲存與節點漂移 (PV / PVC / Local Path)
+
+👁️ 測試 17： Ingress 流量入口 (Traefik)
 ```
 
 <br><br><br>
