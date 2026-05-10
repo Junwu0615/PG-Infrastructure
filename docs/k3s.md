@@ -130,13 +130,13 @@ cat /etc/NetworkManager/NetworkManager.conf
     # 重啟服務
     sudo systemctl restart NetworkManager
 
-# 確認 VM 網卡上的真正 IP ( enp0s3 / ens33)
+# ⚠️ 確認 VM 網卡上的真正 IP ( enp0s3 / ens33)
 ip addr show enp0s3
 
-# 確認 VM Gateway
+# ⚠️ 確認 VM Gateway
 ip route
 
-#  確認 SSH 是否在監聽
+#  ⚠️ 確認 SSH 是否在監聽
 sudo ss -tunlp | grep :22
 
 ------
@@ -149,11 +149,8 @@ ssh username@vm-ip
         - [O] ⚠️ 設置 VM 固定 IP 位置
 - username = 安裝過程中建立的那個使用者帳號
     - whoami 可確認 ( 可全部固定同一組? )
-- vm-ip = 主開發機位置 ( ex: 192.168.0.17 )
+- vm-ip = 主開發機位置 ( ex: 192.168.0.15 ) or VM 自己設一個位置
     - Master       : ssh master@192.168.0.17
-    - Worker Node 1: ssh worker1@192.168.0.17
-    - Worker Node 2: ssh worker2@192.168.0.17
-    - Worker Node 3: ssh worker3@192.168.0.17
              
 
 ⚠️ 設定裝置對外名稱 ( 可覆蓋 ): 
@@ -163,7 +160,7 @@ sudo hostnamectl set-hostname worker2
 sudo hostnamectl set-hostname worker3
 
 ------
-開啟 Worker ( ⚠️ Clone Master ) 
+⚠️ Clone Master 前最後一次設定檢查
 >> 時區設定
     - sudo timedatectl set-timezone Asia/Taipei
     
@@ -175,6 +172,23 @@ sudo hostnamectl set-hostname worker3
     
 >> 安裝 K3s 所需的最後組件
     - sudo apt install -y nfs-common
+
+
+開啟 Worker ( ⚠️ Clone Master ) ex: worker1
+    >> 修改 IP ( 先確認是否須修正: ip addr show enp0s3 )
+        sudo nmcli connection modify net ipv4.addresses 192.168.0.18/24
+        sudo nmcli connection up net
+    
+    >> 修改 Hostname [ 影響用戶顯示: master@<???>:~$ exit ]
+        sudo hostnamectl set-hostname worker1
+        sudo reboot
+        
+------ 
+* 外部連線清單如下
+- K3s Server ( master@master  ): ssh master@192.168.0.17
+- K3s Agent  ( master@worker1 ): ssh master@192.168.0.18
+- K3s Agent  ( master@worker2 ): ssh master@192.168.0.19
+- K3s Agent  ( master@worker3 ): ssh master@192.168.0.20
 ```
 
 <br>
