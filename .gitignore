@@ -5,6 +5,7 @@ __pycache__
 venv
 logs
 
+*.tar
 *.tfstate
 *.tfstate.backup
 

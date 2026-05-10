@@ -276,7 +276,7 @@ worker3   Ready    <none>          50m   v1.35.4+k3s1   192.168.0.20   <none>   
 make deploy ver=v5
     # 可發現不成功 因為還沒貼在 k3d 設置的標籤
 
-    # 貼標籤 ( 有改動標籤配置 )
+    # 貼標籤 ( 有改動標籤配置 ) | ⚠️ Master 不跑業務
     kubectl label nodes worker1 service-type=app --overwrite
     kubectl label nodes worker2 service-type=app --overwrite
     kubectl label nodes worker3 service-type=service --overwrite
@@ -285,7 +285,19 @@ make deploy ver=v5
     kubectl get nodes -L service-type
 
 
-# 4. 映像檔遷移問題 ( ImagePullBackOff )
+# 4. 映像檔遷移問題 ( ImagePullBackOff ) # 速解
+[開發機]
+    # image 存成 tar 檔
+    docker save my-python-app:v5 > my-python-app.tar
+    
+    # scp 傳給 [APP 標籤 Worker]
+    scp my-python-app.tar master@192.168.0.18:~
+    scp my-python-app.tar master@192.168.0.19:~
+    
+[APP 標籤 Worker] # 有 2 台
+    sudo k3s ctr images import ~/my-python-app.tar
+    
+    
 
 ```
 

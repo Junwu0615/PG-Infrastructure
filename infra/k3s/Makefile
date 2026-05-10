@@ -2,12 +2,8 @@ RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
 
-.PHONY: image_load test_clean rollback deploy clean build
+.PHONY: test_clean rollback deploy clean build
 
-image_load:
-	@echo "* 本地映像檔傳入虛擬環境"
-	minikube image load portainer/portainer-ce:2.21.5
-	@echo "✅ <make image_load> done."
 
 test_clean:
 	# 1. 停止 systemd 服務 (如果存在)
