@@ -261,7 +261,7 @@ ansible-playbook -i ./ansible/hosts.ini ansible/init_nodes.yml
     - 讓所有 Worker 自動加入 Master 形成集群
 ansible-playbook -i ./ansible/hosts.ini ansible/deploy_k3s.yml
 
-# 確認整體節點是否都歸對 ( 底下成功展示 )
+# ✅ 確認整體節點是否都歸對
 kubectl get nodes -o wide
 
 pc@DESKTOP-PC:~$ kubectl get nodes -o wide
@@ -297,8 +297,13 @@ make deploy ver=v5
 [APP 標籤 Worker] # 有 2 台
     sudo k3s ctr images import ~/my-python-app.tar
     
-    
-
+# ✅ 確認整體節點分配狀態 | APP 分別丟向 2 個節點 | SERVICE 固定 Worker3
+pc@DESKTOP-PC:~$ kubectl get -w pods -o wide
+NAME                           READY   STATUS    RESTARTS   AGE   IP          NODE      NOMINATED NODE   READINESS GATES
+portainer-564755cdd-hd8fq      1/1     Running   0          10m   10.42.1.5   worker3   <none>           <none>
+postgres-db-64b54dd94b-n5hzk   1/1     Running   0          10m   10.42.1.4   worker3   <none>           <none>
+python-app-655f997bbd-sw9dl    1/1     Running   0          58s   10.42.4.4   worker1   <none>           <none>
+python-app-655f997bbd-tzs7z    1/1     Running   0          51s   10.42.3.4   worker2   <none>           <none>
 ```
 
 <br>
