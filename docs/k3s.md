@@ -304,6 +304,9 @@ portainer-564755cdd-hd8fq      1/1     Running   0          10m   10.42.1.5   wo
 postgres-db-64b54dd94b-n5hzk   1/1     Running   0          10m   10.42.1.4   worker3   <none>           <none>
 python-app-655f997bbd-sw9dl    1/1     Running   0          58s   10.42.4.4   worker1   <none>           <none>
 python-app-655f997bbd-tzs7z    1/1     Running   0          51s   10.42.3.4   worker2   <none>           <none>
+
+# 檢視 logs 
+kubectl logs -f -l app=python-app --tail=5
 ```
 
 <br>
@@ -326,11 +329,29 @@ python-app-655f997bbd-tzs7z    1/1     Running   0          51s   10.42.3.4   wo
 ```
 👁️ 持續觀察 K8s 如何分配任務: kubectl get pods -w -o wide
 
-👁️ 測試 15： 橫向自動伸縮 (HPA - Horizontal Pod Autoscaler)
+👁️ 測試 0 - 14： 重新復刻
 
-👁️ 測試 16： 持久化儲存與節點漂移 (PV / PVC / Local Path)
+👁️ 測試 15： Ingress 流量入口 ( Traefik )
+    1. 檢查 Ingress 狀態
+    kubectl get ingress -A
+    
+    2. 修改 Windows Hosts 檔案 ( C:\Windows\System32\drivers\etc\hosts )
+        # 用 [管理員] powershell 叫起來 否則有權限問題
+        notepad C:\Windows\System32\drivers\etc\hosts
+        
+        # 增加底下這行 # 統一由 Master 轉發
+        192.168.0.17  portainer.local
+        
+    3. 有更新過 ingress (# helm/app-stack/templates/ingress.yaml) 則再次部署
+    make deploy ver=v5
+    
+    4. 測試是否能訪問
+    http://portainer.local
 
-👁️ 測試 17： Ingress 流量入口 (Traefik)
+
+👁️ 測試 16： 橫向自動伸縮 ( HPA - Horizontal Pod Autoscaler )
+
+👁️ 測試 17： 持久化儲存與節點漂移 ( PV / PVC / Local Path )
 ```
 
 <br><br><br>

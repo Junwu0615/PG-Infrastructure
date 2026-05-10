@@ -5,23 +5,17 @@ kind: Ingress
 metadata:
   name: app-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
+    kubernetes.io/ingress.class: traefik
 spec:
   rules:
-  - host: myapp.local
+  - host: portainer.local
     http:
       paths:
-      - path: /portainer
-        pathType: Prefix
-        backend:
-          service:
-            name: portainer-service
-            port:
-              number: 9000
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: python-service
+            name: portainer-service  # 確保這與你的 portainer-service.yaml 名稱一致
             port:
-              number: 80
+              number: 9000  # Portainer 預設 Web Port
