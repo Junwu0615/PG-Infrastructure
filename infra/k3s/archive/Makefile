@@ -4,31 +4,40 @@ VALUES_PATH=./helm/app-stack/values-dev.yaml
 ANSIBLE_INI_PATH=./ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./ansible/playbooks
 
+
+# 找實際位置: Get-ChildItem -Path "C:\Program Files" -Filter VBoxManage.exe -Recurse -ErrorAction SilentlyContinue
+VBOX_MANAGE = "/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
+
+
 .PHONY: test_clean rollback deploy clean build \
-status power_manage init apply destroy
-
-init:
-	@echo "* 初始化 terraform 配置"
-	cd terraform && \
-	terraform init --upgrade
-	@echo "✅ <make init> done."
-
-apply:
-	@echo "* 安裝 VM 環境"
-	cd terraform && \
-	terraform apply -auto-approve
-	@echo "✅ <make apply> done."
-
-destroy:
-	@echo "* 拆除 VM 環境"
-	cd terraform && \
-	terraform destroy -auto-approve
-	@echo "✅ <make destroy> done."
+status cluster_up init_nodes deploy_k3s power_manage
 
 status:
 	@echo "* 檢查 k8s 狀態"
 	kubectl get nodes -o wide
+	#kubectl get pods -A
 	kubectl get pods -o wide
+
+cluster_up:
+	@echo "* 啟動所有 VM ( 透過呼叫 Windows 宿主機指令 )"
+	@echo "1. 正在啟動虛擬機..."
+	@$(VBOX_MANAGE) startvm "Master" --type headless
+	@$(VBOX_MANAGE) startvm "worker1" --type headless
+	@$(VBOX_MANAGE) startvm "worker3" --type headless
+	@$(VBOX_MANAGE) startvm "worker4" --type headless
+	@echo "2. 等待系統開機與 K3s 就緒 ( 40s )..."
+	@sleep 40
+	@kubectl get nodes -o wide
+
+init_nodes:
+	@echo "* 初始化節點"
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/init_nodes.yml
+	@echo "✅ <make init_nodes> done."
+
+deploy_k3s:
+	@echo "* 部署 k3s"
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/deploy_k3s.yml
+	@echo "✅ <make deploy_k3s> done."
 
 power_manage:
 	@echo "* 電源管理 action = [stop / reboot]"

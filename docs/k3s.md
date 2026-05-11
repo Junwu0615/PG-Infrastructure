@@ -20,7 +20,11 @@ k3d -> k3s
 
 <br>
 
-### *B.　VM 環境準備 [ Manual ]*
+<details>
+<summary><b><i> B.　Manual </i></b></summary>
+<ul>
+
+### *VM 環境準備*
 ```
 選擇 VM 工具
     >> ✅ Oracle VirtualBox ( 開源; 支援 Windows、Linux、macOS )
@@ -203,7 +207,7 @@ sudo hostnamectl set-hostname worker3
 
 <br>
 
-### *C.　Master / Worker [ Manual ]*
+### *Master / Worker*
 ```
 * 可直接透過 "外部開發機" 用 SSH 依序進入設定配對
 
@@ -241,7 +245,7 @@ sudo hostnamectl set-hostname worker3
 
 <br>
 
-### *D.　外部開發機 ( ansible ) [ Manual ]*
+### *外部開發機 ( Ansible )*
 ```
 # ⚠️ SSH KEY 傳入
     # 對四台機器執行 (只需執行一次)
@@ -315,9 +319,15 @@ python-app-655f997bbd-tzs7z    1/1     Running   0          51s   10.42.3.4   wo
 kubectl logs -f -l app=python-app --tail=5
 ```
 
-<br>
+</ul>
+</details>
 
-### *E.　Terraform [ Auto Create VM ]*
+
+<details>
+<summary><b><i> C.　Auto Create VM </i></b></summary>
+<ul>
+
+### *Terraform*
 ```
 * 腳本動作
     >> Terraform 會下載 Debian 鏡像 
@@ -354,7 +364,7 @@ sudo apt update
 # ✅ 建立 Cloud-Init 所需的 ISO 鏡像時，負責產生 ISO 檔案的工具
 sudo apt install -y genisoimage
 
-# ✅ 視覺化界面 Virt-Manager ( 直接輸入: virt-manager )
+# ✅ 視覺化界面 Virt-Manager ( 直接輸入: 👁️ virt-manager )
 sudo apt install -y virt-manager
     # 查看所有正在運行的 VM
     >> sudo virsh list --all
@@ -430,37 +440,50 @@ terraform destroy -auto-approve
 
 ------
 ssh debian@$(terraform output -raw master_ip)
-ssh debian@192.168.122.51
+ssh debian@192.168.122.97
+ssh debian@192.168.122.87
 
-# ✅ 測試是否監控成功 ( 可檢視機器名字出現在列表 )
-export KUBECONFIG=~/.kube/config-k3s
-kubectl get nodes -o wide
+# ✅ 測試是否監控成功
+echo 'export KUBECONFIG=~/.kube/config-k3s' >> ~/.bashrc
+source ~/.bashrc
+        
+kubectl get nodes
+NAME         STATUS   ROLES                AGE     VERSION
+k3s-node-0   Ready    control-plane,etcd   3m45s   v1.35.4+k3s1
+k3s-node-1   Ready    <none>               3m7s    v1.35.4+k3s1
+k3s-node-2   Ready    <none>               3m33s   v1.35.4+k3s1
 ```
+
+</ul>
+</details>
 
 <br>
 
-### *F.　Makefile Command*
+### *D.　Makefile Command*
 ```
 Terraform:
+    # 初始化 terraform 配置
+    make init
+    
+    # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
+    make apply
+    
+    # 拆除 VM 環境
+    make destroy
 
 Ansible:
-    # 系統健康檢查與環境初始化
-    make init_nodes
-    
-    # 部署 k3s
-    make deploy_k3s
-    
     # 檢視狀態 ( pods + nodes )
     make status
-    
-    # VM 開機 ( K3s 集群  )
-    make cluster_up
     
     # VM 關機 ( K3s 集群  )
     make power_manage action=stop
     
     # VM 重新啟動 ( K3s 集群  )
     make power_manage action=reboot
+
+Helm:
+    # 部屬 v5 版本測試腳本
+    deploy ver=v5
 ```
 
 <br>
