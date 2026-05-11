@@ -5,7 +5,15 @@ ANSIBLE_INI_PATH=./ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./ansible/playbooks
 
 .PHONY: test_clean rollback deploy clean build \
-status power_manage init apply destroy
+status power_manage init apply destroy label_nodes
+
+
+label_nodes:
+	kubectl label nodes k3s-node-0 service-type=none --overwrite
+	kubectl label nodes k3s-node-1 service-type=app --overwrite
+	kubectl label nodes k3s-node-2 service-type=app --overwrite
+	kubectl label nodes k3s-node-3 service-type=service --overwrite
+	kubectl label nodes k3s-node-4 service-type=service --overwrite
 
 init:
 	@echo "* 初始化 terraform 配置"

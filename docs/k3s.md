@@ -20,11 +20,12 @@ k3d -> k3s
 
 <br>
 
+### *B.　創建 VM 環境*
 <details>
-<summary><b><i> B.　Manual </i></b></summary>
+<summary><b><i> b.1.　Manual </i></b></summary>
 <ul>
 
-### *VM 環境準備*
+### *準備 VM 環境*
 ```
 選擇 VM 工具
     >> ✅ Oracle VirtualBox ( 開源; 支援 Windows、Linux、macOS )
@@ -324,7 +325,7 @@ kubectl logs -f -l app=python-app --tail=5
 
 
 <details>
-<summary><b><i> C.　Auto Create VM </i></b></summary>
+<summary><b><i> b.2.　Auto </i></b></summary>
 <ul>
 
 ### *Terraform*
@@ -459,7 +460,8 @@ k3s-node-2   Ready    <none>               3m33s   v1.35.4+k3s1
 
 <br>
 
-### *D.　Makefile Command*
+
+### *C.　Makefile Command*
 ```
 Terraform:
     # 初始化 terraform 配置
@@ -483,12 +485,23 @@ Ansible:
 
 Helm:
     # 部屬 v5 版本測試腳本
-    deploy ver=v5
+    make deploy ver=v5
+
+------
+Kubectl
+    # 標籤設置 ( k3s-node-0 = Master )
+    kubectl label nodes k3s-node-0 service-type=none --overwrite
+    kubectl label nodes k3s-node-1 service-type=app --overwrite
+    kubectl label nodes k3s-node-2 service-type=app --overwrite
+    kubectl label nodes k3s-node-3 service-type=service --overwrite
+    kubectl label nodes k3s-node-4 service-type=service --overwrite
+    
+    make label_nodes
 ```
 
 <br>
 
-### *G.　測試驗證*
+### *D.　測試驗證*
 ```
 👁️ 持續觀察 K8s 如何分配任務: kubectl get pods -w -o wide
 
