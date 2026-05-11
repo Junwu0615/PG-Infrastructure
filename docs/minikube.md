@@ -30,7 +30,7 @@ docker info | grep Name
 
 <br>
 
-### *B.　Minikube 完整生命週期*
+### *B.　完整生命週期*
 ```
 # 初始化 (Provisioning)
     [每次] # Start: 指定使用 docker driver

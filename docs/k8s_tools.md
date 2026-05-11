@@ -9,13 +9,13 @@ curl -sS https://webinstall.dev/k9s | bash
 [2] 或輸入 source ~/.config/envman/PATH.env 即可生效
 ```
     
-#### *使用方式*
+#### *>>　使用方式*
 
 ```
-: ：輸入命令（例如 :pod 看 Pod, :node 看節點）
+: ：輸入命令（ 例如 :pod 看 Pod, :node 看節點 ）
 / ：過濾關鍵字
-d ：Describe（查看詳細描述）
-l ：Logs（查看日誌）
+d ：Describe（ 查看詳細描述 ）
+l ：Logs（ 查看日誌 ）
 esc ：返回上一層
 ```
   
@@ -26,7 +26,7 @@ esc ：返回上一層
 # 1. 下載最新穩定版
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 
-# 2. 安裝至系統路徑 (賦予 root 權限並設定執行位)
+# 2. 安裝至系統路徑 ( 賦予 root 權限並設定執行位 )
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 # 3. 清理：刪除當前目錄下的下載檔
@@ -35,22 +35,22 @@ rm kubectl
 # 4. 驗證
 kubectl version --client
 ```
-#### *使用方式*
+#### *>>　使用方式*
 ```
-# 確認已被定義的容器 (含不需連線 + 需連線 + ...) 名稱
+# 確認已被定義的容器 ( 含不需連線 + 需連線 + ... ) 名稱
 kubectl get pods
 # ⭐ 顯示標籤 ( 虛擬化簡稱 查找方便 )
 kubectl get pods --show-labels
 # ⭐ 常駐觀察
 kubectl get pods -w
 
-# 確認 pvc (儲存) 狀態
+# 確認 pvc ( 儲存 ) 狀態
 kubectl get pvc
 
 # 確認 節點 狀態
 kubectl get nodes
 
-# 檢查已被定義的服務 (被連線使用) 狀態
+# 檢查已被定義的服務 ( 被連線使用 ) 狀態
 kubectl get svc
 
     # ⭐ 測試 DNS 解析 ( 容器內使用 )
@@ -69,7 +69,7 @@ kubectl logs -f -l app=python-app --tail=5
 kubectl port-forward svc/postgres-service 5432:5432
     # 內部一律採用 postgres-service 來解偶位置不同問題 ; 因為 k8s 的 IP 會浮動 => 高可用性
 
-# ⭐ 進入 pod 內部 (exec)
+# ⭐ 進入 pod 內部
     kubectl exec -it pod/python-app-fd66fdf4c-s4kxv -- bash
     
     # ⭐ 進階用法: ☄️ 可虛擬化簡稱
@@ -82,7 +82,7 @@ kubectl port-forward svc/postgres-service 5432:5432
     # 查看儲存資源
     kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- df -h
 
-    # 確認環境變數是否被確實注入(查看敏感訊息...)
+    # 確認環境變數是否被確實注入( 查看敏感訊息... )
     kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- env
     kubectl exec -it $(kubectl get pods -l app=python-app -o name) -- env
 
@@ -92,9 +92,9 @@ kubectl port-forward svc/postgres-service 5432:5432
 
     # 強制移除節點
     kubectl delete pod -l app=postgres
-    -- 預期 Python Log 會顯示開始報錯重試，直到 K8s 自動把 Postgres Pod 重啟回來後，連線又會恢復。
+    -- 預期 Python Log 會顯示開始報錯重試，直到 K8s 自動把 Postgres Pod 重啟回來後，連線又會恢復
 
-# 檢查 Service 關聯到的端點 (Endpoints)
+# 檢查 Service 關聯到的端點 ( Endpoints )
 kubectl get endpoints postgres-service
 
 # ⭐⭐⭐ [ 病歷表 ] 檢查具體噴錯原因
@@ -129,7 +129,7 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 which helm
 ```
   
-#### *使用方式*
+#### *>>　使用方式*
 ```
 # 部署方式 ( 啟動/更新/移除 )
     # ⭐ [1] 啟動/更新 Helm 部署 ( DEV 設置 ) + 外部傳入設定: image tags
@@ -158,7 +158,7 @@ helm uninstall my-dev-release
 # 1. 下載最新版的 MiniKube 二進位檔
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 
-# 2. 安裝至系統路徑 (同時重新命名為 minikube)
+# 2. 安裝至系統路徑 ( 同時重新命名為 minikube )
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
 
 # 3. 清理：刪除當前目錄下的下載檔
@@ -168,13 +168,13 @@ rm minikube-linux-amd64
 minikube version
 ```
 
-#### *使用方式*
+#### *>>　使用方式*
 ```
 # 若要訪問對外開口的應用
     # 1. 確認取得 minikube ip
     minikube ip
     
-    # 2. 嘗試從 WSL2 內訪問 (假設你的 Ingress Host 設定為 myapp.local)
+    # 2. 嘗試從 WSL2 內訪問 ( 假設 Ingress Host 設定為 myapp.local )
     curl -H "Host: myapp.local" $(minikube ip)
 ```
 

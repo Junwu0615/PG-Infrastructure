@@ -1,7 +1,7 @@
 ## *K3d*
 
 
-### *A.　K3d 說明*
+### *A.　說明*
 ```
 # 開始叢集
 k3d cluster start mycluster
@@ -9,10 +9,10 @@ k3d cluster start mycluster
 # 停止叢集 ( 正常關機 )
 k3d cluster stop mycluster
 
-# 刪除叢集（所有 Pod, Service, ConfigMap）
+# 刪除叢集（ 所有 Pod, Service, ConfigMap ）
 k3d cluster delete mycluster
 
-# 檢查狀態（你會看到 STATUS 是 Exited）
+# 檢查狀態
 k3d cluster list
 
 # ⚠️ 實際上線 / 遇到異常斷電 ... 等 ( 大概依賴工具的強壯性ㄌ )
@@ -103,7 +103,7 @@ kubectl logs -f -l app=python-app --tail=5
     docker start k3d-mycluster-agent-1
     
     
-👁️ 測試 12：Service 的負載平衡與連通性
+👁️ 測試 12： Service 的負載平衡與連通性
     情境： 現在 Pod 散落在兩台機器上，我們來驗證 Service 是否能正確導流
     
     1. 進入 Python Pod
@@ -114,7 +114,7 @@ kubectl logs -f -l app=python-app --tail=5
     => True ( 成功 )
     
 
-👁️ 測試 13：自動摘除與恢復
+👁️ 測試 13： 自動摘除與恢復
     情境: 環境因素（DB 斷線）導致服務暫時不可用
          K8s 透過 Readiness Probe 幫你把「壞掉的 Pod」屏蔽掉，等它好了再放行
     
@@ -134,7 +134,7 @@ kubectl logs -f -l app=python-app --tail=5
     * 最後自動復原 ...
     
     
-👁️ 測試 14：零停機更新與回滾 ( Rolling Update & Rollback )
+👁️ 測試 14： 零停機更新與回滾 ( Rolling Update & Rollback )
     情境: 更新 python-app 從 v4 到 v5，且在更新過程中，我們持續對 API 發送請求，確保一次失敗都沒有
     
     1. 發布必死的版本 ( 根本沒建立 ver999 ) 

@@ -1,19 +1,19 @@
 ## *K3s*
 
 
-### *A.　K3s 完整生命週期*
+### *A.　說明*
 ```
 當從 MiniKube 進化到 K3s + VM 時，生命週期的管理對象會改變：
-    - Terraform 階段：負責機器的「生與死」（建立 VM 或銷毀 VM）
-    - Ansible 階段：負責機器的「初始化」（安裝 K3s、設定 Ingress）
-    - K8s 本身：一旦機器開著，K8s 服務就是常駐的（Daemon），你不再需要手動 start 它
+    - Terraform 階段：負責機器的「生與死」（ 建立 VM 或銷毀 VM ）
+    - Ansible 階段：負責機器的「初始化」（ 安裝 K3s、設定 Ingress ）
+    - K8s 本身：一旦機器開著，K8s 服務就是常駐的（ Daemon ），你不再需要手動 start 它
     
 
 k3d -> k3s
 * K3d： 適合開發、測試 Helm 邏輯、練習節點調度
-* K3s： 適合部署在虛擬機（VM）或實體機（如 Raspberry Pi）上
+* K3s： 適合部署在 VM 或實體機（ 如 Raspberry Pi ）上
 * 差異點：
-    - 網路： K3s 在真實環境中會接觸到 SSH、實體網路介面、Firewall (ufw/iptables)
+    - 網路： K3s 在真實環境中會接觸到 SSH、實體網路介面、Firewall ( ufw/iptables )
     - 儲存： K3d 的 Persistent Volume 是掛載 Docker Volume，K3s 則會直接掛載 Linux 主機的目錄
     - 負載平衡： K3s 內建 Service LB，但在實體環境可能需要搭配 MetalLB 才能獲得真實的 External IP
 ```
