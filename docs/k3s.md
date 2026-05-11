@@ -334,16 +334,18 @@ kubectl logs -f -l app=python-app --tail=5
 │   │   └── all.yml          # 定義 k3s_token 等變數
 │   ├── inventory.ini        # [空檔案] 由 Terraform 自動寫入
 │   └── playbooks
-│       ├── site.yml         # 進入點
-│       ├── init_nodes.yml   # 基礎環境優化 (Swap/IP Forward)
-│       ├── deploy_k3s.yml   # K3s 安裝邏輯
+│       ├── site.yml         # 總入口腳本 ( 調度 init_nodes + deploy_k3s )
+│       ├── init_nodes.yml   # 節點預處理 ( Swap, Bridge )
+│       ├── deploy_k3s.yml   # K3s 核心安裝邏輯
 │       └── power_manage.yml
 └── terraform
-    ├── main.tf              # 資源定義 (VM, Disk, Network)
-    ├── variables.tf         # 變數定義
+    ├── provider.tf          # 定義 Provider 與版本
+    ├── main.tf              # 資源定義 ( VM, Disk, Network )
+    ├── inventory.tftpl      # 模板供 main.tf 引用
+    ├── variables.tf         # 變數定義 ( CPU, RAM, 公鑰路徑 )
     ├── terraform.tfvars     # 實際數值
     ├── cloud_init.cfg       # Cloud-init 模板
-    └── outputs.tf           # 輸出 IP 並更新 Ansible Inventory
+    └── outputs.tf           # 定義輸出 IP
 
 
 cd terraform

@@ -8,32 +8,32 @@ terraform {
 
 provider "libvirt" { uri = "qemu:///system" }
 
-# 導入 Debian 官方 Cloud Image
+# 導入 Debian 官方 Cloud Image [cite: 1]
 resource "libvirt_volume" "debian_base" {
   name   = "debian12_base.qcow2"
-  source = "[https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2](https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2)"
+  source = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"
   format = "qcow2"
 }
 
-# 每個 Node 的獨立磁碟 (從 Base Clone)
+# 每個 Node 的獨立磁碟 [cite: 2]
 resource "libvirt_volume" "node_disk" {
-  count          = 3
+  count          = var.node_count
   name           = "k3s-disk-${count.index}.qcow2"
   base_volume_id = libvirt_volume.debian_base.id
-  size           = 21474836480 # 20GB
+  size           = 21474836480 # 20GB [cite: 2]
 }
 
 # 注入 Cloud-Init 設定
 resource "libvirt_cloudinit_disk" "commoninit" {
   name      = "commoninit.iso"
   user_data = templatefile("${path.module}/cloud_init.cfg", {
-    ssh_public_key = file("~/.ssh/id_rsa.pub")
+    ssh_public_key = file(var.ssh_public_key_path)
   })
 }
 
 # 建立 VM
 resource "libvirt_domain" "k3s_nodes" {
-  count  = 3
+  count  = var.node_count
   name   = "k3s-node-${count.index}"
   memory = "2048"
   vcpu   = 2
@@ -46,13 +46,27 @@ resource "libvirt_domain" "k3s_nodes" {
   }
 
   disk { volume_id = libvirt_volume.node_disk[count.index].id }
+}
 
-  # 重要：等待 SSH 就緒後更新 Inventory 並跑 Ansible
+# --- 新增/更新部分：使用 Template 處理 Inventory ---
+
+# 1. 自動生成 Inventory 檔案
+resource "local_file" "ansible_inventory" {
+  content = templatefile("${path.module}/inventory.tftpl", {
+    user       = var.vm_user
+    master_ip  = libvirt_domain.k3s_nodes[0].network_interface.0.addresses[0]
+    # 取得除第一台以外的所有 IP
+    agent_ips  = slice(libvirt_domain.k3s_nodes[*].network_interface.0.addresses[0], 1, var.node_count)
+  })
+  filename = "../ansible/inventory.ini"
+}
+
+# 2. 確保 Inventory 產生且 VM 就緒後執行 Ansible
+resource "null_resource" "ansible_trigger" {
+  depends_on = [libvirt_domain.k3s_nodes, local_file.ansible_inventory]
+
   provisioner "local-exec" {
-    command = <<EOT echo "[nodes]\n${join("\n", [for ip in libvirt_domain.k3s_nodes.*.network_interface.0.addresses[0] : "${ip} ansible_user="debian"])}""> ../ansible/inventory.ini
-      sleep 30; # 等待 Cloud-init 完成 SSH Key 寫入
-      export ANSIBLE_HOST_KEY_CHECKING=False;
-      ansible-playbook -i ../ansible/inventory.ini ../ansible/playbooks/site.yml
-    EOT
+    # 這裡的 command 變得非常單純 [cite: 3, 5]
+    command = "export ANSIBLE_HOST_KEY_CHECKING=False && cd ../ansible && ansible-playbook playbooks/site.yml"
   }
 }
