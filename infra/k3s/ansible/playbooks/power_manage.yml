@@ -1,4 +1,4 @@
-# ansible/scripts/power_manage.yml
+# ansible/playbooks/power_manage.yml
 
 ---
 - name: 集群電源管理

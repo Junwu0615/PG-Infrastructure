@@ -1,4 +1,4 @@
-# ansible/scripts/deploy_k3s.yml
+# ansible/playbooks/deploy_k3s.yml
 
 ---
 - name: 部署 K3s Master

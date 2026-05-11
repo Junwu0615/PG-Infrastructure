@@ -1,0 +1,15 @@
+# ansible/playbooks/power_manage.yml
+
+---
+- name: 集群電源管理
+  hosts: k3s_cluster
+  become: yes
+  tasks:
+    - name: 立即關機
+      community.general.shutdown:
+        delay: 0
+      when: action == "stop"
+
+    - name: 立即重啟
+      reboot:
+      when: action == "reboot"

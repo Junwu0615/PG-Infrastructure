@@ -2,7 +2,7 @@ RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
 ANSIBLE_INI_PATH=./ansible/hosts.ini
-ANSIBLE_SCRIPTS_PATH=./ansible/scripts
+ANSIBLE_SCRIPTS_PATH=./ansible/playbooks
 
 
 # 找實際位置: Get-ChildItem -Path "C:\Program Files" -Filter VBoxManage.exe -Recurse -ErrorAction SilentlyContinue

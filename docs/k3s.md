@@ -258,14 +258,14 @@ ansible all -i ./ansible/hosts.ini -m ping
 
 
 # 1. 系統健康檢查與環境初始化
-ansible-playbook -i ./ansible/hosts.ini ansible/scripts/init_nodes.yml
+ansible-playbook -i ./ansible/hosts.ini ansible/playbooks/init_nodes.yml
 
 
 # 2. 部署 k3s
     - 在 Master 安裝 K3s 並提取 Token
     - 將 Token 動態發送給所有 Worker
     - 讓所有 Worker 自動加入 Master 形成集群
-ansible-playbook -i ./ansible/hosts.ini ansible/scripts/deploy_k3s.yml
+ansible-playbook -i ./ansible/hosts.ini ansible/playbooks/deploy_k3s.yml
 
 # ✅ 確認整體節點是否都歸對
 kubectl get nodes -o wide
