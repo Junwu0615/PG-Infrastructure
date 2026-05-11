@@ -2,16 +2,28 @@
 
 ---
 - name: Prepare Nodes
-  hosts: nodes
+  hosts: k3s_cluster
   become: yes
   tasks:
-    - name: Disable Swap (K8s requirement)
+    - name: Disable Swap
       shell: |
         swapoff -a
         sed -i '/swap/d' /etc/fstab
+      when: ansible_swaptotal_mb > 0
+
+    - name: Enable Kernel Modules
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - br_netfilter
+        - overlay
 
     - name: Enable IPv4 Forwarding
       sysctl:
-        name: net.ipv4.ip_forward
+        name: "{{ item }}"
         value: '1'
         state: present
+      loop:
+        - net.ipv4.ip_forward
+        - net.bridge.bridge-nf-call-iptables

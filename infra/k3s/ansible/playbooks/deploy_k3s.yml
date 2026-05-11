@@ -2,36 +2,44 @@
 
 ---
 - name: Install K3s Server
-  hosts: nodes[0]
+  hosts: masters
   become: yes
   tasks:
     - name: Install K3s on First Node
-      shell: curl -sfL [https://get.k3s.io](https://get.k3s.io) | sh -s - server --cluster-init
+      shell: curl -sfL https://get.k3s.io | sh -s - server --cluster-init
+
     - name: Get Node Token
       command: cat /var/lib/rancher/k3s/server/node-token
       register: k3s_token
 
+
 - name: Install K3s Agents
-  hosts: nodes[1:]
+  hosts: agents
   become: yes
   vars:
-    server_ip: "{{ hostvars[groups['nodes'][0]]['ansible_host'] }}"
-    token: "{{ hostvars[groups['nodes'][0]]['k3s_token']['stdout'] }}"
+    server_ip: "{{ hostvars[groups['masters'][0]]['ansible_host'] | default(groups['masters'][0]) }}"
+    token: "{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
   tasks:
     - name: Join Cluster
-      shell: "curl -sfL [https://get.k3s.io](https://get.k3s.io) | K3S_URL=https://{{ server_ip }}:6443 K3S_TOKEN={{ token }} sh - agent"
+      shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ server_ip }}:6443 K3S_TOKEN={{ token }} sh -s - agent"
+
 
 - name: Setup local kubectl access
   hosts: masters
   become: yes
   tasks:
-    - name: Fetch K3s config to local machine
+    - name: Wait for K3s config
+      wait_for:
+        path: /etc/rancher/k3s/k3s.yaml
+        timeout: 60
+
+    - name: Fetch K3s config
       fetch:
         src: /etc/rancher/k3s/k3s.yaml
         dest: ~/.kube/config-k3s
         flat: yes
 
-    - name: Update Master IP in local config
+    - name: Fix Kubeconfig IP
       delegate_to: localhost
       become: no
       replace:

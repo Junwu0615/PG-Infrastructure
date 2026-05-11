@@ -433,6 +433,7 @@ ssh debian@$(terraform output -raw master_ip)
 ssh debian@192.168.122.51
 
 # ✅ 測試是否監控成功 ( 可檢視機器名字出現在列表 )
+export KUBECONFIG=~/.kube/config-k3s
 kubectl get nodes -o wide
 ```
 
