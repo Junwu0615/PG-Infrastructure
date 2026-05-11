@@ -20,7 +20,7 @@ k3d -> k3s
 
 <br>
 
-### *B.　VM 環境準備*
+### *B.　VM 環境準備 [ Manual ]*
 ```
 選擇 VM 工具
     >> ✅ Oracle VirtualBox ( 開源; 支援 Windows、Linux、macOS )
@@ -203,7 +203,7 @@ sudo hostnamectl set-hostname worker3
 
 <br>
 
-### *B.　Master / Worker*
+### *C.　Master / Worker [ Manual ]*
 ```
 * 可直接透過 "外部開發機" 用 SSH 依序進入設定配對
 
@@ -241,7 +241,7 @@ sudo hostnamectl set-hostname worker3
 
 <br>
 
-### *C.　外部開發機 ( ansible )*
+### *D.　外部開發機 ( ansible ) [ Manual ]*
 ```
 # ⚠️ SSH KEY 傳入
     # 對四台機器執行 (只需執行一次)
@@ -251,21 +251,21 @@ sudo hostnamectl set-hostname worker3
     ssh-copy-id master@192.168.0.20
 
 # ⚠️ 統一下發 ping 測試 
-ansible all -i ./ansible/hosts.ini -m ping
+ansible all -i ./ansible/inventory.ini -m ping
 
 ------
 ✅ 手動運維 => 代碼定義基礎設施 (IaC) 領域
 
 
 # 1. 系統健康檢查與環境初始化
-ansible-playbook -i ./ansible/hosts.ini ansible/playbooks/init_nodes.yml
+ansible-playbook -i ./ansible/inventory.ini ansible/playbooks/init_nodes.yml
 
 
 # 2. 部署 k3s
     - 在 Master 安裝 K3s 並提取 Token
     - 將 Token 動態發送給所有 Worker
     - 讓所有 Worker 自動加入 Master 形成集群
-ansible-playbook -i ./ansible/hosts.ini ansible/playbooks/deploy_k3s.yml
+ansible-playbook -i ./ansible/inventory.ini ansible/playbooks/deploy_k3s.yml
 
 # ✅ 確認整體節點是否都歸對
 kubectl get nodes -o wide
@@ -317,7 +317,50 @@ kubectl logs -f -l app=python-app --tail=5
 
 <br>
 
-### *D.　Makefile Command*
+### *E.　Terraform [ Auto Create VM ]*
+```
+* 腳本動作
+>> Terraform 會下載 Debian 鏡像 
+    ( OS 映像檔: 使用 Debian 12 Generic Cloud Image # 比 ISO 更快，專為自動化設計 )
+>> 建立 3 台 VM 並透過 cloud-init 寫入你的公鑰
+>> 自動將 IP 寫入 ansible/inventory.ini
+>> 自動執行 Ansible 完成 K3s 叢集
+
+
+.
+├── ansible
+│   ├── ansible.cfg
+│   ├── group_vars
+│   │   └── all.yml          # 定義 k3s_token 等變數
+│   ├── inventory.ini        # [空檔案] 由 Terraform 自動寫入
+│   └── playbooks
+│       ├── site.yml         # 進入點
+│       ├── init_nodes.yml   # 基礎環境優化 (Swap/IP Forward)
+│       ├── deploy_k3s.yml   # K3s 安裝邏輯
+│       └── power_manage.yml
+└── terraform
+    ├── main.tf              # 資源定義 (VM, Disk, Network)
+    ├── variables.tf         # 變數定義
+    ├── terraform.tfvars     # 實際數值
+    ├── cloud_init.cfg       # Cloud-init 模板
+    └── outputs.tf           # 輸出 IP 並更新 Ansible Inventory
+
+
+cd terraform
+
+# 初始化
+terraform init
+
+# 安裝環境
+terraform apply -auto-approve
+
+# 拆掉環境
+terraform destroy
+```
+
+<br>
+
+### *F.　Makefile Command*
 ```
 # 系統健康檢查與環境初始化
 make init_nodes
@@ -342,7 +385,7 @@ make power_manage action=reboot
 
 <br>
 
-### *E.　測試驗證*
+### *G.　測試驗證*
 ```
 👁️ 持續觀察 K8s 如何分配任務: kubectl get pods -w -o wide
 

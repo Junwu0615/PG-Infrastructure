@@ -1,7 +1,7 @@
 RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
-ANSIBLE_INI_PATH=./ansible/hosts.ini
+ANSIBLE_INI_PATH=./ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./ansible/playbooks
 
 

@@ -1,30 +1,17 @@
 # ansible/playbooks/init_nodes.yml
 
 ---
-- name: 基礎環境檢查與優化
-  hosts: k3s_cluster
+- name: Prepare Nodes
+  hosts: nodes
   become: yes
   tasks:
-    - name: 檢查記憶體使用量
-      shell: free -h
-      register: mem_info
-
-    - name: 顯示記憶體狀態
-      debug:
-        msg: "{{ inventory_hostname }} 的記憶體狀態: {{ mem_info.stdout }}"
-
-    - name: 確保 Swap 已關閉 (K3s 效能關鍵)
+    - name: Disable Swap (K8s requirement)
       shell: |
         swapoff -a
-        sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-      changed_when: false
+        sed -i '/swap/d' /etc/fstab
 
-    - name: 安裝維運必備工具
-      apt:
-        name:
-          - curl
-          - htop
-          - net-tools
-          - vim
+    - name: Enable IPv4 Forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
         state: present
-        update_cache: yes
