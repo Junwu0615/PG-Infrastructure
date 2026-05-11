@@ -320,19 +320,19 @@ kubectl logs -f -l app=python-app --tail=5
 ### *E.　Terraform [ Auto Create VM ]*
 ```
 * 腳本動作
->> Terraform 會下載 Debian 鏡像 
-    ( OS 映像檔: 使用 Debian 12 Generic Cloud Image # 比 ISO 更快，專為自動化設計 )
->> 建立 3 台 VM 並透過 cloud-init 寫入你的公鑰
->> 自動將 IP 寫入 ansible/inventory.ini
->> 自動執行 Ansible 完成 K3s 叢集
+    >> Terraform 會下載 Debian 鏡像 
+        ( OS 映像檔: 使用 Debian 12 Generic Cloud Image # 比 ISO 更快，專為自動化設計 )
+    >> 建立 3 台 VM 並透過 cloud-init 寫入你的公鑰
+    >> 自動將 IP 寫入 ansible/inventory.ini
+    >> 自動執行 Ansible 完成 K3s 叢集
 
 
 .
 ├── ansible
-│   ├── ansible.cfg
+│   ├── ansible.cfg          # SSH 與連線優化
 │   ├── group_vars
 │   │   └── all.yml          # 定義 k3s_token 等變數
-│   ├── inventory.ini        # [空檔案] 由 Terraform 自動寫入
+│   ├── inventory.ini        # [由 Terraform 自動生成]
 │   └── playbooks
 │       ├── site.yml         # 總入口腳本 ( 調度 init_nodes + deploy_k3s )
 │       ├── init_nodes.yml   # 節點預處理 ( Swap, Bridge )
@@ -348,16 +348,82 @@ kubectl logs -f -l app=python-app --tail=5
     └── outputs.tf           # 定義輸出 IP
 
 
+------
+sudo apt update
+
+# 建立 Cloud-Init 所需的 ISO 鏡像時，負責產生 ISO 檔案的工具
+sudo apt install -y genisoimage
+
+# 視覺化界面 Virt-Manager ( 直接輸入: virt-manager )
+sudo apt install -y virt-manager
+    # 查看所有正在運行的 VM
+    >> sudo virsh list --all
+    
+    # 查看 VM 詳細規格
+    >> sudo virsh dominfo k3s-node-0
+
+# 安裝 Libvirt 虛擬化組件
+    # 更新並安裝虛擬化套件
+    sudo apt install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst libvirt-daemon qemu-utils
+    
+    # 啟動服務
+    sudo systemctl start libvirtd
+    sudo systemctl enable libvirtd
+    
+    # 將自己加入權限群組 ( 執行後需登出再登入，或執行 newgrp libvirt )
+    sudo usermod -aG libvirt $USER
+    sudo usermod -aG kvm $USER
+    
+------
+# 啟動 libvirtd 服務 ( Terraform 腳本依賴 ... Libvirt 通訊 Socket )
+    sudo systemctl enable --now libvirtd
+    sudo systemctl status libvirtd
+
+# 權限設定
+    # 確保權限有在 libvirt 群組中
+    sudo usermod -aG libvirt $USER
+    # 執行後請重新登入或下達以下指令使群組生效
+    newgrp libvirt
+
+# 檢查 Default Pool
+    # 確認清單
+    sudo virsh pool-list --all
+    
+    # 若沒啟動
+    sudo virsh pool-start default
+    
+    # 若 pool-list 是空的 
+        # 1. 建立存儲目錄並定義 Pool
+        sudo mkdir -p /var/lib/libvirt/images
+        sudo virsh pool-define-as --name default --type dir --target /var/lib/libvirt/images
+        
+        # 2. 啟動並設定開機自啟
+        sudo virsh pool-start default
+        sudo virsh pool-autostart default
+        
+        # 3. 驗證 (State 應為 running)
+        sudo virsh pool-list --all
+
+------
 cd terraform
 
-# 初始化
-terraform init
+# 初始化/更新
+terraform init --upgrade
 
 # 安裝環境
 terraform apply -auto-approve
 
 # 拆掉環境
 terraform destroy
+
+------
+ssh debian@192.168.122.21
+ssh debian@192.168.122.221
+ssh debian@192.168.122.131
+
+
+# 測試是否監控成功 ( 可檢視機器名字出現在列表 )
+kubectl get nodes -o wide
 ```
 
 <br>

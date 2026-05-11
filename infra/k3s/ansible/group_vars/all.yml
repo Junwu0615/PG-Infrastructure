@@ -5,7 +5,7 @@
 k3s_version: v1.29.3+k3s1
 
 # 叢集的金鑰，這可以是任何字串，用於 Agent 加入 Master 的驗證
-k3s_token: "YourSuperSecretToken12345"
+k3s_token: "K3s-Secret-Token-2026"
 
 # 定義 K3s 相關路徑
 k3s_bin_dir: /usr/local/bin
@@ -16,4 +16,4 @@ api_port: 6443
 
 # Ansible SSH 設定 ( 與 Terraform 中的設定保持一致 )
 ansible_user: debian
-ansible_ssh_private_key_file: "~/.ssh/id_ed25519.pub"
+ansible_ssh_private_key_file: "~/.ssh/id_rsa"
