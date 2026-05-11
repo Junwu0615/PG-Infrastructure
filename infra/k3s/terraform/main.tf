@@ -14,10 +14,9 @@ provider "libvirt" {
 }
 
 # 1. 取得現有的 Storage Pool (通常 KVM 預設為 default)
-# 如果你沒有自定義 Pool，請確保 /var/lib/libvirt/images 權限正確
 resource "libvirt_volume" "debian_base" {
   name   = "debian12_base.qcow2"
-  pool   = "default" # 修正：加入必填的 pool
+  pool   = "default"
   source = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"
   format = "qcow2"
 }
@@ -26,20 +25,20 @@ resource "libvirt_volume" "debian_base" {
 resource "libvirt_volume" "node_disk" {
   count          = var.node_count
   name           = "k3s-disk-${count.index}.qcow2"
-  pool           = "default" # 修正：加入必填的 pool
+  pool           = "default"
   base_volume_id = libvirt_volume.debian_base.id
   size           = 21474836480 # 20GB [cite: 2]
 }
 
 # 3. Cloud-Init 設定
 resource "libvirt_cloudinit_disk" "commoninit" {
-  name      = "commoninit.iso"
-  pool      = "default" # 修正：部分版本此處也需 pool
+  count = var.node_count
+  name  = "commoninit-${count.index}.iso" # 每個節點需要獨立的 ISO 以區分 Hostname
   user_data = templatefile("${path.module}/cloud_init.cfg", {
-    ssh_public_key = file(var.ssh_public_key_path)
+    ssh_public_key = file("~/.ssh/id_rsa.pub")
+    hostname       = "k3s-node-${count.index}" # 傳入正確的 Hostname
   })
-  # 修正：加入必填但可為空的 meta_data
-  meta_data = ""
+  pool = "default"
 }
 
 # 4. 建立 VM 節點
@@ -49,17 +48,13 @@ resource "libvirt_domain" "k3s_nodes" {
   memory = "2048"
   vcpu   = 2
 
-  # 1. 移除 'type = "kvm"'，這在許多版本中是預設值或不支援直接賦值
-  # 2. 修正 cloudinit 的引用方式
-  cloudinit = libvirt_cloudinit_disk.commoninit.id
+  cloudinit = libvirt_cloudinit_disk.commoninit[count.index].id # 引用對應索引
 
-  # 修正：確保 network_interface 是以 block 形式存在
   network_interface {
     network_name   = "default"
     wait_for_lease = true
   }
 
-  # 修正：使用正確的 disk 引用方式
   disk {
     volume_id = libvirt_volume.node_disk[count.index].id
   }

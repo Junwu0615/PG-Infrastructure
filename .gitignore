@@ -9,6 +9,7 @@ logs
 *.tfstate
 *.tfstate.backup
 *.terraform.lock.hcl
+*.terraform.tfstate.lock.info
 .terraform
 
 infra/docker-compose/terraform/.terraform

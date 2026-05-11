@@ -20,3 +20,21 @@
   tasks:
     - name: Join Cluster
       shell: "curl -sfL [https://get.k3s.io](https://get.k3s.io) | K3S_URL=https://{{ server_ip }}:6443 K3S_TOKEN={{ token }} sh - agent"
+
+- name: Setup local kubectl access
+  hosts: masters
+  become: yes
+  tasks:
+    - name: Fetch K3s config to local machine
+      fetch:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: ~/.kube/config-k3s
+        flat: yes
+
+    - name: Update Master IP in local config
+      delegate_to: localhost
+      become: no
+      replace:
+        path: ~/.kube/config-k3s
+        regexp: '127.0.0.1'
+        replace: "{{ inventory_hostname }}"

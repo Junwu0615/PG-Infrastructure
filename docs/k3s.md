@@ -351,18 +351,27 @@ kubectl logs -f -l app=python-app --tail=5
 ------
 sudo apt update
 
-# 建立 Cloud-Init 所需的 ISO 鏡像時，負責產生 ISO 檔案的工具
+# ✅ 建立 Cloud-Init 所需的 ISO 鏡像時，負責產生 ISO 檔案的工具
 sudo apt install -y genisoimage
 
-# 視覺化界面 Virt-Manager ( 直接輸入: virt-manager )
+# ✅ 視覺化界面 Virt-Manager ( 直接輸入: virt-manager )
 sudo apt install -y virt-manager
     # 查看所有正在運行的 VM
     >> sudo virsh list --all
     
     # 查看 VM 詳細規格
     >> sudo virsh dominfo k3s-node-0
+    
+    # 查看 VM 日誌
+    >> sudo virsh console k3s-node-0
+    
+    # 查看 ISO 路徑
+    >> sudo virsh domblklist k3s-node-0
+    
+    # 重啟裝置
+    >> sudo virsh reset k3s-node-0
 
-# 安裝 Libvirt 虛擬化組件
+# ✅ 安裝 Libvirt 虛擬化組件
     # 更新並安裝虛擬化套件
     sudo apt install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst libvirt-daemon qemu-utils
     
@@ -375,17 +384,17 @@ sudo apt install -y virt-manager
     sudo usermod -aG kvm $USER
     
 ------
-# 啟動 libvirtd 服務 ( Terraform 腳本依賴 ... Libvirt 通訊 Socket )
+# ✅ 啟動 libvirtd 服務 ( Terraform 腳本依賴 ... Libvirt 通訊 Socket )
     sudo systemctl enable --now libvirtd
     sudo systemctl status libvirtd
 
-# 權限設定
+# ✅ 權限設定
     # 確保權限有在 libvirt 群組中
     sudo usermod -aG libvirt $USER
     # 執行後請重新登入或下達以下指令使群組生效
     newgrp libvirt
 
-# 檢查 Default Pool
+# ✅ 檢查 Default Pool
     # 確認清單
     sudo virsh pool-list --all
     
@@ -407,22 +416,23 @@ sudo apt install -y virt-manager
 ------
 cd terraform
 
+sed -i 's/\r$//' main.tf
+sed -i 's/\r$//' cloud_init.cfg
+
 # 初始化/更新
 terraform init --upgrade
 
 # 安裝環境
 terraform apply -auto-approve
 
-# 拆掉環境
-terraform destroy
+# 拆環境
+terraform destroy -auto-approve
 
 ------
-ssh debian@192.168.122.21
-ssh debian@192.168.122.221
-ssh debian@192.168.122.131
+ssh debian@$(terraform output -raw master_ip)
+ssh debian@192.168.122.51
 
-
-# 測試是否監控成功 ( 可檢視機器名字出現在列表 )
+# ✅ 測試是否監控成功 ( 可檢視機器名字出現在列表 )
 kubectl get nodes -o wide
 ```
 
@@ -430,25 +440,26 @@ kubectl get nodes -o wide
 
 ### *F.　Makefile Command*
 ```
-# 系統健康檢查與環境初始化
-make init_nodes
+Terraform:
 
-# 部署 k3s
-make deploy_k3s
-
-------
-
-# 檢視狀態 ( pods + nodes )
-make status
-
-# VM 開機 ( K3s 集群  )
-make cluster_up
-
-# VM 關機 ( K3s 集群  )
-make power_manage action=stop
-
-# VM 重新啟動 ( K3s 集群  )
-make power_manage action=reboot
+Ansible:
+    # 系統健康檢查與環境初始化
+    make init_nodes
+    
+    # 部署 k3s
+    make deploy_k3s
+    
+    # 檢視狀態 ( pods + nodes )
+    make status
+    
+    # VM 開機 ( K3s 集群  )
+    make cluster_up
+    
+    # VM 關機 ( K3s 集群  )
+    make power_manage action=stop
+    
+    # VM 重新啟動 ( K3s 集群  )
+    make power_manage action=reboot
 ```
 
 <br>
