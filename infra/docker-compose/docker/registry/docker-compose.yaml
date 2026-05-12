@@ -10,6 +10,18 @@ services:
     mem_limit: '512mb'
     restart: unless-stopped
 
+  registry-ui:
+    image: joxit/docker-registry-ui:${REGISTRY_UI_VERSION:-latest}
+    ports:
+      - '8081:80'
+    environment:
+      - REGISTRY_TITLE=My Private Registry
+      - REGISTRY_URL=http://registry:5000
+      - SINGLE_REGISTRY=true
+    depends_on:
+      - registry
+    restart: unless-stopped
+
 
 volumes:
   registry_data:

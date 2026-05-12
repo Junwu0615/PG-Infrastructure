@@ -213,13 +213,13 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 <summary><b><i>　b.1.　Data Core & Orchestration </i></b></summary>
 <ul>
 
-|**Service**|**Description**|**Port**|
-|--:|:--|:--:|
-| **PostgreSQL** | `OLTP` Primary Business DB | [5432](http://127.0.0.1:5432) |
-| **PostgreSQL** | Metadata DB for Airflow | [5433](http://127.0.0.1:5433) |
-| **PgAdmin** | PostgreSQL Web Management UI | [5050](http://127.0.0.1:5050) |
-| **Apache Airflow** | `OLAP` Workflow Orchestration | [8100](http://127.0.0.1:8100) |
-| **Superset** | `OLAP` BI Visualization Dashboard | `TBD` |
+|**Service**|**Description**|**Docker**|**K8s**|
+|--:|:--|:--:|:--:|
+| **PostgreSQL** | `OLTP` Primary Business DB | [5432](http://127.0.0.1:5432) | `TBD` |
+| **PostgreSQL** | Metadata DB for Airflow | [5433](http://127.0.0.1:5433) | `TBD` |
+| **PgAdmin** | PostgreSQL Web Management UI | [5050](http://127.0.0.1:5050) | `TBD` |
+| **Apache Airflow** | `OLAP` Workflow Orchestration | [8100](http://127.0.0.1:8100) | `TBD` |
+| **Superset** | `OLAP` BI Visualization Dashboard | `TBD` | `TBD` |
 
 </ul>
 </details>
@@ -229,12 +229,12 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 <summary><b><i>　b.2.　Event Streaming & IoT Platform </i></b></summary>
 <ul>
 
-|**Service**|**Description**|**Port**|
-|--:|:--|:--:|
-| **MQTT Broker** | High-concurrency `IoT` Message Ingestion | [1883](http://127.0.0.1:1883) |
-| **Apache Kafka** | Distributed Streaming Platform `Backbone` | [9092](http://127.0.0.1:9092) |
-| **Kafka UI** | Topic & Cluster & Consumer Management | [9093](http://127.0.0.1:9093) |
-| **Schema Registry** | Centralized Schema Governance `Avro/JSON` | [8081](http://127.0.0.1:8081) |
+|**Service**|**Description**|**Docker**|**K8s**|
+|--:|:--|:--:|:--:|
+| **MQTT Broker** | High-concurrency `IoT` Message Ingestion | [1883](http://127.0.0.1:1883) | `TBD` |
+| **Apache Kafka** | Distributed Streaming Platform `Backbone` | [9092](http://127.0.0.1:9092) | `TBD` |
+| **Kafka UI** | Topic & Cluster & Consumer Management | [9093](http://127.0.0.1:9093) | `TBD` |
+| **Schema Registry** | Centralized Schema Governance `Avro/JSON` | [8081](http://127.0.0.1:8081) | `TBD` |
 
 </ul>
 </details>
@@ -244,11 +244,11 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 <summary><b><i>　b.3.　Lakehouse Architecture </i></b></summary>
 <ul>
 
-|**Service**|**Description**|**Port**|
-|--:|:--|:--:|
-| **Debezium** | `CDC` from Postgres | `TBD` |
-| **Apache Iceberg** | `OLAP` High-performance Table Format `Data Lake` | `TBD` |
-| **Apache Flink** | Stateful Computations over Data Streams | `TBD` |
+|**Service**|**Description**|**Docker**|**K8s**|
+|--:|:--|:--:|:--:|
+| **Debezium** | `CDC` from Postgres | `TBD` | `TBD` |
+| **Apache Iceberg** | `OLAP` High-performance Table Format `Data Lake` | `TBD` | `TBD` |
+| **Apache Flink** | Stateful Computations over Data Streams | `TBD` | `TBD` |
 
 </ul>
 </details>
@@ -258,17 +258,17 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 <summary><b><i>　b.4.　Monitoring & Logging </i></b></summary>
 <ul>
 
-|**Service**|**Description**|**Port**|
-|--:|:--|:--:|
-| **Postgres Exporter** | Database Performance Metrics | [9187](http://127.0.0.1:9187) |
-| **Node Exporter** | Host Resource Metrics | [9100](http://127.0.0.1:9100) |
-| **Prometheus** | Metrics Time-Series DB | [9090](http://127.0.0.1:9090) |
-| **Grafana** | Dashboard | [3000](http://127.0.0.1:3000) |
-| **Loki** | `Manage Log` | [3100](http://127.0.0.1:3100) |
-| **Promtail** | for `Loki` | - |
-| **Elasticsearch** | `Manage Log` Distributed Search Engine | [9200](http://127.0.0.1:9200) |
-| **Logstash** | `Manage Log` Log Processing Pipeline | [9600](http://127.0.0.1:9600) |
-| **Kibana** | `Manage Log` Log Exploration UI | [5601](http://127.0.0.1:5601) |
+|**Service**|**Description**|**Docker**|**K8s**|
+|--:|:--|:--:|:--:|
+| **Postgres Exporter** | Database Performance Metrics | [9187](http://127.0.0.1:9187) | `TBD` |
+| **Node Exporter** | Host Resource Metrics | [9100](http://127.0.0.1:9100) | `TBD` |
+| **Prometheus** | Metrics Time-Series DB | [9090](http://127.0.0.1:9090) | `TBD` |
+| **Grafana** | Dashboard | [3000](http://127.0.0.1:3000) | `TBD` |
+| **Loki** | `Manage Log` | [3100](http://127.0.0.1:3100) | `TBD` |
+| **Promtail** | for `Loki` | - | `TBD` |
+| **Elasticsearch** | `Manage Log` Distributed Search Engine | [9200](http://127.0.0.1:9200) | `TBD` |
+| **Logstash** | `Manage Log` Log Processing Pipeline | [9600](http://127.0.0.1:9600) | `TBD` |
+| **Kibana** | `Manage Log` Log Exploration UI | [5601](http://127.0.0.1:5601) | `TBD` |
 
 </ul>
 </details>
@@ -278,13 +278,14 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 <summary><b><i>　b.5.　DevOps & Security </i></b></summary>
 <ul>
 
-|**Service**|**Description**|**Port**|
-|--:|:--|:--:|
-| **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) |
-| **Jenkins** | `Continuous Delivery` | [8095](http://127.0.0.1:8095) |
-| **Docker-Registry** | `Private Image Repository` | [5000](http://127.0.0.1:5000) |
-| **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) |
-| **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` |
+|**Service**|**Description**|**Docker**|**K8s**|
+|--:|:--|:--:|:--:|
+| **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | `TBD` |
+| **Jenkins** | `Continuous Delivery` | [8095](http://127.0.0.1:8095) | `TBD` |
+| **Docker Registry** | `Private Image Repository` | [5000](http://127.0.0.1:5000) | `TBD` |
+| **Docker Registry UI** | for `Docker Registry` | [8081](http://127.0.0.1:8081) | `TBD` |
+| **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | `TBD` |
+| **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | `TBD` |
 
 </ul>
 </details>
