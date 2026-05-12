@@ -1,5 +1,5 @@
 [wsl2]
-memory=16GB
+memory=30GB
 processors=12
 networkingMode=mirrored
 #networkingMode=NAT
