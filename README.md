@@ -272,7 +272,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 ### *C.　Service Support Form*
 
-|**Service**|**Docker**|**Terraform**|**MiniKube**|**K3d**|**K3s**|**Kubeadm**|**GCP**|
+|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**Kubeadm**|**GCP**|
 |--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | **PostgreSQL** | O | - | O | O | O | O | - |
 | **PgAdmin** | O | - | - | - | - | - | - |

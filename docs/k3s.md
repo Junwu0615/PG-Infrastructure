@@ -477,10 +477,10 @@ Ansible:
     # 檢視狀態 ( pods + nodes )
     make status
     
-    # VM 關機 ( K3s 集群  )
+    # VM 關機 ( K3s 集群 )
     make power_manage action=stop
     
-    # VM 重新啟動 ( K3s 集群  )
+    # VM 重新啟動 ( K3s 集群 )
     make power_manage action=reboot
 
 Helm:
@@ -518,7 +518,7 @@ Kubectl
         # 增加底下這行 # 統一由 Master 轉發
         192.168.0.17  portainer.local
         
-    3. 有更新過 ingress (# helm/app-stack/templates/ingress.yaml) 則再次部署
+    3. 有更新過 ingress ( # helm/app-stack/templates/ingress.yaml ) 則再次部署
     make deploy ver=v5
     
     4. 測試是否能訪問
