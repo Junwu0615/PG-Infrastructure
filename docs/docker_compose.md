@@ -42,6 +42,9 @@ make airflow
 make mqtt
 make kafka
 make elk
+make registry
+make gitlab
+make jenkins
 
 # depends on 'Terraform' + 'Ansible' services ( Monitoring + Portainer )
 make all

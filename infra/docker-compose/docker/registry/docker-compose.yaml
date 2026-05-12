@@ -1,0 +1,15 @@
+services:
+  registry:
+    image: registry:${REGISTRY_VERSION:-latest}
+    ports:
+      - '5000:5000'
+    env_file:
+      - .env
+    volumes:
+      - registry_data:/var/lib/registry/docker/registry
+    mem_limit: '512mb'
+    restart: unless-stopped
+
+
+volumes:
+  registry_data:

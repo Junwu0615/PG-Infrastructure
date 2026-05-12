@@ -18,12 +18,14 @@ SUB_SERVICES = ./docker/airflow/docker-compose.yaml \
 			   ./docker/portainer/docker-compose.yaml \
 			   ./docker/postgresql/docker-compose.yaml \
 			   ./docker/iot-platform/mqtt-compose.yaml \
-			   ./docker/iot-platform/kafka-compose.yaml
+			   ./docker/iot-platform/kafka-compose.yaml \
+			   ./docker/registry/docker-compose.yaml
 
 AIRFLOW_CONTENT = airflow-webserver airflow-scheduler airflow-worker airflow-triggerer redis
 MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter promtail loki
 POSTGRESQL_CONTENT = common-db pgadmin
 PORTAINER_CONTENT = portainer
+REGISTRY_CONTENT = registry
 MQTT_CONTENT = mqtt
 KAFKA_CONTENT = kafka kafka-connect kafka-ui schema-registry
 ELK_CONTENT = elasticsearch logstash kibana
@@ -138,6 +140,11 @@ portainer: fix-sock
 	@echo "重新啟動 Portainer 相關服務"
 	docker compose -f $(COMPOSE_DIR) down $(PORTAINER_CONTENT) --remove-orphans
 	docker compose -f $(COMPOSE_DIR) up -d $(PORTAINER_CONTENT)
+
+registry: fix-sock
+	@echo "重新啟動 Portainer 相關服務"
+	docker compose -f $(COMPOSE_DIR) down $(REGISTRY_CONTENT) --remove-orphans
+	docker compose -f $(COMPOSE_DIR) up -d $(REGISTRY_CONTENT)
 
 mqtt: fix-sock
 	@echo "重新啟動 MQTT 相關服務"
