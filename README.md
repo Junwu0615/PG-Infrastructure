@@ -41,6 +41,54 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │   │       ├── logstash.yaml
     │   │   │       └── pipeline
     │   │   │           └── logstash.conf
+    │   │   ├── gitlab
+    │   │   │   ├── config
+    │   │   │   │   ├── gitlab-secrets.json
+    │   │   │   │   ├── gitlab.rb
+    │   │   │   │   ├── initial_root_password
+    │   │   │   │   ├── ssh_host_ecdsa_key
+    │   │   │   │   ├── ssh_host_ecdsa_key.pub
+    │   │   │   │   ├── ssh_host_ed25519_key
+    │   │   │   │   ├── ssh_host_ed25519_key.pub
+    │   │   │   │   ├── ssh_host_rsa_key
+    │   │   │   │   ├── ssh_host_rsa_key.pub
+    │   │   │   │   └── trusted-certs
+    │   │   │   ├── data
+    │   │   │   │   ├── alertmanager  [error opening dir]
+    │   │   │   │   ├── backups  [error opening dir]
+    │   │   │   │   ├── bootstrapped
+    │   │   │   │   ├── git-data  [error opening dir]
+    │   │   │   │   ├── gitaly  [error opening dir]
+    │   │   │   │   ├── gitlab-ci
+    │   │   │   │   │   └── builds  [error opening dir]
+    │   │   │   │   ├── gitlab-exporter
+    │   │   │   │   │   ├── RUBY_VERSION
+    │   │   │   │   │   └── gitlab-exporter.yml
+    │   │   │   │   ├── gitlab-kas  [error opening dir]
+    │   │   │   │   ├── gitlab-rails
+    │   │   │   │   │   ├── REVISION
+    │   │   │   │   │   ├── RUBY_VERSION
+    │   │   │   │   │   ├── VERSION
+    │   │   │   │   │   ├── etc  [error opening dir]
+    │   │   │   │   │   ├── shared  [error opening dir]
+    │   │   │   │   │   ├── sockets  [error opening dir]
+    │   │   │   │   │   ├── tmp  [error opening dir]
+    │   │   │   │   │   ├── upgrade-status  [error opening dir]
+    │   │   │   │   │   ├── uploads  [error opening dir]
+    │   │   │   │   │   └── working  [error opening dir]
+    │   │   │   │   ├── gitlab-shell  [error opening dir]
+    │   │   │   │   ├── gitlab-workhorse  [error opening dir]
+    │   │   │   │   ├── logrotate  [error opening dir]
+    │   │   │   │   ├── nginx  [error opening dir]
+    │   │   │   │   ├── postgres-exporter  [error opening dir]
+    │   │   │   │   ├── postgresql
+    │   │   │   │   │   ├── VERSION
+    │   │   │   │   │   └── data  [error opening dir]
+    │   │   │   │   ├── prometheus  [error opening dir]
+    │   │   │   │   ├── public_attributes.json
+    │   │   │   │   ├── redis  [error opening dir]
+    │   │   │   │   └── trusted-certs-directory-hash
+    │   │   │   └── docker-compose.yaml
     │   │   ├── iot-platform
     │   │   │   ├── config
     │   │   │   │   ├── connectors
@@ -55,10 +103,14 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │   │   │   └── Dockerfile.kafka
     │   │   │   ├── kafka-compose.yaml
     │   │   │   └── mqtt-compose.yaml
+    │   │   ├── jenkins
+    │   │   │   └── docker-compose.yaml
     │   │   ├── monitoring
     │   │   │   ├── docker-compose.yaml
     │   │   │   ├── htap_grafana.json
-    │   │   │   └── prometheus.yaml
+    │   │   │   ├── loki-config.yaml
+    │   │   │   ├── prometheus.yaml
+    │   │   │   └── promtail-config.yaml
     │   │   ├── portainer
     │   │   │   └── docker-compose.yaml
     │   │   ├── postgresql
@@ -66,11 +118,13 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │   │   ├── docker-compose.yaml
     │   │   │   └── init
     │   │   │       └── init.sql
-    │   │   └── powa
-    │   │       ├── Dockerfile
-    │   │       ├── docker-compose.yaml
-    │   │       └── init
-    │   │           └── powa.sql
+    │   │   ├── powa
+    │   │   │   ├── Dockerfile
+    │   │   │   ├── docker-compose.yaml
+    │   │   │   └── init
+    │   │   │       └── powa.sql
+    │   │   └── registry
+    │   │       └── docker-compose.yaml
     │   ├── docker-compose.yaml
     │   ├── terraform
     │   │   ├── main.tf
@@ -281,8 +335,8 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
 | **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | `TBD` |
-| **Jenkins** | `Continuous Delivery` | [8095](http://127.0.0.1:8095) | `TBD` |
-| **Docker Registry** | `Private Image Repository` | [5000](http://127.0.0.1:5000) | `TBD` |
+| **Jenkins** | `Continuous Delivery` | [8095](http://127.0.0.1:8095/jenkins) | `TBD` |
+| **Docker Registry** | `Private Image Repository` | [5000](http://127.0.0.1:5000/v2/_catalog) | `TBD` |
 | **Docker Registry UI** | for `Docker Registry` | [8081](http://127.0.0.1:8081) | `TBD` |
 | **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | `TBD` |
 | **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | `TBD` |
@@ -314,12 +368,14 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 | **Prometheus** | O | O | - | - | - | - | - |
 | **Grafana** | O | O | - | - | - | - | - |
 | **Loki** | O | - | - | - | - | - | - |
+| **Promtail** | O | - | - | - | - | - | - |
 | **Elasticsearch** | O | - | - | - | - | - | - |
 | **Logstash** | O | - | - | - | - | - | - |
 | **Kibana** | O | - | - | - | - | - | - |
 | **Gitlab** | O | - | - | - | - | - | - |
 | **Jenkins** | O | - | - | - | - | - | - |
-| **Docker-Registry** | O | - | - | - | - | - | - |
+| **Docker Registry** | O | - | - | - | - | - | - |
+| **Docker Registry UI** | O | - | - | - | - | - | - |
 | **Portainer** | O | O | - | - | - | - | - |
 | **HashiCorp Vault** | O | - | - | - | - | - | - |
 
