@@ -493,7 +493,7 @@ Helm:
 
 ------
 Kubectl ( k )
-    # 標籤設置 ( k3s-node-0 = Master )
+    # 標籤設置，節點 0 為 Master，接著 2 個節點的 service-type 為 app，其餘為 service
     make label_nodes app=2
 ```
 

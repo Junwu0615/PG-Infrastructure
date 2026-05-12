@@ -121,15 +121,29 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   ├── Makefile
     │   ├── ansible
     │   │   ├── ansible.cfg
-    │   │   ├── hosts.ini
-    │   │   └── scripts
+    │   │   ├── group_vars
+    │   │   │   └── all.yml
+    │   │   ├── inventory.ini
+    │   │   └── playbooks
     │   │       ├── deploy_k3s.yml
     │   │       ├── init_nodes.yml
-    │   │       └── power_manage.yml
+    │   │       ├── power_manage.yml
+    │   │       └── site.yml
     │   ├── app
     │   │   ├── app.py
     │   │   └── dockerfile
     │   │       └── Dockerfile.app
+    │   ├── archive
+    │   │   ├── v1
+    │   │   │   ├── Makefile
+    │   │   │   └── ansible
+    │   │   │       ├── ansible.cfg
+    │   │   │       ├── inventory.ini
+    │   │   │       └── playbooks
+    │   │   │           ├── deploy_k3s.yml
+    │   │   │           ├── init_nodes.yml
+    │   │   │           └── power_manage.yml
+    │   │   └── v2
     │   ├── helm
     │   │   └── app-stack
     │   │       ├── Chart.yaml
@@ -150,6 +164,14 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │       ├── values-prod.yaml
     │   │       └── values.yaml
     │   └── terraform
+    │       ├── cloud_init.cfg
+    │       ├── inventory.tftpl
+    │       ├── main.tf
+    │       ├── outputs.tf
+    │       ├── terraform.tfstate
+    │       ├── terraform.tfstate.backup
+    │       ├── terraform.tfvars
+    │       └── variables.tf
     ├── kubeadm
     └── minikube
         ├── Makefile
