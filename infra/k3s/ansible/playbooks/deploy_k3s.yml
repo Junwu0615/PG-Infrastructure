@@ -17,7 +17,7 @@
     - name: Get Existing Node Token
       command: cat /var/lib/rancher/k3s/server/node-token
       register: k3s_token
-      changed_when: false # 讀取 Token 不算變更
+      changed_when: false
 
 
 - name: Install K3s Agents

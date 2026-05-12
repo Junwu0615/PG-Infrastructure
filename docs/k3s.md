@@ -488,7 +488,7 @@ Helm:
     make deploy ver=v5
 
 ------
-Kubectl
+Kubectl ( k )
     # 標籤設置 ( k3s-node-0 = Master )
     kubectl label nodes k3s-node-0 service-type=none --overwrite
     kubectl label nodes k3s-node-1 service-type=app --overwrite

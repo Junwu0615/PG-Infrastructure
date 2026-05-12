@@ -83,6 +83,12 @@ resource "local_file" "ansible_inventory" {
 
 # 6. 執行佈署
 resource "null_resource" "ansible_trigger" {
+  # 當節點數量改變時，強制重新觸發 Ansible
+  triggers = {
+    node_count = var.node_count
+    inventory_config = local_file.ansible_inventory.content
+  }
+
   depends_on = [libvirt_domain.k3s_nodes, local_file.ansible_inventory]
 
   provisioner "local-exec" {
