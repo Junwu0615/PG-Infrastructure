@@ -190,7 +190,7 @@
   docker exec -it pg-cluster-mqtt-1 mosquitto_passwd -b /mosquitto/config/passwd admin 123456789
   
   # 1. 建立共享網路
-  docker network create iot_network
+  docker network create pg-cluster_iot_network
   
   # 2. 啟動 MQTT
   docker-compose -f mqtt-compose.yaml up -d

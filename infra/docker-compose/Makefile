@@ -32,6 +32,7 @@ MQTT_CONTENT = mqtt
 KAFKA_CONTENT = kafka kafka-connect kafka-ui schema-registry
 ELK_CONTENT = elasticsearch logstash kibana
 
+
 .PHONY: build up down down-v ps rm \
 fix-sock db-wait list-configs prune get-chown-all dev-mode prod-mode kafka-chow \
 airflow monitoring portainer postgresql mqtt kafka \
@@ -39,7 +40,8 @@ setup config infra all destroy graph \
 kafka-connect-create kafka-connect-upsert kafka-connect-status \
 kafka-connect-clean kafka-topic-clean kafka-schema-clean kafka-all-clean
 
-init:
+
+init: dev-mode
 	@echo "* 進行特定服務 init"
 	@echo "[1.1] 正在建立 Airflow 必要目錄 ..."
 	mkdir -p $(AIRFLOW_DIR)/config $(AIRFLOW_DIR)/dags $(AIRFLOW_DIR)/logs $(AIRFLOW_DIR)/plugins
@@ -74,9 +76,7 @@ down-v:
 	docker compose -p $(MAIN_NAME) down --remove-orphans -v
 
 ps:
-	# ! 不使用 | docker compose -p $(MAIN_NAME) ps | -p 指定專案名稱，或 -f 指定總控檔案
 	@echo "* 正在搜尋名稱包含 $(MAIN_NAME) 的容器..."
-	#docker ps -a --filter "name=$(MAIN_NAME)"
 	docker ps -a --filter "name=$(MAIN_NAME)" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 fix-sock:
@@ -119,7 +119,7 @@ copy-dag:
 	@echo "將開發 DAGs 複製到 Airflow 容器中的 DAGs 對應資料夾 | 先刪除目錄下所有內容 | 執行複製"
 	@make dev-mode
 	sudo rm -rf $(AIRFLOW_DIR)/dags/*
-	cp -ra ../dags $(AIRFLOW_DIR)
+	cp -ra ../../../PG-Airflow-DAGs/dags $(AIRFLOW_DIR)
 	@make prod-mode
 	@echo "DAGs 同步完成並已校正權限 ..."
 

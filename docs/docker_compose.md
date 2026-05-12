@@ -47,6 +47,7 @@ make gitlab
 make jenkins
 
 # depends on 'Terraform' + 'Ansible' services ( Monitoring + Portainer )
+# incomplete Monitoring ( Loki + Promtail )
 make all
 
 # service shutdown
