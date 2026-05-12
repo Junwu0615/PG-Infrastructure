@@ -2,7 +2,7 @@ services:
   registry:
     image: registry:${REGISTRY_VERSION:-latest}
     ports:
-      - '5000:5000'
+      - '5100:5000'
     env_file:
       - .env
     volumes:
@@ -13,10 +13,10 @@ services:
   registry-ui:
     image: joxit/docker-registry-ui:${REGISTRY_UI_VERSION:-latest}
     ports:
-      - '8081:80'
+      - '8085:80'
     environment:
       - REGISTRY_TITLE=My Private Registry
-      - REGISTRY_URL=http://registry:5000
+      - REGISTRY_URL=http://registry:5100
       - SINGLE_REGISTRY=true
     depends_on:
       - registry

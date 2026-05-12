@@ -292,8 +292,8 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |--:|:--|:--:|:--:|
 | **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | `TBD` |
 | **Jenkins** | `Continuous Delivery` | [8095](http://127.0.0.1:8095/jenkins) | `TBD` |
-| **Docker Registry** | `Private Image Repository` | [5000](http://127.0.0.1:5000/v2/_catalog) | `TBD` |
-| **Docker Registry UI** | for `Docker Registry` | [8082](http://127.0.0.1:8082) | `TBD` |
+| **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | `TBD` |
+| **Docker Registry UI** | for `Docker Registry` | [8085](http://127.0.0.1:8085) | `TBD` |
 | **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | `TBD` |
 | **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | `TBD` |
 
