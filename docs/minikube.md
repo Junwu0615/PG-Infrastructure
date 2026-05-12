@@ -32,12 +32,12 @@ docker info | grep Name
 
 ### *B.　完整生命週期*
 ```
-# 初始化 (Provisioning)
+# 初始化 ( Provisioning )
     [每次] # Start: 指定使用 docker driver
     minikube start --driver=docker
     發生了什麼:
         - 下載 K8s 節點鏡像
-        - 建立虛擬環境 (Docker Container)
+        - 建立虛擬環境 ( Docker Container )
         - 持久化狀態： MiniKube 會在電腦
             建立 ~/.minikube 資料夾，儲存證書、配置與虛擬硬碟狀態
 
@@ -46,23 +46,23 @@ docker info | grep Name
     minikube addons enable ingress
 
 
-# 暫停 + 恢復 (Pause / Unpause)
+# 暫停 + 恢復 ( Pause / Unpause )
 minikube pause / minikube unpause
 重要特點： 正在開發，想暫時釋放 CPU 資源，
     但不想關閉 Pod，這會掛起所有容器進程
 
 
-# 停止 (Stop)
+# 停止 ( Stop )
 minikube stop
 發生了什麼：優雅地關閉 K8s 控制平面與容器
 重要特點：PV/PVC 資料會保留。下次啟動時，只需輸入 minikube start
-（不需要再加 driver 或 addons），它會恢復到關閉前的樣子
+（ 不需要再加 driver 或 addons ），它會恢復到關閉前的樣子
 
 
-# 刪除 (Delete) - 徹底關閉
+# 刪除 ( Delete ) - 徹底關閉
 minikube delete
 發生了什麼：銷毀虛擬環境，清空所有資源
-注意：所有的資料庫資料 (PV) 和配置都會消失
+注意：所有的資料庫資料 ( PV ) 和配置都會消失
     下次需要重新 minikube start --driver=docker
 ```
 
@@ -194,7 +194,7 @@ make clean
         kubectl exec -it $(kubectl get pods -l app=python-app -o name) -- env | grep "APP_MODE"
 
 
-👁️ [ X ] 測試 6： 網路層級（Service 斷線測試）
+👁️ [ X ] 測試 6： 網路層級（ Service 斷線測試 ）
     情境：  模擬「服務雖然在，但路徑斷了」~
            這能讓你理解 Service (ClusterIP) 是如何透過 iptables/IPVS 進行負載平衡，
            以及當 Service 被刪除時，客戶端會發生什麼事。
@@ -206,19 +206,19 @@ make clean
     2.  刪除 Service：
         `kubectl delete svc python-app-service`
     3.  觀察：
-        你會看到 `curl` 開始報錯 (Connection refused)。這模擬了「進入點故障」
+        你會看到 `curl` 開始報錯 ( Connection refused )。這模擬了「進入點故障」
     4.  恢復 Service：
         重新執行 `make deploy` 或 `kubectl apply`
     5.  驗證：
         觀察 `curl` 是否在 Service 重建後秒速恢復連線
 
 
-👁️ [ X ] 測試 7： 資源限制 (Resource Limit - OOMKilled)
+👁️ [ X ] 測試 7： 資源限制 ( Resource Limit - OOMKilled )
     情境： 最經典的「抓戰犯」環節。
           當程式碼有 Memory Leak，或是給的資源太小，K8s 會狠心地殺掉它。
 
     1.  限制資源：
-        在 Helm Chart 的 `resources.limits.memory` 設定一個極小值（例如 `50Mi`）
+        在 Helm Chart 的 `resources.limits.memory` 設定一個極小值（ 例如 `50Mi` ）
     2.  觸發記憶體壓力：
         在 Python App 寫一個暫時的 API 或是用腳本吃掉記憶體：
     3.  觀察狀態：
@@ -229,14 +229,14 @@ make clean
         在 `Last State` 欄位會明確標註 `Reason: OOMKilled`
 
 
-👁️ [ X ] 測試 8： 親和性與反親和性 (Anti-Affinity)
-    目標：  確保你的 DB 與 App 不要住在同一個 Node（避免單一節點損壞時全滅）
+👁️ [ X ] 測試 8： 親和性與反親和性 ( Anti-Affinity )
+    目標：  確保你的 DB 與 App 不要住在同一個 Node（ 避免單一節點損壞時全滅 ）
     做法：  配置 `podAntiAffinity`，然後觀察 `kubectl get pods -o wide`，
            確認 Pod 是否散佈在不同節點（minikube 可開啟多節點模式 `minikube start -n 2`）
 
 
-👁️ [ X ] 測試 9： 存活探針故障 (Liveness Probe Failure)
-    目標：  模擬程式「雖然沒當掉，但死鎖 (Deadlock) 了」
+👁️ [ X ] 測試 9： 存活探針故障 ( Liveness Probe Failure )
+    目標：  模擬程式「雖然沒當掉，但死鎖 ( Deadlock ) 了」
     做法：
            配置 `livenessProbe` 檢查 `/health` 接口
            透過代碼模擬 `/health` 永遠回傳 `500 Error` 或逾時

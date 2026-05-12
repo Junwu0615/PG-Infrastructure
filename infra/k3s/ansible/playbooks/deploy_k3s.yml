@@ -1,16 +1,23 @@
 # ansible/playbooks/deploy_k3s.yml
 
 ---
-- name: Install K3s Server
+- name: Install or Check K3s Server
   hosts: masters
   become: yes
   tasks:
-    - name: Install K3s on First Node
-      shell: curl -sfL https://get.k3s.io | sh -s - server --cluster-init
+    - name: Check if K3s is already installed
+      stat:
+        path: /usr/local/bin/k3s
+      register: k3s_installed
 
-    - name: Get Node Token
+    - name: Install K3s on First Node ( Only if not present )
+      shell: curl -sfL https://get.k3s.io | sh -s - server --cluster-init
+      when: not k3s_installed.stat.exists
+
+    - name: Get Existing Node Token
       command: cat /var/lib/rancher/k3s/server/node-token
       register: k3s_token
+      changed_when: false # 讀取 Token 不算變更
 
 
 - name: Install K3s Agents
@@ -20,8 +27,14 @@
     server_ip: "{{ hostvars[groups['masters'][0]]['ansible_host'] | default(groups['masters'][0]) }}"
     token: "{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
   tasks:
-    - name: Join Cluster
+    - name: Check if K3s Agent is already installed
+      stat:
+        path: /etc/systemd/system/k3s-agent.service
+      register: agent_installed
+
+    - name: Join Cluster ( Only new nodes )
       shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ server_ip }}:6443 K3S_TOKEN={{ token }} sh -s - agent"
+      when: not agent_installed.stat.exists
 
 
 - name: Setup local kubectl access
@@ -44,5 +57,5 @@
       become: no
       replace:
         path: ~/.kube/config-k3s
-        regexp: '127.0.0.1'
-        replace: "{{ inventory_hostname }}"
+        regexp: 'server: https://.*:6443'
+        replace: "server: https://{{ inventory_hostname }}:6443"

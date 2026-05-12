@@ -32,12 +32,12 @@ cluster_up:
 init_nodes:
 	@echo "* 初始化節點"
 	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/init_nodes.yml
-	@echo "✅ <make init_nodes> done."
+	@echo "✅  <make init_nodes> done."
 
 deploy_k3s:
 	@echo "* 部署 k3s"
 	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/deploy_k3s.yml
-	@echo "✅ <make deploy_k3s> done."
+	@echo "✅  <make deploy_k3s> done."
 
 power_manage:
 	@echo "* 電源管理 action = [stop / reboot]"
@@ -47,7 +47,7 @@ power_manage:
 		exit 1; \
 	fi
 	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/power_manage.yml -e "action=$(action)" -K
-	@echo "✅ <make power_manage> done."
+	@echo "✅  <make power_manage> done."
 
 test_clean:
 	# 1. 停止 systemd 服務 (如果存在)
@@ -79,7 +79,7 @@ build:
 	docker build -t my-python-app:$(ver) -f ./dockerfile/Dockerfile.app . --no-cache && \
 	echo "* 4. Build Done" && \
 	docker images | grep my-python-app
-	@echo "✅ <make build> done."
+	@echo "✅  <make build> done."
 
 clean:
 	@echo "* 徹底清除"
@@ -91,7 +91,7 @@ clean:
 	kubectl delete secret db-secret --ignore-not-found
 	kubectl delete pvc --all --ignore-not-found
 	kubectl delete cm,deployment,service,ingress --all
-	@echo "✅ <make clean> done."
+	@echo "✅  <make clean> done."
 
 deploy:
 	@echo "1. 檢查是否有版本號且不為空"
@@ -108,7 +108,7 @@ deploy:
  		-f $(VALUES_PATH) \
 		--set image.tag=$(ver) \
 		--set 'annotations.changeCause=$(MSG)'
-	@echo "✅ <make deploy> done."
+	@echo "✅  <make deploy> done."
 
 rollback:
 	@echo "1. 檢查是否有版本號且不為空"
@@ -118,4 +118,4 @@ rollback:
 	fi
 	@echo "* 當前設定錯誤 => 進行回滾"
 	helm rollback $(RELEASE_NAME) $(ver)
-	@echo "✅ <make rollback> done."
+	@echo "✅  <make rollback> done."

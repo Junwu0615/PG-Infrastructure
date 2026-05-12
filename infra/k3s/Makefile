@@ -19,19 +19,19 @@ init:
 	@echo "* 初始化 terraform 配置"
 	cd terraform && \
 	terraform init --upgrade
-	@echo "✅ <make init> done."
+	@echo "✅  <make init> done."
 
 apply:
 	@echo "* 安裝 VM 環境"
 	cd terraform && \
 	terraform apply -auto-approve
-	@echo "✅ <make apply> done."
+	@echo "✅  <make apply> done."
 
 destroy:
 	@echo "* 拆除 VM 環境"
 	cd terraform && \
 	terraform destroy -auto-approve
-	@echo "✅ <make destroy> done."
+	@echo "✅  <make destroy> done."
 
 status:
 	@echo "* 檢查 k8s 狀態"
@@ -46,7 +46,7 @@ power_manage:
 		exit 1; \
 	fi
 	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/power_manage.yml -e "action=$(action)" -K
-	@echo "✅ <make power_manage> done."
+	@echo "✅  <make power_manage> done."
 
 test_clean:
 	# 1. 停止 systemd 服務 (如果存在)
@@ -78,7 +78,7 @@ build:
 	docker build -t my-python-app:$(ver) -f ./dockerfile/Dockerfile.app . --no-cache && \
 	echo "* 4. Build Done" && \
 	docker images | grep my-python-app
-	@echo "✅ <make build> done."
+	@echo "✅  <make build> done."
 
 clean:
 	@echo "* 徹底清除"
@@ -90,7 +90,7 @@ clean:
 	kubectl delete secret db-secret --ignore-not-found
 	kubectl delete pvc --all --ignore-not-found
 	kubectl delete cm,deployment,service,ingress --all
-	@echo "✅ <make clean> done."
+	@echo "✅  <make clean> done."
 
 deploy:
 	@echo "1. 檢查是否有版本號且不為空"
@@ -107,7 +107,7 @@ deploy:
  		-f $(VALUES_PATH) \
 		--set image.tag=$(ver) \
 		--set 'annotations.changeCause=$(MSG)'
-	@echo "✅ <make deploy> done."
+	@echo "✅  <make deploy> done."
 
 rollback:
 	@echo "1. 檢查是否有版本號且不為空"
@@ -117,4 +117,4 @@ rollback:
 	fi
 	@echo "* 當前設定錯誤 => 進行回滾"
 	helm rollback $(RELEASE_NAME) $(ver)
-	@echo "✅ <make rollback> done."
+	@echo "✅  <make rollback> done."

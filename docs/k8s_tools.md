@@ -116,6 +116,16 @@ kubectl delete pod portainer-59cf9d8764-86m7h
     
 # ⭐ 刪除異常節點 ( 幽靈 )
 kubectl delete node <node name>
+
+# 簡化指令
+    # 編輯設定檔
+    nano ~/.bashrc
+    
+    # 檔案末尾加入
+    alias k='kubectl'
+    
+    # 生效設定檔
+    source ~/.bashrc
 ```
   
 <br>
