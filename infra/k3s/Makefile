@@ -5,15 +5,65 @@ ANSIBLE_INI_PATH=./ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./ansible/playbooks
 
 .PHONY: test_clean rollback deploy clean build \
-status power_manage init apply destroy label_nodes
+status power_manage init apply destroy label_nodes load_images save
 
+app ?= 1
+
+save:
+	@echo "* 導出映像檔至 $(TAR_FILE)"
+	@if [ -z "$(IMAGE_NAME)" ]; then \
+		echo "Error: 必須指定 IMAGE_NAME，ex: make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar"; \
+		exit 1; \
+	fi
+	@if [ -z "$(TAG)" ]; then \
+		echo "Error: 必須指定 TAG，ex: make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar"; \
+		exit 1; \
+	fi
+	@if [ -z "$(TAR_FILE)" ]; then \
+		echo "Error: 必須指定 TAR_FILE，ex: make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar"; \
+		exit 1; \
+	fi
+	docker save $(IMAGE_NAME):$(TAG) > $(TAR_FILE)
+
+load_images:
+	@if [ -z "$(TAR_FILE)" ]; then \
+		echo "Error: 必須指定 TAR_FILE，ex: make load_images TAR_FILE=my-python-app.tar"; \
+		exit 1; \
+	fi
+	@for ip in $$(kubectl get nodes -l service-type=app -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}'); do \
+		echo "--------------------------------------------------"; \
+		echo "* 處理節點: $$ip"; \
+		echo "* 正在傳輸 $(TAR_FILE)..."; \
+		scp $(TAR_FILE) debian@$$ip:~; \
+		echo "* 正在匯入至 K3s containerd..."; \
+		ssh debian@$$ip "sudo k3s ctr images import ~/$(TAR_FILE)"; \
+		echo "* 清理遠端臨時檔案..."; \
+		ssh debian@$$ip "rm ~/$(TAR_FILE)"; \
+	done
+	@echo "* 移除本地 $(TAR_FILE)"
+	rm $(TAR_FILE)
+	@echo "✅  <make load_images> done."
 
 label_nodes:
+	@echo "* 動態指定服務標籤配置 | make label_nodes app=$(app)"
+	@# 1. 處理 Master (k3s-node-0)
 	kubectl label nodes k3s-node-0 service-type=none --overwrite
-	kubectl label nodes k3s-node-1 service-type=app --overwrite
-	kubectl label nodes k3s-node-2 service-type=app --overwrite
-	kubectl label nodes k3s-node-3 service-type=service --overwrite
-	kubectl label nodes k3s-node-4 service-type=service --overwrite
+	@# 2. 遍歷其餘節點
+	@nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
+	count=1; \
+	for node in $$nodes; do \
+		if [ $$count -le $(app) ]; then \
+			echo "Labeling $$node as app"; \
+			kubectl label nodes $$node service-type=app --overwrite; \
+		else \
+			echo "Labeling $$node as service"; \
+			kubectl label nodes $$node service-type=service --overwrite; \
+		fi; \
+		count=$$((count + 1)); \
+	done
+	@echo "\n* 檢查標籤結果："
+	kubectl get nodes -L service-type
+	@echo "✅  <make label_nodes> done."
 
 init:
 	@echo "* 初始化 terraform 配置"

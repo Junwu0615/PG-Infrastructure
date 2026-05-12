@@ -302,8 +302,8 @@ make deploy ver=v5
     docker save my-python-app:v5 > my-python-app.tar
     
     # scp 傳給 [APP 標籤 Worker]
-    scp my-python-app.tar master@192.168.0.18:~
-    scp my-python-app.tar master@192.168.0.19:~
+    scp my-python-app.tar debian@192.168.122.193:~
+    scp my-python-app.tar debian@192.168.122.29:~
     
 [APP 標籤 Worker] # 有 2 台
     sudo k3s ctr images import ~/my-python-app.tar
@@ -484,19 +484,17 @@ Ansible:
     make power_manage action=reboot
 
 Helm:
+    # [暫時] 塞本地 imags 到 VM
+        make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar
+        make load_images TAR_FILE=my-python-app.tar
+    
     # 部屬 v5 版本測試腳本
     make deploy ver=v5
 
 ------
 Kubectl ( k )
     # 標籤設置 ( k3s-node-0 = Master )
-    kubectl label nodes k3s-node-0 service-type=none --overwrite
-    kubectl label nodes k3s-node-1 service-type=app --overwrite
-    kubectl label nodes k3s-node-2 service-type=app --overwrite
-    kubectl label nodes k3s-node-3 service-type=service --overwrite
-    kubectl label nodes k3s-node-4 service-type=service --overwrite
-    
-    make label_nodes
+    make label_nodes app=2
 ```
 
 <br>
