@@ -21,7 +21,7 @@ SUB_SERVICES = ./docker/airflow/docker-compose.yaml \
 			   ./docker/iot-platform/kafka-compose.yaml
 
 AIRFLOW_CONTENT = airflow-webserver airflow-scheduler airflow-worker airflow-triggerer redis
-MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter
+MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter promtail loki
 POSTGRESQL_CONTENT = common-db pgadmin
 PORTAINER_CONTENT = portainer
 MQTT_CONTENT = mqtt

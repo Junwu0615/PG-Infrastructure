@@ -531,7 +531,7 @@ Kubectl ( k )
     
     1. 啟動後剩 1 個 python-app 節點再跑
     2. 強制砍節點
-    3. 候補即替上
+    3. 候補即替上 ( 替補上的 pod 非同個節點 )
     
     pc@DESKTOP-PC:~$ kubectl get pods -w -o wide
     NAME                           READY   STATUS    RESTARTS   AGE   IP          NODE         NOMINATED NODE   READINESS GATES
