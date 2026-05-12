@@ -26,6 +26,8 @@ MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter promtail
 POSTGRESQL_CONTENT = common-db pgadmin
 PORTAINER_CONTENT = portainer
 REGISTRY_CONTENT = registry
+GITLAB_CONTENT = gitlab
+JENKINS_CONTENT = jenkins
 MQTT_CONTENT = mqtt
 KAFKA_CONTENT = kafka kafka-connect kafka-ui schema-registry
 ELK_CONTENT = elasticsearch logstash kibana
@@ -145,6 +147,16 @@ registry: fix-sock
 	@echo "重新啟動 Portainer 相關服務"
 	docker compose -f $(COMPOSE_DIR) down $(REGISTRY_CONTENT) --remove-orphans
 	docker compose -f $(COMPOSE_DIR) up -d $(REGISTRY_CONTENT)
+
+gitlab: fix-sock
+	@echo "重新啟動 Portainer 相關服務"
+	docker compose -f $(COMPOSE_DIR) down $(GITLAB_CONTENT) --remove-orphans
+	docker compose -f $(COMPOSE_DIR) up -d $(GITLAB_CONTENT)
+
+jenkins: fix-sock
+	@echo "重新啟動 Portainer 相關服務"
+	docker compose -f $(COMPOSE_DIR) down $(JENKINS_CONTENT) --remove-orphans
+	docker compose -f $(COMPOSE_DIR) up -d $(JENKINS_CONTENT)
 
 mqtt: fix-sock
 	@echo "重新啟動 MQTT 相關服務"

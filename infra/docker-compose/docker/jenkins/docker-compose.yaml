@@ -1,0 +1,21 @@
+services:
+  jenkins:
+    image: jenkins/jenkins:${JENKINS_VERSION:-latest}
+    ports:
+      - '8095:8080'   # Web UI
+      - '50000:50000' # Agent 通訊
+    env_file:
+      - .env
+    environment:
+      - JENKINS_OPTS=--prefix=/jenkins
+    volumes:
+#      - ../Airflow:/jenkins-workspace/airflow-project:rw  # 確保路徑與 Airflow 外部路徑匹配
+      - jenkins_data:/var/jenkins_home                    # Jenkins 資料持久化
+      - /var/run/docker.sock:/var/run/docker.sock         # (可選) 若 Jenkins 要啟容器
+#      - ~/.ssh:/root/.ssh:ro                             # 允許 Jenkins 用你的 SSH key 登入 Airflow Server
+    user: root
+    restart: unless-stopped
+
+
+volumes:
+  jenkins_data:

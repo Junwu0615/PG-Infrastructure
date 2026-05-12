@@ -24,5 +24,8 @@ infra/docker-compose/docker/airflow/plugins
 infra/docker-compose/docker/airflow/airflow.cfg
 infra/docker-compose/docker/airflow/airflow-webserver.pid
 infra/docker-compose/docker/airflow/webserver_config.py
+infra/docker-compose/docker/gitlab/config
+infra/docker-compose/docker/gitlab/data
+infra/docker-compose/docker/gitlab/logs
 
 infra/k3s/ansible/inventory.ini
