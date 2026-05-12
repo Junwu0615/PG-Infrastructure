@@ -275,7 +275,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 | **Prometheus** | Metrics Time-Series DB | [9090](http://127.0.0.1:9090) | `TBD` |
 | **Grafana** | Dashboard | [3000](http://127.0.0.1:3000) | `TBD` |
 | **Loki** | `Manage Log` | [3100](http://127.0.0.1:3100) | `TBD` |
-| **Promtail** | for `Loki` | - | `TBD` |
+| **Promtail** | for `Loki` | - | - |
 | **Elasticsearch** | `Manage Log` Distributed Search Engine | [9200](http://127.0.0.1:9200) | `TBD` |
 | **Logstash** | `Manage Log` Log Processing Pipeline | [9600](http://127.0.0.1:9600) | `TBD` |
 | **Kibana** | `Manage Log` Log Exploration UI | [5601](http://127.0.0.1:5601) | `TBD` |
