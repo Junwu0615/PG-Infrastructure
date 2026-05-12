@@ -525,9 +525,32 @@ Kubectl ( k )
         kubectl delete pod -l app=portainer
 
 
-👁️ 測試 16： 橫向自動伸縮 ( HPA - Horizontal Pod Autoscaler )
+👁️ 測試 16： 高可用單一實例 ( HA Singleton )
+    情境: 實現平時只有一個在跑，掛了自動在另一台補上的 HA 候補機制
+    於 app/app-deploy.yaml 進行設置
+    
+    1. 啟動後剩 1 個 python-app 節點再跑
+    2. 強制砍節點
+    3. 候補即替上
+    
+    pc@DESKTOP-PC:~$ kubectl get pods -w -o wide
+    NAME                           READY   STATUS    RESTARTS   AGE   IP          NODE         NOMINATED NODE   READINESS GATES
+    portainer-564755cdd-rrd79      1/1     Running   0          47m   10.42.3.3   k3s-node-3   <none>           <none>
+    postgres-db-64b54dd94b-8k2lq   1/1     Running   0          47m   10.42.4.3   k3s-node-4   <none>           <none>
+    python-app-bd8c7d76-qcvb8      1/1     Running   0          10s   10.42.2.5   k3s-node-2   <none>           <none>
+    python-app-bd8c7d76-qcvb8      1/1     Terminating   0          70s   10.42.2.5   k3s-node-2   <none>           <none>
+    python-app-bd8c7d76-ggtgj      0/1     Pending       0          0s    <none>      <none>       <none>           <none>
+    python-app-bd8c7d76-qcvb8      1/1     Terminating   0          70s   10.42.2.5   k3s-node-2   <none>           <none>
+    python-app-bd8c7d76-ggtgj      0/1     Pending       0          0s    <none>      k3s-node-1   <none>           <none>
+    python-app-bd8c7d76-ggtgj      0/1     ContainerCreating   0          0s    <none>      k3s-node-1   <none>           <none>
+    python-app-bd8c7d76-ggtgj      0/1     Running             0          0s    10.42.1.6   k3s-node-1   <none>           <none>
+    python-app-bd8c7d76-ggtgj      1/1     Running             0          6s    10.42.1.6   k3s-node-1   <none>           <none>
 
-👁️ 測試 17： 持久化儲存與節點漂移 ( PV / PVC / Local Path )
+
+👁️ 測試 17： 橫向自動伸縮 ( HPA - Horizontal Pod Autoscaler )
+
+
+👁️ 測試 18： 持久化儲存與節點漂移 ( PV / PVC / Local Path )
 ```
 
 <br><br><br>

@@ -9,12 +9,18 @@ metadata:
     kubernetes.io/change-cause: "Deploying version {{ .Values.image.tag }}"
 spec:
   # 測試 13：零停機更新與回滾 (Rolling Update & Rollback)
-  replicas: 2
+{{/*  replicas: 2*/}}
+{{/*  strategy:*/}}
+{{/*    type: RollingUpdate*/}}
+{{/*    rollingUpdate:*/}}
+{{/*      maxSurge: 1       # 更新時最多可以多開幾個 Pod # 只允許一個額外的新 Pod 出現嘗試交接，所以不會有無窮無盡的新 Pod 塞爆你的節點*/}}
+{{/*      maxUnavailable: 0 # 更新時最少要維持幾個 Pod 在線 # 強制要求「舊的必須都在，新的才能上」*/}}
+
+  # 測試 16： 高可用單一實例 ( HA Singleton )
+  replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1       # 更新時最多可以多開幾個 Pod # 只允許一個額外的新 Pod 出現嘗試交接，所以不會有無窮無盡的新 Pod 塞爆你的節點
-      maxUnavailable: 0 # 更新時最少要維持幾個 Pod 在線 # 強制要求「舊的必須都在，新的才能上」
+    type: Recreate  # 關鍵：先殺後建，防止單一實例邏輯衝突
+
   selector:
     matchLabels:
       app: python-app
@@ -23,6 +29,17 @@ spec:
       labels:
         app: python-app
     spec:
+      # 測試 16： 高可用單一實例 ( HA Singleton )
+      affinity: # 配合節點標籤
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: service-type
+                    operator: In
+                    values:
+                      - app
+
       nodeSelector:
         service-type: app # 強制 Pod => 指定標籤節點
       containers:
