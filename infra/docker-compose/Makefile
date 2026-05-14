@@ -21,7 +21,7 @@ SUB_SERVICES = ./docker/airflow/docker-compose.yaml \
 			   ./docker/iot-platform/kafka-compose.yaml \
 			   ./docker/registry/docker-compose.yaml
 
-AIRFLOW_CONTENT = airflow-webserver airflow-scheduler airflow-worker airflow-triggerer redis
+AIRFLOW_CONTENT = airflow-webserver airflow-scheduler airflow-worker airflow-triggerer redis postgres
 MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter promtail loki
 POSTGRESQL_CONTENT = common-db pgadmin
 PORTAINER_CONTENT = portainer
@@ -124,55 +124,164 @@ copy-dag:
 	@echo "DAGs 同步完成並已校正權限 ..."
 
 airflow: fix-sock copy-dag
-	@echo "重新啟動 Airflow 相關服務"
-	docker compose -f $(COMPOSE_DIR) down $(AIRFLOW_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(AIRFLOW_CONTENT)
+	@echo "Airflow 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(AIRFLOW_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(AIRFLOW_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make airflow action=$(action)> done."
 
 monitoring: fix-sock
-	@echo "重新啟動 Monitoring 相關服務"
-	docker compose -f $(COMPOSE_DIR) down $(MONITORING_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(MONITORING_CONTENT)
+	@echo "Monitoring 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(MONITORING_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(MONITORING_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make monitoring action=$(action)> done."
 
 postgresql: fix-sock
-	@echo "重新啟動 Postgresql 相關服務"
-	docker compose -f $(COMPOSE_DIR) down $(POSTGRESQL_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(POSTGRESQL_CONTENT)
+	@echo "Postgresql 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(POSTGRESQL_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(POSTGRESQL_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make postgresql action=$(action)> done."
 
 portainer: fix-sock
-	@echo "重新啟動 Portainer 相關服務"
-	docker compose -f $(COMPOSE_DIR) down $(PORTAINER_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(PORTAINER_CONTENT)
+	@echo "Portainer 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(PORTAINER_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(PORTAINER_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make portainer action=$(action)> done."
 
 registry: fix-sock
-	@echo "重新啟動 Portainer 相關服務"
-	docker compose -f $(COMPOSE_DIR) down $(REGISTRY_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(REGISTRY_CONTENT)
+	@echo "Registry 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(REGISTRY_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(REGISTRY_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make registry action=$(action)> done."
 
 gitlab: fix-sock
-	@echo "重新啟動 Portainer 相關服務"
-	docker compose -f $(COMPOSE_DIR) down $(GITLAB_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(GITLAB_CONTENT)
+	@echo "Gitlab 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(GITLAB_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(GITLAB_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make gitlab action=$(action)> done."
 
 jenkins: fix-sock
-	@echo "重新啟動 Portainer 相關服務"
-	docker compose -f $(COMPOSE_DIR) down $(JENKINS_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(JENKINS_CONTENT)
+	@echo "Jenkins 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(JENKINS_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(JENKINS_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make jenkins action=$(action)> done."
 
 mqtt: fix-sock
-	@echo "重新啟動 MQTT 相關服務"
-	docker compose -f $(COMPOSE_DIR) down $(MQTT_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(MQTT_CONTENT)
+	@echo "MQTT 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(MQTT_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(MQTT_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make mqtt action=$(action)> done."
 
 kafka: fix-sock
-	@echo "重新啟動 Kafka 相關服務"
-	@#make kafka-chown
-	docker compose -f $(COMPOSE_DIR) down $(KAFKA_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(KAFKA_CONTENT)
+	@echo "Kafka 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(KAFKA_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(KAFKA_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make kafka action=$(action)> done."
 
 elk: fix-sock
-	@echo "重新啟動 ELK 相關服務"
-	docker compose -f $(COMPOSE_DIR) down $(ELK_CONTENT) --remove-orphans
-	docker compose -f $(COMPOSE_DIR) up -d $(ELK_CONTENT)
+	@echo "ELK 相關服務"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+		exit 1; \
+	fi
+	@if [ "$(action)" = "up" ]; then \
+		docker compose -f $(COMPOSE_DIR) up -d $(ELK_CONTENT); \
+	elif [ "$(action)" = "down" ]; then \
+		docker compose -f $(COMPOSE_DIR) down $(ELK_CONTENT) --remove-orphans; \
+	else \
+		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+		exit 1; \
+	fi
+	@echo "✅  <make elk action=$(action)> done."
 
 refresh: fix-sock
 	@echo "1. 檢查是否有定義 container 且不為空"

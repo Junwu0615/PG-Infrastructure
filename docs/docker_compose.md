@@ -19,25 +19,11 @@ make up
 
 # service shutdown
 make down
-```
-</ul>
-</details>
 
-
-<details>
-<summary><b><i>　a.2.　Terraform + Ansible + Compose </i></b></summary>
-<ul>
-
-```bash
-cd infra/docker-compose
-
-# initialization
-make init
-make build
-make setup
-
-# depends on 'Compose' service
+# alone
 make postgresql
+make portainer
+make monitoring
 make airflow
 make mqtt
 make kafka
@@ -45,13 +31,26 @@ make elk
 make registry
 make gitlab
 make jenkins
+```
+</ul>
+</details>
+
+
+<details>
+<summary><b><i>　a.2.　Docker ( Terraform + Ansible )  </i></b></summary>
+<ul>
+
+```bash
+cd infra/docker-compose
+
+# initialization
+make setup
 
 # depends on 'Terraform' + 'Ansible' services ( Monitoring + Portainer )
 # incomplete Monitoring ( Loki + Promtail )
 make all
 
 # service shutdown
-make down
 make destroy
 ```
 </ul>
