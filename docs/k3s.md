@@ -9,7 +9,7 @@
     - K8s 本身：一旦機器開著，K8s 服務就是常駐的（ Daemon ），你不再需要手動 start 它
     
 
-k3d -> k3s
+k3d => k3s
 * K3d： 適合開發、測試 Helm 邏輯、練習節點調度
 * K3s： 適合部署在 VM 或實體機（ 如 Raspberry Pi ）上
 * 差異點：
@@ -224,7 +224,7 @@ sudo hostnamectl set-hostname worker3
     curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.17:6443 K3S_TOKEN=<Worker TOKEN> sh -
 
 
-2. 打通外部主機 kubectl ( Windows / WSL2 -> VM)
+2. 打通外部主機 kubectl ( Windows / WSL2 => VM)
     # [Master] 手動複製配置
     sudo cat /var/lib/rancher/k3s/server/k3s.yaml
     
@@ -488,11 +488,10 @@ Helm:
         make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar
         make load_images TAR_FILE=my-python-app.tar
     
-    # 部屬 v5 版本測試腳本
+    # 部署 v5 版本測試腳本
     make deploy ver=v5
 
-------
-Kubectl ( k )
+Kubectl ( k ):
     # 標籤設置，節點 0 為 Master，接著 2 個節點的 service-type 為 app，其餘為 service
     make label_nodes app=2
 ```

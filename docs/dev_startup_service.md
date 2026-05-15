@@ -308,7 +308,7 @@
   
   # 新增 Prometheus datasource: http:127.0.0.1:9090
   
-  # 快速導入 Dashboard ( Dashboards -> New -> Import )
+  # 快速導入 Dashboard ( Dashboards => New => Import )
   - Import via grafana.com :
     - PostgreSQL: 9628 ( TPS, Transactions, Locks, Cache hit, Connections, Database size )
     - Node Exporter: 1860 ( CPU, RAM, Disk IO, Disk usage, Network, Load average )
@@ -364,14 +364,14 @@
     ```
     ```
     壓測觀察重點： 
-    預期 : 逐漸上升 -> 穩定
+    預期 : 逐漸上升 => 穩定
     非預期 : TPS 上升 → 突然下降
-      - WAL Flush -> Disk IO Saturation
-      - Lock Contention -> Transaction Locks
-      - CPU Saturation -> Transaction waiting for CPU
-      - Memory Saturation -> Transaction waiting for Memory
-      - Network Saturation -> Transaction waiting for Network
-      - Checkpoint -> Checkpoint Frequency too High
+      - WAL Flush => Disk IO Saturation
+      - Lock Contention => Transaction Locks
+      - CPU Saturation => Transaction waiting for CPU
+      - Memory Saturation => Transaction waiting for Memory
+      - Network Saturation => Transaction waiting for Network
+      - Checkpoint => Checkpoint Frequency too High
     ```
   - #### *⭐ 2.　WAL Rate*
     ```
@@ -394,7 +394,7 @@
     ```
     壓測觀察重點： IO Wait
     預期 : None
-    非預期 : IO Full -> TPS 突然下降
+    非預期 : IO Full => TPS 突然下降
     ```
   - #### *⭐ 4.　Lock Contention*
   - ![PNG](../assets/grafana_04.PNG)
@@ -407,10 +407,10 @@
     壓測觀察重點： 
     預期 : None
     非預期 :
-        - Update Contention -> 多 Transaction 更新同 Row
-        - Index Page Lock -> 多 Transaction 更新同 Index Page
-        - DDL Lock -> Schema Change
-        - OLAP Query -> AccessShareLock
+        - Update Contention => 多 Transaction 更新同 Row
+        - Index Page Lock => 多 Transaction 更新同 Index Page
+        - DDL Lock => Schema Change
+        - OLAP Query => AccessShareLock
     ```
   - #### *5.　Connections*
   - ![PNG](../assets/grafana_05.PNG)
@@ -423,9 +423,9 @@
     壓測觀察重點： 
     預期 : Connections 穩定
     非預期 : Connections 持續上升
-        - Connection Leak -> Client Connections Not Being Released
-        - Connection Storm -> Sudden Surge in Connection Attempts
-        - Pool Misconfiguration -> Connection Pooling Exploded
+        - Connection Leak => Client Connections Not Being Released
+        - Connection Storm => Sudden Surge in Connection Attempts
+        - Pool Misconfiguration => Connection Pooling Exploded
     ```
   - #### *⭐ 6.　Cache Hit Ratio*
   - ![PNG](../assets/grafana_06.PNG)
@@ -450,7 +450,7 @@
     壓測觀察重點： 
     預期 : None
     非預期 :
-      - checkpoints_req -> WAL segment filled up -> max_wal_size too small
+      - checkpoints_req => WAL segment filled up => max_wal_size too small
     ```
     
   - #### *8.　...*
