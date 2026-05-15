@@ -13,6 +13,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 .
+├── LICENSE
 ├── README.md
 └── infra
     ├── docker-compose
@@ -32,8 +33,11 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │               └── main.yml
     │   ├── docker
     │   │   ├── airflow
+    │   │   │   ├── config
+    │   │   │   ├── dags ( copy `PG-Airflow-DAGs` )
     │   │   │   ├── deploy_dags.sh
-    │   │   │   └── docker-compose.yaml
+    │   │   │   ├── docker-compose.yaml
+    │   │   │   └── plugins
     │   │   ├── elk
     │   │   │   ├── docker-compose.yaml
     │   │   │   ├── elasticsearch.yaml
@@ -54,7 +58,8 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │   │   │   │   │   └── sink-inst-status-logs.json
     │   │   │   │   │   └── source
     │   │   │   │   │       └── source-cp-mach-order.json
-    │   │   │   │   └── mosquitto.conf
+    │   │   │   │   ├── mosquitto.conf
+    │   │   │   │   └── passwd
     │   │   │   ├── dockerfile
     │   │   │   │   └── Dockerfile.kafka
     │   │   │   ├── kafka-compose.yaml
@@ -183,6 +188,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │       ├── terraform.tfvars
     │       └── variables.tf
     ├── kubeadm
+    ├── k3s_migration
     └── minikube
         ├── Makefile
         ├── app

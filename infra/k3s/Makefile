@@ -4,8 +4,8 @@ VALUES_PATH=./helm/app-stack/values-dev.yaml
 ANSIBLE_INI_PATH=./ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./ansible/playbooks
 
-.PHONY: test_clean rollback deploy clean build \
-status power_manage init apply destroy label_nodes load_images save
+.PHONY: test-clean rollback deploy clean build \
+status power-manage init apply destroy label-nodes load-images save
 
 app ?= 1
 
@@ -25,9 +25,9 @@ save:
 	fi
 	docker save $(IMAGE_NAME):$(TAG) > $(TAR_FILE)
 
-load_images:
+load-images:
 	@if [ -z "$(TAR_FILE)" ]; then \
-		echo "Error: 必須指定 TAR_FILE，ex: make load_images TAR_FILE=my-python-app.tar"; \
+		echo "Error: 必須指定 TAR_FILE，ex: make load-images TAR_FILE=my-python-app.tar"; \
 		exit 1; \
 	fi
 	@for ip in $$(kubectl get nodes -l service-type=app -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}'); do \
@@ -42,10 +42,10 @@ load_images:
 	done
 	@echo "* 移除本地 $(TAR_FILE)"
 	rm $(TAR_FILE)
-	@echo "✅  <make load_images> done."
+	@echo "✅  <make load-images> done."
 
-label_nodes:
-	@echo "* 動態指定服務標籤配置 | make label_nodes app=$(app)"
+label-nodes:
+	@echo "* 動態指定服務標籤配置 | make label-nodes app=$(app)"
 	@# 1. 處理 Master (k3s-node-0)
 	kubectl label nodes k3s-node-0 service-type=none --overwrite
 	@# 2. 遍歷其餘節點
@@ -63,7 +63,7 @@ label_nodes:
 	done
 	@echo "\n* 檢查標籤結果："
 	kubectl get nodes -L service-type
-	@echo "✅  <make label_nodes> done."
+	@echo "✅  <make label-nodes> done."
 
 init:
 	@echo "* 初始化 terraform 配置"
@@ -88,17 +88,17 @@ status:
 	kubectl get nodes -o wide
 	kubectl get pods -o wide
 
-power_manage:
+power-manage:
 	@echo "* 電源管理 action = [stop / reboot]"
 	@echo "* 檢查是否有傳入 action 且不為空"
 	@if [ -z "$(action)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make power_manage action=stop"; \
+		echo "Error: 必須指定服務名稱，ex: make power-manage action=stop"; \
 		exit 1; \
 	fi
 	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/power_manage.yml -e "action=$(action)" -K
-	@echo "✅  <make power_manage> done."
+	@echo "✅  <make power-manage> done."
 
-test_clean:
+test-clean:
 	# 1. 停止 systemd 服務 (如果存在)
 	-sudo systemctl stop k3s
 

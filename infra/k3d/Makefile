@@ -2,9 +2,9 @@ RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
 
-.PHONY: image_load build clean deploy redeploy rollback
+.PHONY: image-load build clean deploy redeploy rollback
 
-image_load:
+image-load:
 	@echo "1. 檢查是否有版本號且不為空"
 	@if [ -z "$(ver)" ]; then \
 		echo "Error: 必須指定服務名稱，ex: make redeploy ver=v1"; \

@@ -55,7 +55,7 @@ kubectl get nodes
 
 4. 建立映像檔 + 傳入虛擬環境 ( mycluster )
 make build ver=v4
-make image_load ver=v4
+make image-load ver=v4
 
 
 5. 啟動 ...

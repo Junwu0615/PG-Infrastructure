@@ -2,12 +2,12 @@ RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
 
-.PHONY: image_load build clean deploy redeploy rollback
+.PHONY: image-load build clean deploy redeploy rollback
 
-image_load:
+image-load:
 	@echo "* 本地映像檔傳入虛擬環境"
 	minikube image load portainer/portainer-ce:2.21.5
-	@echo "✅  <make image_load> done."
+	@echo "✅  <make image-load> done."
 
 build:
 	@echo "1. 檢查是否有版本號且不為空"

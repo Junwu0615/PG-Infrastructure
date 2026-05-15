@@ -9,8 +9,8 @@ ANSIBLE_SCRIPTS_PATH=./ansible/playbooks
 VBOX_MANAGE = "/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
 
 
-.PHONY: test_clean rollback deploy clean build \
-status cluster_up init_nodes deploy_k3s power_manage
+.PHONY: test-clean rollback deploy clean build \
+status cluster_up init_nodes deploy_k3s power-manage
 
 status:
 	@echo "* 檢查 k8s 狀態"
@@ -39,17 +39,17 @@ deploy_k3s:
 	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/deploy_k3s.yml
 	@echo "✅  <make deploy_k3s> done."
 
-power_manage:
+power-manage:
 	@echo "* 電源管理 action = [stop / reboot]"
 	@echo "* 檢查是否有傳入 action 且不為空"
 	@if [ -z "$(action)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make power_manage action=stop"; \
+		echo "Error: 必須指定服務名稱，ex: make power-manage action=stop"; \
 		exit 1; \
 	fi
 	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/power_manage.yml -e "action=$(action)" -K
-	@echo "✅  <make power_manage> done."
+	@echo "✅  <make power-manage> done."
 
-test_clean:
+test-clean:
 	# 1. 停止 systemd 服務 (如果存在)
 	-sudo systemctl stop k3s
 
