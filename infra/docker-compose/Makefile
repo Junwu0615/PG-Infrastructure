@@ -27,7 +27,7 @@ POSTGRESQL_CONTENT = common-db pgadmin
 PORTAINER_CONTENT = portainer
 REGISTRY_CONTENT = registry
 GITLAB_CONTENT = gitlab
-JENKINS_CONTENT = jenkins
+#JENKINS_CONTENT = jenkins
 MQTT_CONTENT = mqtt
 KAFKA_CONTENT = kafka kafka-connect kafka-ui schema-registry
 ELK_CONTENT = elasticsearch logstash kibana
@@ -226,22 +226,22 @@ gitlab: fix-sock
 	fi
 	@echo "✅  <make gitlab action=$(action)> done."
 
-jenkins: fix-sock
-	@echo "Jenkins 相關服務"
-	@if [ -z "$(action)" ]; then \
-		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
-		exit 1; \
-	fi
-	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(JENKINS_CONTENT); \
-	elif [ "$(action)" = "down" ]; then \
-	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(JENKINS_CONTENT) --remove-orphans $(volume); \
-	else \
-		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
-		exit 1; \
-	fi
-	@echo "✅  <make jenkins action=$(action)> done."
+#jenkins: fix-sock
+#	@echo "Jenkins 相關服務"
+#	@if [ -z "$(action)" ]; then \
+#		echo "Error: 必須指定服務動作，ex: action=[up/down]"; \
+#		exit 1; \
+#	fi
+#	@if [ "$(action)" = "up" ]; then \
+#		docker compose -f $(COMPOSE_DIR) up -d $(JENKINS_CONTENT); \
+#	elif [ "$(action)" = "down" ]; then \
+#	  	echo "正在停止服務... 參數: $(volume)"; \
+#		docker compose -f $(COMPOSE_DIR) down $(JENKINS_CONTENT) --remove-orphans $(volume); \
+#	else \
+#		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
+#		exit 1; \
+#	fi
+#	@echo "✅  <make jenkins action=$(action)> done."
 
 mqtt: fix-sock
 	@echo "MQTT 相關服務"

@@ -30,7 +30,8 @@ make kafka
 make elk
 make registry
 make gitlab
-make jenkins
+make gitlab
+[X] make jenkins
 ```
 </ul>
 </details>

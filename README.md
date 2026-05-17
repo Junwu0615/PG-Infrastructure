@@ -271,11 +271,12 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 
 <details>
-<summary><b><i>　b.4.　Monitoring & Logging </i></b></summary>
+<summary><b><i>　b.4.　Monitoring </i></b></summary>
 <ul>
 
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
+| **PoWA** | - | X | X |
 | **Postgres Exporter** | Database Performance Metrics | [9187](http://127.0.0.1:9187) | `TBD` |
 | **Node Exporter** | Host Resource Metrics | [9100](http://127.0.0.1:9100) | `TBD` |
 | **Prometheus** | Metrics Time-Series DB | [9090](http://127.0.0.1:9090) | `TBD` |
@@ -297,9 +298,10 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
 | **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | `TBD` |
-| **Jenkins** | `Continuous Delivery` | [8095](http://127.0.0.1:8095/jenkins) | `TBD` |
+| **Jenkins** | `Continuous Delivery` | X | X |
+| **ArgoCD** | `Continuous Delivery` | `TBD` | `TBD` |
 | **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | `TBD` |
-| **Docker Registry UI** | for `Docker Registry` | [8085](http://127.0.0.1:8085) | `TBD` |
+| **Docker Registry UI** | for `Docker Registry` | X | X |
 | **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | `TBD` |
 | **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | `TBD` |
 
@@ -316,6 +318,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | **PostgreSQL** | O | - | O | O | O | O | - |
 | **PgAdmin** | O | - | - | - | - | - | - |
+| **PoWA** | X | - | - | - | - | - | - |
 | **Apache Airflow** | O | - | - | - | - | - | - |
 | **Superset** | O | - | - | - | - | - | - |
 | **MQTT Broker** | O | - | - | - | - | - | - |
@@ -335,9 +338,10 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 | **Logstash** | O | - | - | - | - | - | - |
 | **Kibana** | O | - | - | - | - | - | - |
 | **Gitlab** | O | - | - | - | - | - | - |
-| **Jenkins** | O | - | - | - | - | - | - |
+| **Jenkins** | X | - | - | - | - | - | - |
+| **ArgoCD** | O | - | - | - | - | - | - |
 | **Docker Registry** | O | - | - | - | - | - | - |
-| **Docker Registry UI** | O | - | - | - | - | - | - |
+| **Docker Registry UI** | X | - | - | - | - | - | - |
 | **Portainer** | O | O | - | - | - | - | - |
 | **HashiCorp Vault** | O | - | - | - | - | - | - |
 

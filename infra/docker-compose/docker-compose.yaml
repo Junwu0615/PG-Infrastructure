@@ -10,5 +10,5 @@ include:
   - path: ./docker/elk/docker-compose.yaml
   - path: ./docker/registry/docker-compose.yaml
   - path: ./docker/gitlab/docker-compose.yaml
-  - path: ./docker/jenkins/docker-compose.yaml
+#  - path: ./docker/jenkins/docker-compose.yaml
 #  - path: ./docker/powa/docker-compose.yaml
