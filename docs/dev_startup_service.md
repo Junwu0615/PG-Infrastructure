@@ -294,7 +294,31 @@
   
 <br>
 
-### *7.　Docker Registry*
+### *7.　Gitlab*
+```
+# 管理員 初始帳密
+  # [ACC]
+  >> root
+  
+  # [PWD] docker exec pg-cluster-gitlab-1 cat /etc/gitlab/initial_root_password
+  >> eZxoOr7lTxSzI1SDLYiowVi70QsfIPitLYx3TM7Kl8c=
+
+# secrets
+  docker exec pg-cluster-gitlab-1 cat /etc/gitlab/gitlab-secrets.json
+  
+# 測試
+  [USER 1]
+  pc_wu
+  8Nr~y\n8QQ:!&SU'
+  
+  [USER 2]
+  jun_wu
+  r2p8(G&(nJETwM]N
+```
+
+<br>
+
+### *8.　Docker Registry*
 ```
 # 推本地映像檔到庫
 
@@ -328,7 +352,7 @@
 
 <br>
 
-### *8.　Monitoring*
+### *9.　Monitoring*
 - #### *a.　背景啟動*
   ```
   docker-compose up -d

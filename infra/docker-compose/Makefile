@@ -23,7 +23,7 @@ SUB_SERVICES = ./docker/airflow/docker-compose.yaml \
 
 AIRFLOW_CONTENT = airflow-webserver airflow-scheduler airflow-worker airflow-triggerer redis postgres
 MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter promtail loki
-POSTGRESQL_CONTENT = common-db
+POSTGRESQL_CONTENT = common-db pgadmin
 PORTAINER_CONTENT = portainer
 REGISTRY_CONTENT = registry
 GITLAB_CONTENT = gitlab
