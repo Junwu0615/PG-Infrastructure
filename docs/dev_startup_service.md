@@ -352,6 +352,31 @@
   
   # 事物完成 => 生效
   sudo systemctl restart gitlab-runner
+  
+  
+# [Window TCP 轉發防火牆到 WSL2]
+  # 開啟防火牆設置內外 TCP 8090
+  
+  # [powershell 管理員] 
+  # 腳本
+    # 1. 自動取得目前 WSL2 的內部 IP
+    $wsl_ip = (wsl ip addr show eth0 | Select-String -Pattern 'inet\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' | ForEach-Object { $_.Matches.Groups[1].Value })
+    
+    Write-Host "偵測到目前的 WSL2 IP 為: $wsl_ip"
+    
+    # 2. 刪除舊的 8090 轉發規則（避免衝突）
+    netsh interface portproxy delete v4tov4 listenport=8090 listenaddress=192.168.0.15
+    
+    # 3. 建立新的轉發規則，把 Windows 的 8090 轉給 WSL2
+    netsh interface portproxy add v4tov4 listenport=8090 listenaddress=192.168.0.15 connectport=8090 connectaddress=$wsl_ip
+    
+    # 4. 強制允許防火牆通過 8090 Port
+    New-NetFirewallRule -DisplayName "GitLab WSL2 8090" -Direction Inbound -LocalPort 8090 -Protocol TCP -Action Allow
+    
+    Write-Host "設定完成！請再次嘗試連線 http://192.168.0.15:8090"
+  
+  # 測試連線
+  Test-NetConnection -ComputerName 192.168.0.15 -Port 8090
 ```
 
 <br>
