@@ -233,7 +233,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |--:|:--|:--:|:--:|
 | **PostgreSQL** | `OLTP` Primary Business DB | [5432](http://127.0.0.1:5432) | `TBD` |
 | **PostgreSQL** | Metadata DB for Airflow | [5433](http://127.0.0.1:5433) | `TBD` |
-| **PgAdmin** | PostgreSQL Web Management UI | [5050](http://127.0.0.1:5050) | `TBD` |
+| **PgAdmin** | PostgreSQL Web Management UI | [5050](http://127.0.0.1:5050) | X |
 | **Apache Airflow** | `OLAP` Workflow Orchestration | [8100](http://127.0.0.1:8100) | `TBD` |
 | **Superset** | `OLAP` BI Visualization Dashboard | `TBD` | `TBD` |
 
@@ -299,7 +299,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |--:|:--|:--:|:--:|
 | **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | `TBD` |
 | **Jenkins** | `Continuous Delivery` | X | X |
-| **ArgoCD** | `Continuous Delivery` | `TBD` | `TBD` |
+| **ArgoCD** | `Continuous Delivery` | X | `TBD` |
 | **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | `TBD` |
 | **Docker Registry UI** | for `Docker Registry` | X | X |
 | **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | `TBD` |
@@ -339,7 +339,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 | **Kibana** | O | - | - | - | - | - | - |
 | **Gitlab** | O | - | - | - | - | - | - |
 | **Jenkins** | X | - | - | - | - | - | - |
-| **ArgoCD** | O | - | - | - | - | - | - |
+| **ArgoCD** | X | - | - | - | O | - | - |
 | **Docker Registry** | O | - | - | - | - | - | - |
 | **Docker Registry UI** | X | - | - | - | - | - | - |
 | **Portainer** | O | O | - | - | - | - | - |

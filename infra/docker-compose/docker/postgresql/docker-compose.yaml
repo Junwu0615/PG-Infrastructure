@@ -49,20 +49,20 @@ services:
       -c listen_addresses=*
     restart: unless-stopped
 
-  pgadmin:
-    image: dpage/pgadmin4:${POSTGRES_UI_VERSION:-latest}
-    ports:
-      - '5050:80'
-    env_file:
-      - .env
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    restart: unless-stopped
+#  pgadmin:
+#    image: dpage/pgadmin4:${POSTGRES_UI_VERSION:-latest}
+#    ports:
+#      - '5050:80'
+#    env_file:
+#      - .env
+#    environment:
+#      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+#      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+#    volumes:
+#      - pgadmin_data:/var/lib/pgadmin
+#    restart: unless-stopped
 
 
 volumes:
   postgres_data:
-  pgadmin_data:
+#  pgadmin_data:
