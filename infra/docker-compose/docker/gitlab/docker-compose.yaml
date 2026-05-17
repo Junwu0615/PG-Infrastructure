@@ -2,14 +2,19 @@ services:
   gitlab:
     image: gitlab/gitlab-ce:${GITLAB_VERSION:-latest}
     ports:
-      - '8090:80'
+      # 外層 8090 對應內層 8090
+      - '8090:8090'
+#      - '8090:80'
+
       - '443:443'
       - '2222:22'
     env_file:
       - .env
-    environment: # 告訴 GitLab UI 顯示正確的 SSH 複製連結
+    environment: # 顯示正確的 SSH 複製連結 | 用 8090 監聽，而非預設 80
       GITLAB_OMNIBUS_CONFIG: |
-        gitlab_rails['gitlab_shell_ssh_port'] = 2222
+        gitlab_rails['gitlab_shell_ssh_port']=2222
+        external_url 'http://${GITLAB_HOSTNAME}'
+        nginx['listen_port']=8090
     volumes:
       - './data:/var/opt/gitlab'
       - './logs:/var/log/gitlab'

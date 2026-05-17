@@ -303,9 +303,11 @@
   # [PWD] docker exec pg-cluster-gitlab-1 cat /etc/gitlab/initial_root_password
   >> eZxoOr7lTxSzI1SDLYiowVi70QsfIPitLYx3TM7Kl8c=
 
-# secrets
+
+# Secrets
   docker exec pg-cluster-gitlab-1 cat /etc/gitlab/gitlab-secrets.json
-  
+
+
 # 測試
   [USER 1]
   pc_wu
@@ -314,6 +316,42 @@
   [USER 2]
   jun_wu
   r2p8(G&(nJETwM]N
+
+
+# Runner 註冊維護
+  # 查詢已註冊清單
+  sudo gitlab-runner list
+  
+  # 註冊 Runner
+  sudo gitlab-runner register
+    # 1. 輸入 GitLab 伺服器 URL: http://127.0.0.1:8090/ (根據你的 GitLab 伺服器地址進行修改)
+    # 2. 輸入註冊 Token (在 GitLab 專案的 Settings > CI/CD > Runners settings 中找到)
+    # 3. 輸入描述: wsl2-local-runner
+    # 4. 輸入標籤: docker,wsl2
+    # 5. maintenance note: docker
+    # 6. 執行器類型: docker
+    # 7. Docker 映像: alpine:latest / ruby:3.3
+    
+    # Repo CI Settings
+    [O] Indicates whether this runner can pick jobs without tags
+  
+  # 刪除 Runner
+    # 指定網址與 Token 刪除
+    sudo gitlab-runner unregister --url http://YOUR_GITLAB_URL --token YOUR_RUNNER_TOKEN
+    
+    # 指定名稱刪除
+    sudo gitlab-runner unregister --name "wsl2-local-runner"
+    
+    # 一鍵清空所有本地 Runner
+    sudo gitlab-runner unregister --all-runners
+    
+    # 設定檔全部都註冊在此檔中 清空即清除
+    sudo cat /etc/gitlab-runner/config.toml
+    sudo rm /etc/gitlab-runner/config.toml
+    sudo touch /etc/gitlab-runner/config.toml
+  
+  # 事物完成 => 生效
+  sudo systemctl restart gitlab-runner
 ```
 
 <br>
