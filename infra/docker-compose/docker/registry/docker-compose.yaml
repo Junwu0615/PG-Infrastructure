@@ -5,22 +5,27 @@ services:
       - '5100:5000'
     env_file:
       - .env
+    environment:
+      # 允許從 UI 刪除鏡像
+      - REGISTRY_STORAGE_DELETE_ENABLED=true
     volumes:
-      - registry_data:/var/lib/registry/docker/registry
+      - registry_data:/var/lib/registry
     mem_limit: '512mb'
     restart: unless-stopped
 
-  registry-ui:
-    image: joxit/docker-registry-ui:${REGISTRY_UI_VERSION:-latest}
-    ports:
-      - '8085:80'
-    environment:
-      - REGISTRY_TITLE=My Private Registry
-      - REGISTRY_URL=http://registry:5100
-      - SINGLE_REGISTRY=true
-    depends_on:
-      - registry
-    restart: unless-stopped
+#  registry-ui:
+#    image: joxit/docker-registry-ui:${REGISTRY_UI_VERSION:-latest}
+#    ports:
+#      - '8085:80'
+#    environment:
+#      - REGISTRY_TITLE=PG Private Registry
+#      - REGISTRY_URL=http://registry:8085
+#      - SINGLE_REGISTRY=false
+#      - PROXY=true
+#      - DELETE_IMAGES=true
+#    depends_on:
+#      - registry
+#    restart: unless-stopped
 
 
 volumes:

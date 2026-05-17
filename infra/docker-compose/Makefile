@@ -25,13 +25,14 @@ AIRFLOW_CONTENT = airflow-webserver airflow-scheduler airflow-worker airflow-tri
 MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter promtail loki
 POSTGRESQL_CONTENT = common-db pgadmin
 PORTAINER_CONTENT = portainer
-REGISTRY_CONTENT = registry registry-ui
+REGISTRY_CONTENT = registry
 GITLAB_CONTENT = gitlab
 JENKINS_CONTENT = jenkins
 MQTT_CONTENT = mqtt
 KAFKA_CONTENT = kafka kafka-connect kafka-ui schema-registry
 ELK_CONTENT = elasticsearch logstash kibana
 
+volume ?=
 
 .PHONY: build up down down-v ps rm \
 fix-sock db-wait list-configs prune get-chown-all dev-mode prod-mode kafka-chow \
@@ -132,7 +133,8 @@ airflow: fix-sock copy-dag
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(AIRFLOW_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(AIRFLOW_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(AIRFLOW_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \
@@ -148,7 +150,8 @@ monitoring: fix-sock
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(MONITORING_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(MONITORING_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(MONITORING_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \
@@ -164,7 +167,8 @@ postgresql: fix-sock
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(POSTGRESQL_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(POSTGRESQL_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(POSTGRESQL_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \
@@ -180,7 +184,8 @@ portainer: fix-sock
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(PORTAINER_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(PORTAINER_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(PORTAINER_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \
@@ -196,7 +201,8 @@ registry: fix-sock
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(REGISTRY_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(REGISTRY_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(REGISTRY_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \
@@ -212,7 +218,8 @@ gitlab: fix-sock
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(GITLAB_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(GITLAB_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(GITLAB_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \
@@ -228,7 +235,8 @@ jenkins: fix-sock
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(JENKINS_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(JENKINS_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(JENKINS_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \
@@ -244,7 +252,8 @@ mqtt: fix-sock
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(MQTT_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(MQTT_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(MQTT_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \
@@ -260,7 +269,8 @@ kafka: fix-sock
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(KAFKA_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(KAFKA_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(KAFKA_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \
@@ -276,7 +286,8 @@ elk: fix-sock
 	@if [ "$(action)" = "up" ]; then \
 		docker compose -f $(COMPOSE_DIR) up -d $(ELK_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
-		docker compose -f $(COMPOSE_DIR) down $(ELK_CONTENT) --remove-orphans; \
+	  	echo "正在停止服務... 參數: $(volume)"; \
+		docker compose -f $(COMPOSE_DIR) down $(ELK_CONTENT) --remove-orphans $(volume); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down]"; \
 		exit 1; \

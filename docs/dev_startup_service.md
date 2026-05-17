@@ -1,6 +1,6 @@
 ## *DEV Startup Service*
 
-### *1.　Startup PostgreSQL*
+### *1.　PostgreSQL*
 - #### *a.　背景啟動*
   ```
   docker-compose build --no-cache
@@ -69,7 +69,7 @@
 
 <br>
 
-### *3.　Startup Airflow*
+### *3.　Airflow*
 - #### *a.　創建目錄 + 給予指定資料夾權限 + 初始化*
   ```
   mkdir config; mkdir dags; mkdir logs; mkdir plugins;
@@ -135,7 +135,7 @@
 
 <br>
 
-### *~~4.　Startup PoWA~~*
+### *~~4.　PoWA~~*
 - #### *a.　背景啟動*
   ```
   docker-compose up -d --build powa-postgres powa-web
@@ -211,40 +211,40 @@
 - #### *c.　[ Kafka ] 設定 Kafka-Connect*
   ```
   # 1. 確認 kafka-connect 是否支援 MQTT Source Connector
-  curl http://localhost:8083/connector-plugins | jq '.[].class'
+  curl http://127.0.0.1:8083/connector-plugins | jq '.[].class'
   -- "io.confluent.connect.mqtt.MqttSinkConnector"
   -- "io.confluent.connect.mqtt.MqttSourceConnector"
   
   # 2. 傳送配置讓 Kafka 訂閱 MQTT Broker 指定主題，並將資料寫入 Kafka
-  curl -X POST -H "Content-Type: application/json" --data @docker-compose/docker/iot-platform/config/connectors/mqtt-cp-mach-order.json http://localhost:8083/connectors
+  curl -X POST -H "Content-Type: application/json" --data @docker-compose/docker/iot-platform/config/connectors/mqtt-cp-mach-order.json http://127.0.0.1:8083/connectors
   
   # 3. 確認目前已訂閱清單
-  curl http://localhost:8083/connectors
+  curl http://127.0.0.1:8083/connectors
   
   # 4.1 確認 mqtt-cp-mach-order 配置
-  curl http://localhost:8083/connectors/mqtt-cp-mach-order
+  curl http://127.0.0.1:8083/connectors/mqtt-cp-mach-order
   
   # 4.2 確認 mqtt-cp-mach-order 狀態
-  curl http://localhost:8083/connectors/mqtt-cp-mach-order/status
+  curl http://127.0.0.1:8083/connectors/mqtt-cp-mach-order/status
 
   -------
   
   # 5. 暫停 Connector（不刪除，只是停止抓取資料）
-  curl -X PUT http://localhost:8083/connectors/mqtt-cp-mach-order/pause
+  curl -X PUT http://127.0.0.1:8083/connectors/mqtt-cp-mach-order/pause
   
   # 6. 恢復執行
-  curl -X PUT http://localhost:8083/connectors/mqtt-cp-mach-order/resume
+  curl -X PUT http://127.0.0.1:8083/connectors/mqtt-cp-mach-order/resume
   
   # 7. 重啟（當 Connector 出現 FAILED 狀態時試試看）
-  curl -X POST http://localhost:8083/connectors/mqtt-cp-mach-order/restart
+  curl -X POST http://127.0.0.1:8083/connectors/mqtt-cp-mach-order/restart
   
   # 8. 刪除 Connector
-  curl -X DELETE http://localhost:8083/connectors/mqtt-cp-mach-order
+  curl -X DELETE http://127.0.0.1:8083/connectors/mqtt-cp-mach-order
   ```
 
 <br>
 
-### *6.　Startup ELK*
+### *6.　ELK*
 - #### *a.　settings*
   ```
   # vm.max_map_count => Linux 核心（Kernel）的參數，用來限制一個進程可以擁有的虛擬記憶體區域（VMA）的最大數量
@@ -281,11 +281,11 @@
 - #### *d.　使用細節*
   ```
   # 查看 Logstash 的熱重啟狀態
-  http://localhost:9600/_node/stats/pipelines?pretty
+  http://127.0.0.1:9600/_node/stats/pipelines?pretty
     # 找關鍵字 "last_success_timestamp" 確認重啟時間
   
   # 查看 Elasticsearch 的 Cluster Health 狀態
-  http://localhost:9200/_cat/indices?v
+  http://127.0.0.1:9200/_cat/indices?v
   
   # 查看 Logstash 的實時日誌輸出，確認是否有錯誤或警告訊息
   # 因為有設置: stdout { codec => rubydebug }
@@ -294,7 +294,41 @@
   
 <br>
 
-### *7.　Startup Monitoring*
+### *7.　Docker Registry*
+```
+# 推本地映像檔到庫
+
+  # 指令本地映像檔(含標籤) => 映射到庫的設定
+  docker tag pg-python-cp:v1 127.0.0.1:5100/pg-python-cp:v1
+  
+  # 推庫
+  docker push 127.0.0.1:5100/pg-python-cp:v1
+  
+# 實用查詢
+  # 已建立映像庫
+  http://127.0.0.1:5100/v2/_catalog
+  
+  # 指定映像庫 對應版本清單
+  http://127.0.0.1:5100/v2/pg-python-cp/tags/list
+
+# 工具: skopeo
+  # 安裝
+  sudo apt-get update
+  sudo apt-get install -y skopeo
+  
+  # 查詢
+  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1
+  
+  # [過濾] 創建時間 + 硬體架構
+  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '{Created, Architecture, RepoTags}'
+  
+  # [過濾] 計算映像檔下載所需的總傳輸大小
+  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '[.LayersData[].Size] | add / 1024 / 1024 | "Total Size: \(.) MB"'
+```
+
+<br>
+
+### *8.　Monitoring*
 - #### *a.　背景啟動*
   ```
   docker-compose up -d
