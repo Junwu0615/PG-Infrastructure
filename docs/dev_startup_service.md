@@ -346,7 +346,7 @@
     # 6. 執行器類型: docker
     # 7. Docker 映像: docker:24.0.5
     
-    # Repo CI Settings
+    # Repo CI Settings ( 綠燈旁邊的編輯鈕裡面 )
     [O] Indicates whether this runner can pick jobs without tags
   
   # 刪除 Runner

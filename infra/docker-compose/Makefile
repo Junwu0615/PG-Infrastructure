@@ -1,9 +1,31 @@
 MAIN_NAME = pg-cluster
 
 COMPOSE_DIR = ./docker-compose.yaml
+AIRFLOW_DIR = ./docker/airflow/docker-compose.yaml
+MONITORING_DIR = ./docker/monitoring/docker-compose.yaml
+POSTGRESQL_DIR = ./docker/postgresql/docker-compose.yaml
+PORTAINER_DIR = ./docker/portainer/docker-compose.yaml
+REGISTRY_DIR = ./docker/registry/docker-compose.yaml
+GITLAB_DIR = ./docker/gitlab/docker-compose.yaml
+#JENKINS_DIR = ./docker/jenkins/docker-compose.yaml
+MQTT_DIR = ./docker/iot-platform/mqtt-compose.yaml
+KAFKA_DIR = ./docker/iot-platform/kafka-compose.yaml
+ELK_DIR = ./docker/elk/docker-compose.yaml
+
+AIRFLOW_CONTENT = airflow-webserver airflow-scheduler airflow-worker airflow-triggerer redis postgres
+MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter promtail loki
+POSTGRESQL_CONTENT = common-db pgadmin
+PORTAINER_CONTENT = portainer
+REGISTRY_CONTENT = registry
+GITLAB_CONTENT = gitlab
+#JENKINS_CONTENT = jenkins
+MQTT_CONTENT = mqtt
+KAFKA_CONTENT = kafka kafka-connect kafka-ui schema-registry
+ELK_CONTENT = elasticsearch logstash kibana
+
 TERRAFORM_DIR = ./terraform
 ANSIBLE_DIR = ./ansible
-AIRFLOW_DIR = ./docker/airflow
+AIRFLOW_PATH = ./docker/airflow
 IoT_DIR = ./docker/iot-platform
 
 LOCAL_PATH = 127.0.0.1
@@ -22,17 +44,6 @@ SUB_SERVICES = ./docker/airflow/docker-compose.yaml \
 			   ./docker/iot-platform/kafka-compose.yaml \
 			   ./docker/registry/docker-compose.yaml
 
-AIRFLOW_CONTENT = airflow-webserver airflow-scheduler airflow-worker airflow-triggerer redis postgres
-MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter promtail loki
-POSTGRESQL_CONTENT = common-db pgadmin
-PORTAINER_CONTENT = portainer
-REGISTRY_CONTENT = registry
-GITLAB_CONTENT = gitlab
-#JENKINS_CONTENT = jenkins
-MQTT_CONTENT = mqtt
-KAFKA_CONTENT = kafka kafka-connect kafka-ui schema-registry
-ELK_CONTENT = elasticsearch logstash kibana
-
 volume ?=
 
 .PHONY: build up down down-v ps rm \
@@ -46,11 +57,11 @@ kafka-connect-clean kafka-topic-clean kafka-schema-clean kafka-all-clean
 init: dev-mode
 	@echo "* 進行特定服務 init"
 	@echo "[1.1] 正在建立 Airflow 必要目錄 ..."
-	mkdir -p $(AIRFLOW_DIR)/config $(AIRFLOW_DIR)/dags $(AIRFLOW_DIR)/logs $(AIRFLOW_DIR)/plugins
+	mkdir -p $(AIRFLOW_PATH)/config $(AIRFLOW_PATH)/dags $(AIRFLOW_PATH)/logs $(AIRFLOW_PATH)/plugins
 	@echo "[1.2] 修正 Airflow 目錄權限, 讓目錄及其子目錄歸屬給 UID 50000 + 確保權限足夠 (rwxr-xr-x)"
 	@make prod-mode
 	@echo "[1.3] 執行 Airflow 資料庫初始化 ..."
-	docker compose -f $(COMPOSE_DIR) up airflow-init
+	docker compose -f $(AIRFLOW_DIR) up airflow-init
 
 	@echo "[2] 建立 iot-platform 網路"
 	docker network inspect pg-cluster_iot_network >/dev/null 2>&1 || \
@@ -86,7 +97,7 @@ fix-sock:
 
 db-wait:
 	@echo "1. 正在啟動資料庫 ..."
-	docker compose -f $(COMPOSE_DIR) up -d common-db --no-recreate
+	docker compose -f $(POSTGRESQL_DIR) up -d common-db --no-recreate
 	@echo "2. 等待資料庫就緒 ..."
 	sleep 10
 
@@ -104,12 +115,12 @@ get-chown-all:
 
 dev-mode:
 	@echo "開發模式：IDE 編輯時把權限拿回來"
-	sudo chown -R $$(whoami):$$(whoami) $(AIRFLOW_DIR)
+	sudo chown -R $$(whoami):$$(whoami) $(AIRFLOW_PATH)
 
 prod-mode:
 	@echo "運行模式：把權限交還給 Airflow"
-	sudo chown -R 50000:0 $(AIRFLOW_DIR)
-	sudo chmod -R 775 $(AIRFLOW_DIR)
+	sudo chown -R 50000:0 $(AIRFLOW_PATH)
+	sudo chmod -R 775 $(AIRFLOW_PATH)
 
 #kafka-chown:
 #	@echo "設定 kafka 擁有顯式持久化資料權限"
@@ -118,23 +129,32 @@ prod-mode:
 #	sudo chmod -R 775 $(IoT_DIR)/data/kafka_data
 
 airflow-hot-update:
+	@echo "* 執行 Airflow DAGs 熱更新 (覆寫 Entrypoint) ..."
 	# 1. 新拉下來的 latest 映像檔啟動一個臨時的 alpine 容器，把裡面的新 DAGs 複製到宿主機的臨時目錄
-	docker run --rm -v /tmp/new_dags:/host_dags $(OUTSIDE_PATH):5100/airflow-dags:latest cp -r /opt/airflow/dags/. /host_dags/
+	docker run --rm \
+	  -u 0 \
+	  --entrypoint "/bin/sh" \
+	  -v /tmp/new_dags:/host_dags \
+	  $(OUTSIDE_PATH):5100/airflow-dags:latest \
+	  -c "cp -r /opt/airflow/dags/. /host_dags/"
 
-	# 2. [熱更新] scheduler 容器
+	# 2. 熱更新至 scheduler
 	docker cp /tmp/new_dags/. pg-cluster-airflow-scheduler-1:/opt/airflow/dags/
 
-	# 3. [熱更新] worker 容器
+	# 3. 熱更新至 worker
 	docker cp /tmp/new_dags/. pg-cluster-airflow-worker-1:/opt/airflow/dags/
 
 	# 4. 清除宿主機臨時暫存檔
-	rm -rf /tmp/new_dags
+	-docker run --rm -v /tmp:/tmp alpine sh -c "chmod -R 777 /tmp/new_dags && rm -rf /tmp/new_dags" 2>/dev/null || true
+	-rm -rf /tmp/new_dags || true
+	@echo "✅  <airflow-hot-update> done."
+	@make prod-mode
 
 copy-dag:
 	@echo "將開發 DAGs 複製到 Airflow 容器中的 DAGs 對應資料夾 | 先刪除目錄下所有內容 | 執行複製"
 	@make dev-mode
-	sudo rm -rf $(AIRFLOW_DIR)/dags/*
-	cp -ra ../../../PG-Airflow-DAGs/dags $(AIRFLOW_DIR)
+	sudo rm -rf $(AIRFLOW_PATH)/dags/*
+	cp -ra ../../../PG-Airflow-DAGs/dags $(AIRFLOW_PATH)
 	@make prod-mode
 	@echo "DAGs 同步完成並已校正權限 ..."
 
@@ -145,12 +165,12 @@ airflow: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(AIRFLOW_CONTENT); \
+		docker compose -f $(AIRFLOW_DIR) up -d $(AIRFLOW_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(AIRFLOW_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(AIRFLOW_DIR) down $(AIRFLOW_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(COMPOSE_DIR) restart $(AIRFLOW_CONTENT); \
+	   docker compose -f $(AIRFLOW_DIR) restart $(AIRFLOW_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -164,12 +184,12 @@ monitoring: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(MONITORING_CONTENT); \
+		docker compose -f $(MONITORING_DIR) up -d $(MONITORING_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(MONITORING_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(MONITORING_DIR) down $(MONITORING_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(COMPOSE_DIR) restart $(MONITORING_CONTENT); \
+	   docker compose -f $(MONITORING_DIR) restart $(MONITORING_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -183,12 +203,12 @@ postgresql: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(POSTGRESQL_CONTENT); \
+		docker compose -f $(POSTGRESQL_DIR) up -d $(POSTGRESQL_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(POSTGRESQL_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(POSTGRESQL_DIR) down $(POSTGRESQL_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(COMPOSE_DIR) restart $(POSTGRESQL_CONTENT); \
+	   docker compose -f $(POSTGRESQL_DIR) restart $(POSTGRESQL_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -202,12 +222,12 @@ portainer: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(PORTAINER_CONTENT); \
+		docker compose -f $(PORTAINER_DIR) up -d $(PORTAINER_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(PORTAINER_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(PORTAINER_DIR) down $(PORTAINER_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(COMPOSE_DIR) restart $(PORTAINER_CONTENT); \
+	   docker compose -f $(PORTAINER_DIR) restart $(PORTAINER_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -221,12 +241,12 @@ registry: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(REGISTRY_CONTENT); \
+		docker compose -f $(REGISTRY_DIR) up -d $(REGISTRY_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(REGISTRY_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(REGISTRY_DIR) down $(REGISTRY_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(COMPOSE_DIR) restart $(REGISTRY_CONTENT); \
+	   docker compose -f $(REGISTRY_DIR) restart $(REGISTRY_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -240,12 +260,12 @@ gitlab: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(GITLAB_CONTENT); \
+		docker compose -f $(GITLAB_DIR) up -d $(GITLAB_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(GITLAB_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(GITLAB_DIR) down $(GITLAB_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(COMPOSE_DIR) restart $(GITLAB_CONTENT); \
+	   docker compose -f $(GITLAB_DIR) restart $(GITLAB_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -259,12 +279,12 @@ gitlab: fix-sock
 #		exit 1; \
 #	fi
 #	@if [ "$(action)" = "up" ]; then \
-#		docker compose -f $(COMPOSE_DIR) up -d $(JENKINS_CONTENT); \
+#		docker compose -f $(JENKINS_DIR) up -d $(JENKINS_CONTENT); \
 #	elif [ "$(action)" = "down" ]; then \
 #	  	echo "正在停止服務... 參數: $(volume)"; \
-#		docker compose -f $(COMPOSE_DIR) down $(JENKINS_CONTENT) --remove-orphans $(volume); \
+#		docker compose -f $(JENKINS_DIR) down $(JENKINS_CONTENT) --remove-orphans $(volume); \
 #	elif [ "$(action)" = "restart" ]; then \
-#	   docker compose -f $(COMPOSE_DIR) restart $(JENKINS_CONTENT); \
+#	   docker compose -f $(JENKINS_DIR) restart $(JENKINS_CONTENT); \
 #	else \
 #		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 #		exit 1; \
@@ -278,12 +298,12 @@ mqtt: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(MQTT_CONTENT); \
+		docker compose -f $(MQTT_DIR) up -d $(MQTT_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(MQTT_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(MQTT_DIR) down $(MQTT_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(COMPOSE_DIR) restart $(MQTT_CONTENT); \
+	   docker compose -f $(MQTT_DIR) restart $(MQTT_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -297,12 +317,12 @@ kafka: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(KAFKA_CONTENT); \
+		docker compose -f $(KAFKA_DIR) up -d $(KAFKA_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(KAFKA_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(KAFKA_DIR) down $(KAFKA_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(COMPOSE_DIR) restart $(KAFKA_CONTENT); \
+	   docker compose -f $(KAFKA_DIR) restart $(KAFKA_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -316,12 +336,12 @@ elk: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(COMPOSE_DIR) up -d $(ELK_CONTENT); \
+		docker compose -f $(ELK_DIR) up -d $(ELK_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(COMPOSE_DIR) down $(ELK_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(ELK_DIR) down $(ELK_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(COMPOSE_DIR) restart $(ELK_CONTENT); \
+	   docker compose -f $(ELK_DIR) restart $(ELK_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
