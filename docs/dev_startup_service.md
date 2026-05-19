@@ -341,7 +341,7 @@
     # 4. 輸入標籤: docker,wsl2
     # 5. maintenance note: docker
     # 6. 執行器類型: docker
-    # 7. Docker 映像: alpine:latest / ruby:3.3
+    # 7. Docker 映像: docker:24.0.5
     
     # Repo CI Settings
     [O] Indicates whether this runner can pick jobs without tags
@@ -449,6 +449,10 @@
   
   # [過濾] 創建時間 + 硬體架構
   skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '{Created, Architecture, RepoTags}'
+  
+  # [過濾] 比對 Digest => airflow-dags:latest vs. airflow-dags:cad1040a
+  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/airflow-dags:latest | jq '.Digest'
+  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/airflow-dags:cad1040a | jq '.Digest'
   
   # [過濾] 計算映像檔下載所需的總傳輸大小
   skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '[.LayersData[].Size] | add / 1024 / 1024 | "Total Size: \(.) MB"'

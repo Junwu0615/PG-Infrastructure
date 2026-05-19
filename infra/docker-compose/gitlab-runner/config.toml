@@ -1,0 +1,20 @@
+# ...
+# ...
+[[runners]]
+  name = "wsl2-local-runner"
+  url = "http://127.0.0.1:8090/"
+  executor = "docker"
+  [runners.docker]
+    tls_verify = false
+    image = "docker:24.0.5"
+    privileged = true
+    disable_entrypoint_overwrite = false
+    oom_kill_disable = false
+    disable_cache = false
+
+    # 格式為：[ "宿主機實體路徑:容器內映射路徑" ]
+    volumes = [
+      "/var/run/docker.sock:/var/run/docker.sock",
+      "/cache",
+      "/home/pc/git_project/PG-Infrastructure/infra/docker-compose:/docker-compose"
+    ]
