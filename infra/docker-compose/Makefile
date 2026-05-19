@@ -62,7 +62,7 @@ build:
 	docker compose -f ./docker/postgresql/docker-compose.yaml build --no-cache
 	docker compose -f ./docker/iot-platform/kafka-compose.yaml build --no-cache
 
-up: fix-sock db-wait copy-dag
+up: fix-sock db-wait
 	@echo "* Notice | 指定單一服務指令 | ex: docker compose -f ./docker-compose.yaml up -d grafana"
 	@echo "* Notice | 只針對 Airflow Webserver 更新設定 | ex: docker compose -f ./docker-compose.yaml up -d --no-deps airflow-webserver"
 	docker compose -p $(MAIN_NAME) -f $(COMPOSE_DIR) up -d --no-recreate
@@ -124,7 +124,7 @@ copy-dag:
 	@make prod-mode
 	@echo "DAGs 同步完成並已校正權限 ..."
 
-airflow: fix-sock copy-dag
+airflow: fix-sock
 	@echo "Airflow 相關服務"
 	@if [ -z "$(action)" ]; then \
 		echo "Error: 必須指定服務動作，ex: action=[up/down/restart]"; \

@@ -318,6 +318,17 @@
   r2p8(G&(nJETwM]N
 
 
+# Runner 工具檢查
+  # 啟用 gitlab-runner 的開機自啟服務
+  sudo systemctl enable gitlab-runner
+  
+  # 手動立即啟動
+  sudo systemctl start gitlab-runner
+  
+  # 檢查目前服務狀態是否為 active
+  sudo systemctl status gitlab-runner
+
+
 # Runner 註冊維護
   # 查詢已註冊清單
   sudo gitlab-runner list
@@ -355,10 +366,10 @@
   
   
 # [Window TCP 轉發防火牆到 WSL2]
-  # 開啟防火牆設置內外 TCP 8090
+  # 開啟防火牆設置內外 TCP
   
   # [powershell 管理員] 
-  # 腳本
+  # 8090 腳本
     # 1. 自動取得目前 WSL2 的內部 IP
     $wsl_ip = (wsl ip addr show eth0 | Select-String -Pattern 'inet\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' | ForEach-Object { $_.Matches.Groups[1].Value })
     
@@ -374,9 +385,37 @@
     New-NetFirewallRule -DisplayName "GitLab WSL2 8090" -Direction Inbound -LocalPort 8090 -Protocol TCP -Action Allow
     
     Write-Host "設定完成！請再次嘗試連線 http://192.168.0.15:8090"
+    
+    # 測試連線
+    Test-NetConnection -ComputerName 192.168.0.15 -Port 8090
+    
+  # 5100 腳本
+    # 1. 自動取得目前 WSL2 的內部 IP
+    $wsl_ip = (wsl ip addr show eth0 | Select-String -Pattern 'inet\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' | ForEach-Object { $_.Matches.Groups[1].Value })
+    
+    Write-Host "偵測到目前的 WSL2 IP 為: $wsl_ip"
+    
+    # 2. 刪除舊的 5100 轉發規則（避免衝突）
+    netsh interface portproxy delete v4tov4 listenport=5100 listenaddress=192.168.0.15
+    
+    # 3. 建立新的轉發規則，把 Windows 的 5100 轉給 WSL2
+    netsh interface portproxy add v4tov4 listenport=5100 listenaddress=192.168.0.15 connectport=5100 connectaddress=$wsl_ip
+    
+    # 4. 強制允許防火牆通過 5100 Port
+    New-NetFirewallRule -DisplayName "GitLab WSL2 5100" -Direction Inbound -LocalPort 5100 -Protocol TCP -Action Allow
+    
+    Write-Host "設定完成！請再次嘗試連線 http://192.168.0.15:5100"
   
-  # 測試連線
-  Test-NetConnection -ComputerName 192.168.0.15 -Port 8090
+    # 測試連線
+    Test-NetConnection -ComputerName 192.168.0.15 -Port 5100
+  
+
+# CI Build ( Docker-in-Docker )
+  # 編輯 config.toml
+  sudo nano /etc/gitlab-runner/config.toml
+  
+  # 開啟設定
+  privileged = true
 ```
 
 <br>
