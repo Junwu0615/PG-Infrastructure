@@ -436,6 +436,8 @@
   
   # 指定映像庫 對應版本清單
   http://127.0.0.1:5100/v2/pg-python-cp/tags/list
+  http://127.0.0.1:5100/v2/pg-python-inst/tags/list
+  http://127.0.0.1:5100/v2/airflow-dags/tags/list
 
 # 工具: skopeo
   # 安裝

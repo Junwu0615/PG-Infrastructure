@@ -46,17 +46,14 @@
 ---
 x-airflow-common:
   &airflow-common
-  # In order to add custom dependencies or upgrade provider packages you can use your extended image.
-  # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
-  # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
 
-#  image: apache/airflow:${AIRFLOW_VERSION:-latest}
+  #  image: apache/airflow:${AIRFLOW_VERSION:-latest}
 
   # 指定 CI 打包好的私有 Registry 映像檔
-#  image: host.docker.internal:5100/airflow-dags:main
-  image: 172.17.0.1:5100/airflow-dags:main
+  #  image: host.docker.internal:5100/airflow-dags:latest
+  image: 192.168.0.15:5100/airflow-dags:latest
+  pull_policy: always
 
-  # build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
