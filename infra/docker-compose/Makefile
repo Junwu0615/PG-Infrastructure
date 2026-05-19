@@ -115,12 +115,14 @@ get-chown-all:
 
 dev-mode:
 	@echo "開發模式：IDE 編輯時把權限拿回來"
-	$(SUDO_CMD) chown -R $$(whoami):$$(whoami) $(AIRFLOW_PATH)
+	sudo chown -R $$(whoami):$$(whoami) $(AIRFLOW_PATH)
 
 prod-mode:
-	@echo "運行模式：把權限交還給 Airflow"
-	$(SUDO_CMD) chown -R 50000:0 $(AIRFLOW_PATH)
-	$(SUDO_CMD) chmod -R 775 $(AIRFLOW_PATH)
+	@echo "運行模式：透過特權容器將權限交還給 Airflow"
+	docker run --rm \
+	  -v $(AIRFLOW_PATH):/target_dir \
+	  alpine sh -c "chown -R 50000:0 /target_dir && chmod -R 775 /target_dir"
+	@echo "✅ Airflow 目錄權限修復完成"
 
 #kafka-chown:
 #	@echo "設定 kafka 擁有顯式持久化資料權限"
@@ -130,7 +132,7 @@ prod-mode:
 
 airflow-hot-update:
 	@echo "* 執行 Airflow DAGs 熱更新 (覆寫 Entrypoint) ..."
-	# 1. 新拉下來的 latest 映像檔啟動一個臨時的 alpine 容器，把裡面的新 DAGs 複製到宿主機的臨時目錄
+	@echo "1. 提取最新 DAGs 檔案到本地臨時目錄 ..."
 	mkdir -p /tmp/new_dags && chmod 777 /tmp/new_dags
 	docker run --rm \
 	  -u 0 \
@@ -141,24 +143,29 @@ airflow-hot-update:
 
 	@sleep 1
 
-	# 2. 熱更新至 scheduler
+	@echo "🧹 2-1. [安全清理] 強制清空 Scheduler 容器內的舊 DAGs 與快取..."
+	-docker exec -u 0 pg-cluster-airflow-scheduler-1 sh -c "rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__*" 2>/dev/null || true
+	@echo "🔄 2-2. [熱更新] 同步最新檔案至 Scheduler..."
 	docker cp /tmp/new_dags/. pg-cluster-airflow-scheduler-1:/opt/airflow/dags/
 
-	# 3. 熱更新至 worker
+	@echo "🧹 3-1. [安全清理] 強制清空 Worker 容器內的舊 DAGs 與快取..."
+	-docker exec -u 0 pg-cluster-airflow-worker-1 sh -c "rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__*" 2>/dev/null || true
+	@echo "🔄 3-2. [熱更新] 同步最新檔案至 Worker..."
 	docker cp /tmp/new_dags/. pg-cluster-airflow-worker-1:/opt/airflow/dags/
 
 	@sleep 1
 
-	# 4. 清除宿主機臨時暫存檔
+	@echo "🧹 4. [收尾] 任務完成，強制粉碎宿主機臨時快取檔..."
 	-docker run --rm -v /tmp:/tmp alpine sh -c "chmod -R 777 /tmp/new_dags && rm -rf /tmp/new_dags" 2>/dev/null || true
 	-rm -rf /tmp/new_dags || true
-	@echo "✅  <airflow-hot-update> done."
+
 	@make prod-mode
+	@echo "✅  <airflow-hot-update> done."
 
 copy-dag:
 	@echo "將開發 DAGs 複製到 Airflow 容器中的 DAGs 對應資料夾 | 先刪除目錄下所有內容 | 執行複製"
 	@make dev-mode
-	$(SUDO_CMD) rm -rf $(AIRFLOW_PATH)/dags/*
+	sudo rm -rf $(AIRFLOW_PATH)/dags/*
 	cp -ra ../../../PG-Airflow-DAGs/dags $(AIRFLOW_PATH)
 	@make prod-mode
 	@echo "DAGs 同步完成並已校正權限 ..."
