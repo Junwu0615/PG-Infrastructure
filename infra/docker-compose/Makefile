@@ -6,7 +6,8 @@ ANSIBLE_DIR = ./ansible
 AIRFLOW_DIR = ./docker/airflow
 IoT_DIR = ./docker/iot-platform
 
-SERVICE_PATH = 127.0.0.1
+LOCAL_PATH = 127.0.0.1
+OUTSIDE_PATH = 192.168.0.15
 KAFKA_CONN_ALL_JSON := $(wildcard ./docker/iot-platform/config/connectors/source/*.json ./docker/iot-platform/config/connectors/sink/*.json)
 TOPIC_FILTER := __consumer_offsets|docker-connect-configs|docker-connect-offsets|docker-connect-status
 SCHEMA_FILTER := template
@@ -35,7 +36,7 @@ ELK_CONTENT = elasticsearch logstash kibana
 volume ?=
 
 .PHONY: build up down down-v ps rm \
-fix-sock db-wait list-configs prune get-chown-all dev-mode prod-mode kafka-chow \
+fix-sock db-wait list-configs prune get-chown-all airflow-hot-update copy-dag dev-mode prod-mode kafka-chow \
 airflow monitoring portainer postgresql mqtt kafka \
 setup config infra all destroy graph \
 kafka-connect-create kafka-connect-upsert kafka-connect-status \
@@ -81,7 +82,7 @@ ps:
 	docker ps -a --filter "name=$(MAIN_NAME)" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 fix-sock:
-	sudo chmod 666 /var/run/docker.sock
+	@command -v sudo >/dev/null 2>&1 && sudo chmod 666 /var/run/docker.sock || chmod 666 /var/run/docker.sock || true
 
 db-wait:
 	@echo "1. 正在啟動資料庫 ..."
@@ -115,6 +116,19 @@ prod-mode:
 #	mkdir -p $(IoT_DIR)/data/kafka_data
 #	sudo chown -R 1000:0 $(IoT_DIR)/data/kafka_data
 #	sudo chmod -R 775 $(IoT_DIR)/data/kafka_data
+
+airflow-hot-update:
+	# 1. 新拉下來的 latest 映像檔啟動一個臨時的 alpine 容器，把裡面的新 DAGs 複製到宿主機的臨時目錄
+	docker run --rm -v /tmp/new_dags:/host_dags $(OUTSIDE_PATH):5100/airflow-dags:latest cp -r /opt/airflow/dags/. /host_dags/
+
+	# 2. [熱更新] scheduler 容器
+	docker cp /tmp/new_dags/. pg-cluster-airflow-scheduler-1:/opt/airflow/dags/
+
+	# 3. [熱更新] worker 容器
+	docker cp /tmp/new_dags/. pg-cluster-airflow-worker-1:/opt/airflow/dags/
+
+	# 4. 清除宿主機臨時暫存檔
+	rm -rf /tmp/new_dags
 
 copy-dag:
 	@echo "將開發 DAGs 複製到 Airflow 容器中的 DAGs 對應資料夾 | 先刪除目錄下所有內容 | 執行複製"
@@ -374,7 +388,7 @@ kafka-connect-create:
 		echo "\n# 上傳配置: $$NAME"; \
 		curl -s -X POST -H "Content-Type: application/json" \
 			--data @$$file \
-			http://$(SERVICE_PATH):8083/connectors; \
+			http://$(LOCAL_PATH):8083/connectors; \
 		echo "\n\n----------------------------------------"; \
 	done
 	sleep 3
@@ -388,7 +402,7 @@ kafka-connect-upsert:
 		echo "\n# 上傳/同步配置: $$NAME"; \
 		cat $$file | jq '.config' | curl -s -X PUT -H "Content-Type: application/json" \
 			--data @- \
-			http://$(SERVICE_PATH):8083/connectors/$$NAME/config; \
+			http://$(LOCAL_PATH):8083/connectors/$$NAME/config; \
 		echo "\n\n----------------------------------------"; \
 	done
 	sleep 3
@@ -397,8 +411,8 @@ kafka-connect-upsert:
 
 kafka-connect-status:
 	@echo "* 當前 Kafka Connection 運作狀態"
-	@for name in $$(curl -s http://$(SERVICE_PATH):8083/connectors | jq -r '.[]'); do \
-		STATE=$$(curl -s http://$(SERVICE_PATH):8083/connectors/$$name/status | jq -r '.tasks[0].state // "N/A"'); \
+	@for name in $$(curl -s http://$(LOCAL_PATH):8083/connectors | jq -r '.[]'); do \
+		STATE=$$(curl -s http://$(LOCAL_PATH):8083/connectors/$$name/status | jq -r '.tasks[0].state // "N/A"'); \
 		echo "    # Connector: [ $$name ] -> Status: [ $$STATE ]"; \
 	done
 
@@ -411,16 +425,16 @@ kafka-connect-clean:
 
 kafka-topic-clean:
 	@echo "* 移除指定 Kafka Topics (過濾條件: $(TOPIC_FILTER)) ..."
-	@docker exec pg-cluster-kafka-1 kafka-topics --bootstrap-server $(SERVICE_PATH):9092 --list | grep -vE "$(TOPIC_FILTER)" | while read -r topic; do \
+	@docker exec pg-cluster-kafka-1 kafka-topics --bootstrap-server $(LOCAL_PATH):9092 --list | grep -vE "$(TOPIC_FILTER)" | while read -r topic; do \
 		echo "  -> 物理刪除 Topic: $$topic"; \
-		docker exec pg-cluster-kafka-1 kafka-topics --bootstrap-server $(SERVICE_PATH):9092 --delete --topic $$topic; \
+		docker exec pg-cluster-kafka-1 kafka-topics --bootstrap-server $(LOCAL_PATH):9092 --delete --topic $$topic; \
 	done
 
 kafka-schema-clean:
 	@echo "* 移除指定 Schema Registry Subjects (過濾條件: $(SCHEMA_FILTER)) ..."
-	@curl -s http://$(SERVICE_PATH):8081/subjects | jq -r '.[]' | grep -vE "$(SCHEMA_FILTER)" | while read -r subject; do \
+	@curl -s http://$(LOCAL_PATH):8081/subjects | jq -r '.[]' | grep -vE "$(SCHEMA_FILTER)" | while read -r subject; do \
 		echo "  -> 銷毀 Schema: $$subject"; \
-		curl -s -X DELETE http://$(SERVICE_PATH):8081/subjects/$$subject; \
+		curl -s -X DELETE http://$(LOCAL_PATH):8081/subjects/$$subject; \
 	done
 
 kafka-all-clean:

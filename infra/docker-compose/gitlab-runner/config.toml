@@ -4,6 +4,7 @@
   name = "wsl2-local-runner"
   url = "http://127.0.0.1:8090/"
   executor = "docker"
+  # environment = ["FF_NETWORK_PER_BUILD=true"]
   [runners.docker]
     tls_verify = false
     image = "docker:24.0.5"

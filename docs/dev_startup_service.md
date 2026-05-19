@@ -118,6 +118,9 @@
   
   # 強制刷新與檢查 Import Errors
     airflow dags list-import-errors
+  
+  # 強制刷新 DAG
+  docker exec -it pg-cluster-airflow-scheduler-1 airflow dags reserialize
   ```
 
 - #### *f.　查水錶找到主閘道*
@@ -361,6 +364,9 @@
     sudo rm /etc/gitlab-runner/config.toml
     sudo touch /etc/gitlab-runner/config.toml
   
+  # [除錯] 驗證指定 runner
+  sudo gitlab-runner verify
+  
   # 事物完成 => 生效
   sudo systemctl restart gitlab-runner
   
@@ -414,8 +420,10 @@
   # 編輯 config.toml
   sudo nano /etc/gitlab-runner/config.toml
   
-  # 開啟設定
-  privileged = true
+  # 參考設定 (gitlab-runner/config.toml)
+  
+  # 重啟
+  sudo systemctl restart gitlab-runner
 ```
 
 <br>
