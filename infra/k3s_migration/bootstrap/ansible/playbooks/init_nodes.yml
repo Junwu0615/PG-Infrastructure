@@ -1,0 +1,37 @@
+# ansible/playbooks/init_nodes.yml
+
+---
+- name: Prepare Nodes
+  hosts: k3s_cluster
+  become: yes
+  tasks:
+    - name: Disable Swap in fstab
+      mount:
+        name: "{{ item }}"
+        fstype: swap
+        state: absent
+      loop: [ "none", "swap" ]
+
+    - name: Enable Kernel Modules
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - br_netfilter
+        - overlay
+
+    - name: Ensure modules load on boot
+      copy:
+        content: |
+          br_netfilter
+          overlay
+        dest: /etc/modules-load.d/k8s.conf
+
+    - name: Enable IPv4 Forwarding
+      sysctl:
+        name: "{{ item }}"
+        value: '1'
+        state: present
+      loop:
+        - net.ipv4.ip_forward
+        - net.bridge.bridge-nf-call-iptables

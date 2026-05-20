@@ -483,6 +483,10 @@ Ansible:
     # VM 重新啟動 ( K3s 集群 )
     make power-manage action=reboot
 
+Kubectl ( k ):
+    # 標籤設置，節點 0 為 Master，接著 2 個節點的 service-type 為 app，其餘為 service
+    make label-nodes app=2
+    
 Helm:
     # [暫時] 塞本地 imags 到 VM
         make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar
@@ -490,10 +494,6 @@ Helm:
     
     # 部署 v5 版本測試腳本
     make deploy ver=v5
-
-Kubectl ( k ):
-    # 標籤設置，節點 0 為 Master，接著 2 個節點的 service-type 為 app，其餘為 service
-    make label-nodes app=2
 ```
 
 <br>
