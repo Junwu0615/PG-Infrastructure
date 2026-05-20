@@ -47,8 +47,9 @@ SUB_SERVICES = ./docker/airflow/docker-compose.yaml \
 volume ?=
 
 .PHONY: build up down down-v ps rm \
-fix-sock db-wait list-configs prune get-chown-all airflow-hot-update copy-dag dev-mode prod-mode kafka-chow \
-airflow monitoring portainer postgresql mqtt kafka \
+fix-sock db-wait list-configs prune get-chown-all \
+airflow-hot-update copy-dag dev-mode prod-mode \
+airflow monitoring portainer postgresql mqtt kafka elk gitlab registry \
 setup config infra all destroy graph \
 kafka-connect-create kafka-connect-upsert kafka-connect-status \
 kafka-connect-clean kafka-topic-clean kafka-schema-clean kafka-all-clean
