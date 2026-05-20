@@ -13,7 +13,7 @@ logs
 .terraform
 
 infra/docker-compose/_tmp_dags/
-infra/docker-compose/opt/
+#infra/docker-compose/opt/
 infra/docker-compose/terraform/.terraform
 infra/docker-compose/terraform/.terraform.lock.hcl
 infra/docker-compose/docker/portainer/data
