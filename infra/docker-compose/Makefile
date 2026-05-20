@@ -45,6 +45,7 @@ SUB_SERVICES = ./docker/airflow/docker-compose.yaml \
 			   ./docker/registry/docker-compose.yaml
 
 volume ?=
+VERSION ?= latest
 
 .PHONY: build up down down-v ps rm \
 fix-sock db-wait list-configs prune get-chown-all \
@@ -127,81 +128,75 @@ prod-mode:
 
 #airflow-hot-update:
 #	@echo "* 執行 Airflow DAGs 熱更新 ..."
+#	@echo "0. 刷新映像檔 | 強制從 Registry 拉取最新的映像檔，防止快取背刺 ..."
+#	docker pull $(OUTSIDE_PATH):5100/airflow-dags:$(VERSION) || true
+#
 #	@echo "1. 提取 | 最新 DAGs 檔案到本地臨時目錄 ..."
+#	# 建立專案底下的相對目錄
 #	mkdir -p ./_tmp_dags
 #
+#	# 透過最新映像檔把代碼吐到這個專案目錄（在容器內把 host_dags 權限全開）
 #	docker run --rm \
 #	  -u 0 \
 #	  --entrypoint "/bin/sh" \
 #	  -v $(shell pwd)/_tmp_dags:/host_dags \
-#	  $(OUTSIDE_PATH):5100/airflow-dags:latest \
-#	  -c "chmod 777 /host_dags && cp -r /opt/airflow/dags/. /host_dags/"
+#	  $(OUTSIDE_PATH):5100/airflow-dags:$(VERSION) \
+#	  -c "chmod -R 777 /host_dags && rm -rf /host_dags/* /host_dags/.__* 2>/dev/null || true && cp -r /opt/airflow/dags/. /host_dags/"
 #
-#	@sleep 1
-#
-#	@echo "🧹 2-1. 安全清理 | 強制清空 Scheduler 容器內的舊 DAGs 與快取 ..."
+#	@echo "🧹 2. 安全清理 | 強清空三容器舊檔 ..."
 #	-docker exec -u 0 pg-cluster-airflow-scheduler-1 sh -c "rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__*" 2>/dev/null || true
-#	@echo "🔄 2-2. 熱更新 | 同步最新檔案至 Scheduler ..."
-#	docker cp ./_tmp_dags/. pg-cluster-airflow-scheduler-1:/opt/airflow/dags/
-#
-#	@echo "🧹 3-1. 安全清理 | 強制清空 Worker 容器內的舊 DAGs 與快取 ..."
 #	-docker exec -u 0 pg-cluster-airflow-worker-1 sh -c "rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__*" 2>/dev/null || true
-#	@echo "🔄 3-2. 熱更新 | 同步最新檔案至 Worker ..."
-#	docker cp ./_tmp_dags/. pg-cluster-airflow-worker-1:/opt/airflow/dags/
-#
-#	@echo "🧹 4-1. 安全清理 | 強制清空 Webserver 容器內的舊 DAGs 與快取 ..."
 #	-docker exec -u 0 pg-cluster-airflow-webserver-1 sh -c "rm -rf /opt/airflow/dags/*" 2>/dev/null || true
-#	@echo "🔄 4-2. 熱更新 | 同步最新檔案至 Webserver ..."
+#
+#	@echo "🔄 3. 熱更新 | 將檔案用 docker cp 強行灌入三大容器 ..."
+#	docker cp ./_tmp_dags/. pg-cluster-airflow-scheduler-1:/opt/airflow/dags/
+#	docker cp ./_tmp_dags/. pg-cluster-airflow-worker-1:/opt/airflow/dags/
 #	docker cp ./_tmp_dags/. pg-cluster-airflow-webserver-1:/opt/airflow/dags/
 #
-#	@sleep 1
-#
-#	@echo "5. 重新掃描 | 強制觸發 Airflow 重新掃描 ..."
+#	@echo "4. 重新掃描 | 強制觸發 Airflow 重新掃描新 DAGs ..."
+#	# 完全不刪除 ./_tmp_dags => 確保 Airflow 在重掃時實體檔案絕對在線
 #	-docker exec pg-cluster-airflow-scheduler-1 airflow dags reserialize || true
 #
-#	@echo "6. 收尾 | 強制粉碎宿主機臨時快取檔 ..."
+#	@echo "5. 權限釋放 | 將暫存檔釋放，防止下一次 CI 卡死 ..."
+#	# 不刪除，只是用 Docker root 把它的權限改成 777，讓它留在原地
+#	# 不背刺 Airflow 的 I/O 緩衝區，下一次 CI 跑的時候也能順利覆蓋
 #	-docker run --rm \
-#      -v $(shell pwd):/workspace \
-#      alpine sh -c "chmod -R 777 /workspace/_tmp_dags /workspace/opt && rm -rf /workspace/_tmp_dags /workspace/opt" 2>/dev/null || true
-#	-rm -rf ./_tmp_dags ./opt 2>/dev/null || true
+#	  -v $(shell pwd):/workspace \
+#	  alpine chmod -R 777 /workspace/_tmp_dags 2>/dev/null || true
 #
 #	@echo "✅  <airflow-hot-update> done."
 
 airflow-hot-update:
 	@echo "* 執行 Airflow DAGs 熱更新 ..."
-	@echo "0. 刷新映像檔 | 強制從 Registry 拉取最新的映像檔，防止快取背刺 ..."
-	docker pull $(OUTSIDE_PATH):5100/airflow-dags:latest || true
-
-	@echo "1. 提取 | 最新 DAGs 檔案到本地臨時目錄 ..."
-	# 建立專案底下的相對目錄
-	mkdir -p ./_tmp_dags
-
-	# 透過最新映像檔把代碼吐到這個專案目錄（在容器內把 host_dags 權限全開）
-	docker run --rm \
-	  -u 0 \
-	  --entrypoint "/bin/sh" \
-	  -v $(shell pwd)/_tmp_dags:/host_dags \
-	  $(OUTSIDE_PATH):5100/airflow-dags:latest \
-	  -c "chmod -R 777 /host_dags && cp -r /opt/airflow/dags/. /host_dags/"
+	@echo "0. 刷新映像檔 ..."
+	docker pull $(OUTSIDE_PATH):5100/airflow-dags:$(VERSION)
 
 	@echo "🧹 2. 安全清理 | 強清空三容器舊檔 ..."
 	-docker exec -u 0 pg-cluster-airflow-scheduler-1 sh -c "rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__*" 2>/dev/null || true
 	-docker exec -u 0 pg-cluster-airflow-worker-1 sh -c "rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__*" 2>/dev/null || true
 	-docker exec -u 0 pg-cluster-airflow-webserver-1 sh -c "rm -rf /opt/airflow/dags/*" 2>/dev/null || true
 
-	@echo "🔄 3. 熱更新 | 將檔案用 docker cp 強行灌入三大容器 ..."
-	docker cp ./_tmp_dags/. pg-cluster-airflow-scheduler-1:/opt/airflow/dags/
-	docker cp ./_tmp_dags/. pg-cluster-airflow-worker-1:/opt/airflow/dags/
-	docker cp ./_tmp_dags/. pg-cluster-airflow-webserver-1:/opt/airflow/dags/
+	@echo "🔄 1. 熱更新 | 直接利用新 Image 透過 Volume 強灌入三大容器 ..."
+	# 這裡利用 --volumes-from 直接借用 Airflow 容器的掛載點，把新 Image 裡的代碼複製過去
+	# 這樣完全不需要在 CD Runner 本地建立暫存檔，也不需要 docker cp！
 
-	@echo "4. 重新掃描 | 強制觸發 Airflow 重新掃描新 DAGs ..."
-	# 完全不刪除 ./_tmp_dags => 確保 Airflow 在重掃時實體檔案絕對在線
-	-docker exec pg-cluster-airflow-scheduler-1 airflow dags reserialize || true
+	@echo "-> 更新 Scheduler ..."
+	docker run --rm -u 0 --entrypoint "/bin/sh" --volumes-from pg-cluster-airflow-scheduler-1 $(OUTSIDE_PATH):5100/airflow-dags:$(VERSION) -c "\
+		rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__* 2>/dev/null || true; \
+		cp -r /opt/airflow/dags/. /opt/airflow/dags/ || true"
 
-	@echo "5. 權限釋放 | 將暫存檔釋放，防止下一次 CI 卡死 ..."
-	# 不刪除它，只是用 Docker root 把它的權限改成 777，讓它留在原地
-	# 不會背刺 Airflow 的 I/O 緩衝區，下一次 CI 跑的時候也能順利覆蓋
-	-docker run --rm -v $(shell pwd):/workspace alpine chmod -R 777 /workspace/_tmp_dags 2>/dev/null || true
+	@echo "-> 更新 Worker ..."
+	docker run --rm -u 0 --entrypoint "/bin/sh" --volumes-from pg-cluster-airflow-worker-1 $(OUTSIDE_PATH):5100/airflow-dags:$(VERSION) -c "\
+		rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__* 2>/dev/null || true; \
+		cp -r /opt/airflow/dags/. /opt/airflow/dags/ || true"
+
+	@echo "-> 更新 Webserver ..."
+	docker run --rm -u 0 --entrypoint "/bin/sh" --volumes-from pg-cluster-airflow-webserver-1 $(OUTSIDE_PATH):5100/airflow-dags:$(VERSION) -c "\
+		rm -rf /opt/airflow/dags/* 2>/dev/null || true; \
+		cp -r /opt/airflow/dags/. /opt/airflow/dags/ || true"
+
+	@echo "4. 重新掃描 ..."
+	docker exec pg-cluster-airflow-scheduler-1 airflow dags reserialize
 
 	@echo "✅  <airflow-hot-update> done."
 
