@@ -124,22 +124,17 @@ prod-mode:
 	  alpine sh -c "chown -R 50000:0 /target_dir && chmod -R 775 /target_dir"
 	@echo "✅ Airflow 目錄權限修復完成"
 
-#kafka-chown:
-#	@echo "設定 kafka 擁有顯式持久化資料權限"
-#	mkdir -p $(IoT_DIR)/data/kafka_data
-#	sudo chown -R 1000:0 $(IoT_DIR)/data/kafka_data
-#	sudo chmod -R 775 $(IoT_DIR)/data/kafka_data
-
 airflow-hot-update:
 	@echo "* 執行 Airflow DAGs 熱更新 ..."
 	@echo "1. 提取最新 DAGs 檔案到本地臨時目錄 ..."
-	mkdir -p ./_tmp_dags && chmod 777 ./_tmp_dags
+	mkdir -p ./_tmp_dags
+
 	docker run --rm \
 	  -u 0 \
 	  --entrypoint "/bin/sh" \
-	  -v ./_tmp_dags:/host_dags \
+	  -v $(shell pwd)/_tmp_dags:/host_dags \
 	  $(OUTSIDE_PATH):5100/airflow-dags:latest \
-	  -c "cp -r /opt/airflow/dags/. /host_dags/"
+	  -c "chmod 777 /host_dags && cp -r /opt/airflow/dags/. /host_dags/"
 
 	@sleep 1
 
@@ -161,45 +156,15 @@ airflow-hot-update:
 	@sleep 1
 
 	@echo "5. [收尾] 任務完成，強制粉碎宿主機臨時快取檔..."
-	-docker run --rm -v /tmp:/tmp alpine sh -c "chmod -R 777 ./_tmp_dags && rm -rf ./_tmp_dags" 2>/dev/null || true
-	-rm -rf ./_tmp_dags || true
-
-	@#make prod-mode
+	-docker run --rm \
+      -v $(shell pwd):/workspace \
+      alpine sh -c "chmod -R 777 /workspace/_tmp_dags /workspace/opt && rm -rf /workspace/_tmp_dags /workspace/opt" 2>/dev/null || true
+	-rm -rf ./_tmp_dags ./opt 2>/dev/null || true
 
 	@echo "6. 強制觸發 Airflow 重新掃描新 DAGs ..."
 	-docker exec pg-cluster-airflow-scheduler-1 airflow dags reserialize || true
 
 	@echo "✅  <airflow-hot-update> done."
-
-#airflow-hot-update:
-#	@echo "* 執行 Airflow DAGs 熱更新 ..."
-#	@echo "1. 安全清理 | 強制清空三容器內的舊 DAGs 與殘留快取 ..."
-#	-docker exec -u 0 pg-cluster-airflow-scheduler-1 sh -c "rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__*" 2>/dev/null || true
-#	-docker exec -u 0 pg-cluster-airflow-worker-1 sh -c "rm -rf /opt/airflow/dags/* /opt/airflow/dags/.__*" 2>/dev/null || true
-#	-docker exec -u 0 pg-cluster-airflow-webserver-1 sh -c "rm -rf /opt/airflow/dags/*" 2>/dev/null || true
-#
-#	@sleep 1
-#
-#	@echo "2. 熱更新 | 利用 Volume 共享 ( scheduler / worker / webserver )，將最新映像檔跨容器空投 ..."
-#	docker run --rm \
-#	  -u 0 \
-#	  --entrypoint "/bin/sh" \
-#	  -v $(shell pwd)/opt/airflow/dags:/host_dags \
-#	  $(OUTSIDE_PATH):5100/airflow-dags:latest \
-#	  -c "cp -r /opt/airflow/dags/. /host_dags/"
-#
-#	@echo "🔄 3. 熱更新 | 將本機與 CI 同步看得見的檔案，用 docker cp 塞進去 ..."
-#	# 既然這個目錄在 CI 容器內部與 WSL2 實體機都能看得到，docker cp 就絕對有效！
-#	docker cp ./_tmp_dags/. pg-cluster-airflow-scheduler-1:/opt/airflow/dags/
-#	docker cp ./_tmp_dags/. pg-cluster-airflow-worker-1:/opt/airflow/dags/
-#	docker cp ./_tmp_dags/. pg-cluster-airflow-webserver-1:/opt/airflow/dags/
-#
-#	@sleep 1
-#
-#	@echo "4. 重新掃描 | 強制觸發 Airflow 重新掃描新 DAGs ..."
-#	-docker exec pg-cluster-airflow-scheduler-1 airflow dags reserialize || true
-#
-#	@echo "✅  <airflow-hot-update> done."
 
 copy-dag:
 	@echo "將開發 DAGs 複製到 Airflow 容器中的 DAGs 對應資料夾 | 先刪除目錄下所有內容 | 執行複製"
