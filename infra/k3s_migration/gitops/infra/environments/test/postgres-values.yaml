@@ -1,0 +1,18 @@
+global:
+  postgresql:
+    auth:
+      postgresPassword: "SuperSecurePostgresPassword"
+      username: "airflow"
+      password: "AirflowPassword123"
+      database: "airflow"
+
+# 關鍵：告訴 Helm 範本，我要掛載剛剛手動建立的 ConfigMap 作為初始腳本
+primary:
+  initdb:
+    configMap: "postgres-init-sql"
+
+  # 為了以後的 HA / Replica 實驗，先開啟持久化儲存
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClassName: "local-path" # K3s 內建的本地硬碟驅動

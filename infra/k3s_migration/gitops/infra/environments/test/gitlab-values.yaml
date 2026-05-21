@@ -1,22 +1,71 @@
+# gitops/infra/environments/test/gitlab-values.yaml
+# 適用於 GitLab Chart v9.x (GitLab 16.x)
+
 global:
   hosts:
-    domain: k3s.local          # 自訂你的本地域名
+    domain: k3s.local
   ingress:
-    configureCertmanager: false # 單機測試先不用自動申請憑證 (Let's Encrypt)
-    provider: traefik          # K3s 內建是 Traefik，指定它來維護 Ingress
+    configureCertmanager: false
+    provider: traefik
+  email:
+    from: admin@k3s.local
+    display_name: GitLab
+
+
+# 壓低 GitLab 核心組件的記憶體索求 (防止 Insufficient memory)
+gitlab:
+  webservice:
+    resources:
+      requests:
+        memory: 1.5Gi # 壓低初始記憶體需求
+  sidekiq:
+    resources:
+      requests:
+        memory: 750Mi
+
 
 # 關閉極度吃資源的 Gitaly 高可用，改用單機版
 gitaly:
   gid: 0
   securityContext:
     runAsUser: 0
+  resources:
+    requests:
+      memory: 512Mi
 
-# 測試環境，把不需要的組件關掉省記憶體 (GitLab 全開會吃 8GB+ RAM)
+
+# 啟用舊版內建的微型資料庫，並限制其記憶體
+postgresql:
+  install: true
+  resources:
+    requests:
+      memory: 256Mi
+
+
+# 啟用舊版內建的微型 Redis，並限制其記憶體
+redis:
+  install: true
+  resources:
+    requests:
+      memory: 128Mi
+
+
+# 啟動舊版內建 MinIO (相容舊 CPU 指令集)
+registry:
+  enabled: false # 先關閉 Container Registry 節省資源
+
+
+# ==========================================
+# 關閉其他不必要的大型組件
+# ==========================================
 gitlab-runner:
-  install: false               # 先不裝 CI/CD Runner，純當代碼庫
+  install: false
+
 certmanager:
-  install: false               # 關閉
+  enabled: false
+
 nginx-ingress:
-  install: false               # 關閉 (因為我們用 K3s 內建的 Traefik)
+  enabled: false
+
 prometheus:
-  install: false               # 監控先用你自己的，不用 GitLab 內建的
+  enabled: false

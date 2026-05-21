@@ -54,7 +54,7 @@ Terraform:
     make init
     
     # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
-    make apply node_num=3 node_cpu=4 node_memory=6144
+    make apply node_num=5 node_cpu=4 node_memory=6144
     
     # 拆除 VM 環境
     make destroy
@@ -86,21 +86,85 @@ Helm:
 
 ### *C.　摸索 ...*
 ```
-# 建立空間 + 新增 Helm 倉庫
-    # 1. 建立一個基礎工具空間
-    kubectl create namespace infra-tools
-    
-    # 2. 新增 GitLab 官方 Helm 倉庫
+# 持續觀察
+kubectl get pods -n infra-data -w
+kubectl get pods -n infra-monitor -w
+kubectl get pods -n infra-tools -w
+kubectl get pods -n dev-apps -w
+
+
+# 建立命名空間
+kubectl create namespace infra-data       # => Postgres, Kafka, Airflow
+kubectl create namespace infra-monitor    # => Prometheus, Grafana, ELK
+kubectl create namespace infra-tools      # => GitLab, Portainer, Vault
+kubectl create namespace dev-apps         # => 自定義業務服務: cp, inst 
+
+
+# 新增官方 Helm 倉庫
+    # 新增 gitlab
     helm repo add gitlab https://charts.gitlab.io/
-    helm repo update
     
-# 啟動 gitlab 服務
-helm install my-gitlab gitlab/gitlab \
+    # 新增 bitnami
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+    
+    # 新增 minio 官方倉庫
+    helm repo add minio https://charts.min.io/
+    
+    # 結尾更新
+    helm repo update
+
+
+# 手動過渡期
+# 基礎設施基底 ( gitlab + postgresql + airflow )
+    # GitLab 內部需要讀取外部 Redis,PostgreSQL,MinIO 的密碼
+  
+# 1. 建立 K8s Secret: PostgreSQL
+kubectl create secret generic gitlab-postgres-pass \
   --namespace infra-tools \
-  -f tmp-gitlab-values.yaml \
+  --from-literal=password="SuperSecurePostgresPassword" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# 2. 建立 K8s Secret: Redis
+kubectl create secret generic gitlab-redis-pass \
+  --namespace infra-tools \
+  --from-literal=secret="GitLabRedisPassword123" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# 3. 建立 K8s Secret:  MinIO 物件儲存憑證
+kubectl create secret generic gitlab-minio-secret \
+  --namespace infra-tools \
+  --from-literal=accesskey="minioadmin" \
+  --from-literal=secretkey="minioadminpassword" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# 可讀取已建立密碼
+kubectl get secrets -n infra-tools
+
+# 4. 啟動 Redis
+helm install gitlab-redis bitnami/redis \
+  --namespace infra-tools \
+  --set auth.password="GitLabRedisPassword123" \
+  --set architecture=standalone \
+  --set master.persistence.enabled=false # 測試環境，先不用持久化
+  
+# 5. 啟動 MinIO
+helm install gitlab-minio minio/minio \
+  --namespace infra-tools \
+  --set rootUser="minioadmin" \
+  --set rootPassword="minioadminpassword" \
+  --set persistence.enabled=false \
+  --set mode=standalone
+  
+# 6. 啟動 Gitlab
+helm install gitlab-infra gitlab/gitlab \
+  --namespace infra-tools \
+  -f gitops/infra/environments/test/gitlab-values.yaml \
+  --version "^9.0.0" \
   --timeout 600s
+  
 
 
+# 啟動 airflow
 ```
 
 <br><br><br>

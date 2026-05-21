@@ -7,12 +7,16 @@ ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 
 .PHONY: rollback deploy clean build \
 load-images save \
-status power-manage init apply destroy label-nodes vm_format
+status power-manage init apply destroy label-nodes vm_format \
+init-gitops
 
 app ?= 1
 node_num ?= 3
 node_memory ?= "2048"
 node_cpu ?= 2
+
+init-gitops:
+	@echo "* 一鍵部署基礎設置 ( GitOps )"
 
 save:
 	@echo "* 導出映像檔至 $(TAR_FILE)"
