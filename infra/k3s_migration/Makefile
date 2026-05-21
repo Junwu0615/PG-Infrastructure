@@ -5,11 +5,14 @@ TERRAFORM_PATH=./bootstrap/terraform
 ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 
-.PHONY: test-clean rollback deploy clean build \
-status power-manage init apply destroy label-nodes load-images save
+.PHONY: rollback deploy clean build \
+load-images save \
+status power-manage init apply destroy label-nodes vm_format
 
 app ?= 1
 node_num ?= 3
+node_memory ?= "2048"
+node_cpu ?= 2
 
 save:
 	@echo "* 導出映像檔至 $(TAR_FILE)"
@@ -45,78 +48,6 @@ load-images:
 	@echo "* 移除本地 $(TAR_FILE)"
 	rm $(TAR_FILE)
 	@echo "✅  <make load-images> done."
-
-label-nodes:
-	@echo "* 動態指定服務標籤配置 | make label-nodes app=$(app)"
-	@# 1. 處理 Master (k3s-node-0)
-	kubectl label nodes k3s-node-0 service-type=none --overwrite
-	@# 2. 遍歷其餘節點
-	@nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
-	count=1; \
-	for node in $$nodes; do \
-		if [ $$count -le $(app) ]; then \
-			echo "Labeling $$node as app"; \
-			kubectl label nodes $$node service-type=app --overwrite; \
-		else \
-			echo "Labeling $$node as service"; \
-			kubectl label nodes $$node service-type=service --overwrite; \
-		fi; \
-		count=$$((count + 1)); \
-	done
-	@echo "\n* 檢查標籤結果："
-	kubectl get nodes -L service-type
-	@echo "✅  <make label-nodes> done."
-
-init:
-	@echo "* 初始化 terraform 配置"
-	cd $(TERRAFORM_PATH) && \
-	terraform init --upgrade
-	@echo "✅  <make init> done."
-
-apply:
-	@echo "* 安裝 VM 環境"
-	cd $(TERRAFORM_PATH) && \
-	terraform apply -auto-approve -var="node_count=$(node_num)"
-	@echo "✅  <make apply> done."
-
-destroy:
-	@echo "* 拆除 VM 環境"
-	cd $(TERRAFORM_PATH) && \
-	terraform destroy -auto-approve
-	@echo "✅  <make destroy> done."
-
-status:
-	@echo "* 檢查 k8s 狀態"
-	kubectl get nodes -o wide
-	kubectl get pods -o wide
-
-power-manage:
-	@echo "* 電源管理 action = [stop / reboot]"
-	@echo "* 檢查是否有傳入 action 且不為空"
-	@if [ -z "$(action)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make power-manage action=stop"; \
-		exit 1; \
-	fi
-	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/power_manage.yml -e "action=$(action)" -K
-	@echo "✅  <make power-manage> done."
-
-test-clean:
-	# 1. 停止 systemd 服務 (如果存在)
-	-sudo systemctl stop k3s
-
-	# 2. 執行官方徹底清理腳本 (會處理掛載點、網路介面與檔案)
-	-if [ -f /usr/local/bin/k3s-killall.sh ]; then sudo /usr/local/bin/k3s-killall.sh; fi
-
-	# 3. 強制殺掉殘留的 containerd 進程 (K3s 內嵌版)
-	-sudo pkill -9 k3s
-	-sudo pkill -9 containerd
-	-sudo pkill -9 k3s-agent
-
-	# 4. 清理殘留的網路虛擬介面 (避免下次啟動網路衝突)
-	-sudo ip link delete cni0
-	-sudo ip link delete flannel.1
-
-	@echo "✅ K3s 環境已徹底清理完畢"
 
 build:
 	@echo "1. 檢查是否有版本號且不為空"
@@ -170,3 +101,79 @@ rollback:
 	@echo "* 當前設定錯誤 => 進行回滾"
 	helm rollback $(RELEASE_NAME) $(ver)
 	@echo "✅  <make rollback> done."
+
+label-nodes:
+	@echo "* 動態指定服務標籤配置 | make label-nodes app=$(app)"
+	@# 1. 處理 Master (k3s-node-0)
+	kubectl label nodes k3s-node-0 service-type=none --overwrite
+	@# 2. 遍歷其餘節點
+	@nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
+	count=1; \
+	for node in $$nodes; do \
+		if [ $$count -le $(app) ]; then \
+			echo "Labeling $$node as app"; \
+			kubectl label nodes $$node service-type=app --overwrite; \
+		else \
+			echo "Labeling $$node as service"; \
+			kubectl label nodes $$node service-type=service --overwrite; \
+		fi; \
+		count=$$((count + 1)); \
+	done
+	@echo "\n* 檢查標籤結果："
+	kubectl get nodes -L service-type
+	@echo "✅  <make label-nodes> done."
+
+init:
+	@echo "* 初始化 terraform 配置"
+	cd $(TERRAFORM_PATH) && \
+	terraform init --upgrade
+	@echo "✅  <make init> done."
+
+apply:
+	@echo "* 安裝 VM 環境"
+	cd $(TERRAFORM_PATH) && \
+	terraform apply -auto-approve \
+	  -var="node_count=$(node_num)" \
+	  -var="node_cpu=$(node_cpu)" \
+	  -var="node_memory=$(node_memory)"
+	@echo "✅  <make apply> done."
+
+destroy:
+	@echo "* 拆除 VM 環境"
+	cd $(TERRAFORM_PATH) && \
+	terraform destroy -auto-approve
+	@echo "✅  <make destroy> done."
+
+status:
+	@echo "* 檢查 k8s 狀態"
+	kubectl get nodes -o wide
+	kubectl get pods -o wide
+
+power-manage:
+	@echo "* 電源管理 action = [stop / reboot]"
+	@echo "* 檢查是否有傳入 action 且不為空"
+	@if [ -z "$(action)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make power-manage action=stop"; \
+		exit 1; \
+	fi
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/power_manage.yml -e "action=$(action)" -K
+	@echo "✅  <make power-manage> done."
+
+vm_format:
+	@for vm in $$(sudo virsh list --all --name); do \
+		if [ -n "$$vm" ]; then \
+			echo "=== 虛擬機: $$vm ==="; \
+			vcpu=$$(sudo virsh dumpxml "$$vm" | grep 'vcpu' | sed -e 's/<[^>]*>//g' | xargs); \
+			ram_kib=$$(sudo virsh dumpxml "$$vm" | grep 'currentMemory' | sed -e 's/<[^>]*>//g' | xargs); \
+			ram_mb=$$((ram_kib / 1024)); \
+			disk_path=$$(sudo virsh domblklist "$$vm" | awk 'NR==3 {print $$2}'); \
+			if [ -f "$$disk_path" ]; then \
+				disk_size=$$(sudo qemu-img info "$$disk_path" | grep 'virtual size' | awk -F'(' '{print $$1}' | awk -F':' '{print $$2}' | xargs); \
+			else \
+				disk_size="找不到實體磁碟"; \
+			fi; \
+			echo "  [CPU]  : $$vcpu 核"; \
+			echo "  [RAM]  : $$ram_mb MB (~ $$((ram_mb / 1024)) GB)"; \
+			echo "  [DISK] : $$disk_size"; \
+		fi; \
+	done

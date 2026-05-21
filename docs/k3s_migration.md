@@ -54,7 +54,7 @@ Terraform:
     make init
     
     # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
-    make apply node_num=3
+    make apply node_num=3 node_cpu=4 node_memory=6144
     
     # 拆除 VM 環境
     make destroy
@@ -82,3 +82,25 @@ Helm:
     make deploy ver=v5
 ```
 
+<br>
+
+### *C.　摸索 ...*
+```
+# 建立空間 + 新增 Helm 倉庫
+    # 1. 建立一個基礎工具空間
+    kubectl create namespace infra-tools
+    
+    # 2. 新增 GitLab 官方 Helm 倉庫
+    helm repo add gitlab https://charts.gitlab.io/
+    helm repo update
+    
+# 啟動 gitlab 服務
+helm install my-gitlab gitlab/gitlab \
+  --namespace infra-tools \
+  -f tmp-gitlab-values.yaml \
+  --timeout 600s
+
+
+```
+
+<br><br><br>

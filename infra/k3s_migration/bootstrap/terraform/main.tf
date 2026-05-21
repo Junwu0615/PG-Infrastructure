@@ -35,7 +35,7 @@ resource "libvirt_cloudinit_disk" "commoninit" {
   count = var.node_count
   name  = "commoninit-${count.index}.iso" # 每個節點需要獨立的 ISO 以區分 Hostname
   user_data = templatefile("${path.module}/cloud_init.cfg", {
-    ssh_public_key = file("~/.ssh/id_rsa.pub")
+    ssh_public_key = file(var.ssh_public_key_path)
     hostname       = "k3s-node-${count.index}" # 傳入正確的 Hostname
   })
   pool = "default"
@@ -45,8 +45,8 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 resource "libvirt_domain" "k3s_nodes" {
   count  = var.node_count
   name   = "k3s-node-${count.index}"
-  memory = "2048"
-  vcpu   = 2
+  memory = var.node_memory
+  vcpu   = var.node_cpu
 
   cloudinit = libvirt_cloudinit_disk.commoninit[count.index].id # 引用對應索引
 

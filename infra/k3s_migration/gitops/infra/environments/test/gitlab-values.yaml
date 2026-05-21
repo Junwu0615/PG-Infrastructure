@@ -1,0 +1,22 @@
+global:
+  hosts:
+    domain: k3s.local          # 自訂你的本地域名
+  ingress:
+    configureCertmanager: false # 單機測試先不用自動申請憑證 (Let's Encrypt)
+    provider: traefik          # K3s 內建是 Traefik，指定它來維護 Ingress
+
+# 關閉極度吃資源的 Gitaly 高可用，改用單機版
+gitaly:
+  gid: 0
+  securityContext:
+    runAsUser: 0
+
+# 測試環境，把不需要的組件關掉省記憶體 (GitLab 全開會吃 8GB+ RAM)
+gitlab-runner:
+  install: false               # 先不裝 CI/CD Runner，純當代碼庫
+certmanager:
+  install: false               # 關閉
+nginx-ingress:
+  install: false               # 關閉 (因為我們用 K3s 內建的 Traefik)
+prometheus:
+  install: false               # 監控先用你自己的，不用 GitLab 內建的
