@@ -9,6 +9,7 @@ ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 status power-manage init apply destroy label-nodes load-images save
 
 app ?= 1
+node_num ?= 3
 
 save:
 	@echo "* 導出映像檔至 $(TAR_FILE)"
@@ -75,7 +76,7 @@ init:
 apply:
 	@echo "* 安裝 VM 環境"
 	cd $(TERRAFORM_PATH) && \
-	terraform apply -auto-approve
+	terraform apply -auto-approve -var="node_count=$(node_num)"
 	@echo "✅  <make apply> done."
 
 destroy:

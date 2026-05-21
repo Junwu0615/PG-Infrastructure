@@ -1,8 +1,9 @@
 RELEASE_NAME=my-dev-release
 CHART_PATH=./helm/app-stack
 VALUES_PATH=./helm/app-stack/values-dev.yaml
-ANSIBLE_INI_PATH=./ansible/inventory.ini
-ANSIBLE_SCRIPTS_PATH=./ansible/playbooks
+TERRAFORM_PATH=./bootstrap/terraform
+ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
+ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 
 .PHONY: test-clean rollback deploy clean build \
 status power-manage init apply destroy label-nodes load-images save
@@ -67,19 +68,19 @@ label-nodes:
 
 init:
 	@echo "* 初始化 terraform 配置"
-	cd terraform && \
+	cd $(TERRAFORM_PATH) && \
 	terraform init --upgrade
 	@echo "✅  <make init> done."
 
 apply:
 	@echo "* 安裝 VM 環境"
-	cd terraform && \
+	cd $(TERRAFORM_PATH) && \
 	terraform apply -auto-approve
 	@echo "✅  <make apply> done."
 
 destroy:
 	@echo "* 拆除 VM 環境"
-	cd terraform && \
+	cd $(TERRAFORM_PATH) && \
 	terraform destroy -auto-approve
 	@echo "✅  <make destroy> done."
 

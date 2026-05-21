@@ -204,4 +204,45 @@ k3d --version
 參考說明檔 docs/k3s.md
 ```
 
+<br>
+
+### *F.　WSL2 ENV. Startup VM*
+```
+# VM 網路
+    # 1. 初始化
+    sudo virsh net-define /etc/libvirt/qemu/networks/default.xml
+        
+    # 2. 啟動名為 default 的虛擬網路
+    sudo virsh net-start default
+    
+    # 3. 設定 default 網路為「開機自動啟動」，避免下次重啟又進鬼打牆循環
+    sudo virsh net-autostart default
+    
+    # 4. 驗證網路狀態，確保 State 顯示為 active，Autostart 顯示為 yes
+    sudo virsh net-list --all
+    
+# VM 指令集
+    # UI 視窗 
+    virt-manager
+    
+    # 查看所有正在運行的 VM
+    sudo virsh list --all
+    
+    # 查看 VM 詳細規格 ( ex: k3s-node-0 )
+    sudo virsh dominfo k3s-node-0
+    
+    # 查看 VM 日誌 ( ex: k3s-node-0 )
+    sudo virsh console k3s-node-0
+    
+    # 查看 ISO 路徑 ( ex: k3s-node-0 )
+    sudo virsh domblklist k3s-node-0
+    
+    # 重啟裝置 ( ex: k3s-node-0 )
+    sudo virsh reset k3s-node-0
+    
+    # 強制關閉並刪除 libvirt 中殘留的虛擬機定義 ( ex: k3s-node-0 )
+    sudo virsh destroy k3s-node-0 || true
+    sudo virsh undefine k3s-node-0 || true
+```
+
 <br><br><br>
