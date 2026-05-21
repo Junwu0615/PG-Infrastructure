@@ -221,6 +221,7 @@ k3d --version
     # 4. 驗證網路狀態，確保 State 顯示為 active，Autostart 顯示為 yes
     sudo virsh net-list --all
     
+
 # VM 指令集
     # UI 視窗 
     virt-manager

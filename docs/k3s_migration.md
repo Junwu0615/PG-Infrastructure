@@ -1,6 +1,53 @@
 ## *K3s Migration*
 
-### *A.　Makefile Command*
+### *A.　結構說明*
+```
+k3s_migration/
+├── Makefile                     # 自動化入口
+│
+├── bootstrap/                   # 【第一層：純機器初始化】僅由運維手動執行
+│   ├── terraform/               # 建立 VM 與基礎網路
+│   │   └── ...
+│   └── ansible/                 # OS 設定與 k3s 叢集安裝
+│       └── ...
+│
+└── gitops/                      # 【第二層：GitOps 核心】ArgoCD 唯一看管範圍
+    │
+    ├── argocd-bootstrap/        # ArgoCD 災難復原與初始化入口（手動 kubectl apply -k 這裡）
+    │   ├── base/                # 安裝 ArgoCD 官方元件
+    │   └── root-apps/           # App-of-Apps 的根節點，負責載入 infrastructure 與 apps
+    │       ├── test-root.yaml   # 測試環境的「總開關」
+    │       ├── stage-root.yaml
+    │       └── prod-root.yaml
+    │
+    ├── infra/                   # 中間件與基礎設施（Airflow, GitLab, DB）
+    │   ├── base/                # 基礎宣告（定義專案、Namespace 等）
+    │   │   ├── apache-airflow/  # 這裡只放一個 K8s 原生的 HelmRelease 或 Argo Application 宣告
+    │   │   ├── argo-cd/
+    │   │   └── postgresql/
+    │   └── environments/        # 環境變數覆寫（環境的邊界在這裡收斂！）
+    │       ├── test/
+    │       │   ├── kustomization.yaml # 組合 base 的服務，並注入 test 的 values
+    │       │   ├── airflow-values.yaml
+    │       │   └── postgres-values.yaml
+    │       ├── stage/
+    │       └── prod/
+    │
+    └── apps/                          # 自定義研業務服務（ cp, inst ）
+        ├── base/
+        │   ├── inst/                  # 手刻的 K8s Deployment/Service YAML
+        │   └── cp/
+        └── environments/
+            ├── test/
+            │   ├── kustomization.yaml
+            │   └── patches/           # 測試環境的副本數（replicas）、Ingress 域名修改
+            ├── stage/
+            └── prod/
+```
+
+<br>
+
+### *B.　Makefile Command*
 ```
 Terraform:
     # 初始化 terraform 配置

@@ -317,7 +317,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**Kubeadm**|**GCP**|
 |--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | **PostgreSQL** | O | - | O | O | O | O | O |
-| **PgAdmin** | O | - | - | - | O | O | O |
+| **PgAdmin** | O | - | - | - | X | X | X |
 | **PoWA** | X | X | X | X | X | X | X |
 | **Apache Airflow** | O | - | - | - | O | O | O |
 | **Superset** | O | - | - | - | O | O | O |

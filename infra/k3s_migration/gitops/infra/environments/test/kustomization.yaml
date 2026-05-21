@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: data-infra
+
+# 載入基礎的 K8s 資源（例如 Namespace 建立、RBAC 宣告）
+resources:
+  - ../../base/postgresql
+  - ../../base/apache-airflow
+
+# 統一在這裡對外部的 Helm Chart 進行測試環境的數值覆寫
+helmCharts:
+  - name: airflow
+    repo: https://airflow.apache.org
+    version: 1.16.0
+    releaseName: airflow
+    valuesFile: airflow-values.yaml # 這裡放測試環境專用的 Airflow 設定 (2.10.3, 關閉高可用)
+
+  - name: postgresql
+    repo: https://charts.bitnami.com/bitnami
+    version: 15.x.x
+    releaseName: postgres-infra
+    valuesFile: postgres-values.yaml # 這裡放測試環境專用的 DB 設定 (規格小, 無副本)
