@@ -1,18 +1,29 @@
 global:
   postgresql:
     auth:
-      # 超級管理員密碼（用於初始化、Dba 操作，以及外部服務連線的最高備援）
-      postgresPassword: "SuperSecurePostgresPassword"
-
-      # 讓 Helm 自動建立 Airflow 專用的獨立庫與對應帳號
-      username: "airflow"
-      password: "AirflowPassword123"
-      database: "airflow"
+      existingSecret: "postgres-custom-auth"
+      secretKeys:
+        adminPasswordKey: "postgres-password"
+        userPasswordKey: "password"
 
 primary:
-  # 關鍵：掛載剛剛手動建立的多資料庫初始化 ConfigMap
-  initdb:
-    configMap: "postgres-init-sql"
+  # 掛載剛剛手動建立的多資料庫初始化 ConfigMap
+  extraVolumes:
+    - name: custom-init-scripts
+      configMap:
+        name: postgres-init-configmap
+
+  extraVolumeMounts:
+    - name: custom-init-scripts
+      mountPath: /docker-entrypoint-initdb.d/init.sql
+      subPath: init.sql
+
+#  pgHbaConfiguration: |
+#    local   all             all                                     trust
+#    host    all             all             127.0.0.1/32            scram-sha-256
+#    host    all             all             ::1/128                 scram-sha-256
+#    host    all             all             10.42.0.0/16            scram-sha-256
+#    host    all             all             all                     scram-sha-256
 
   # 資源與限制微調：建議幫本地輕量測試環境加上基礎資源請求，防止資料庫搶資源被系統 OOM Kill
   resources:
@@ -28,3 +39,5 @@ primary:
     enabled: true
     size: 20Gi
     storageClassName: "local-path" # K3s 內建的本地硬碟驅動
+    mountPath: /bitnami/postgresql
+    subPath: "v2-data"

@@ -25,6 +25,16 @@ global:
       secret: gitlab-postgres-pass # 讀取建立 Secret
       key: password
 
+  redis:
+    password:
+      secret: gitlab-redis-pass
+      key: secret
+
+  minio:
+    enabled: true
+    credentials:
+      secret: gitlab-minio-secret
+
 # ==========================================
 # [關閉/調整] 內建微型 [服務/資料庫]
 # ==========================================
@@ -34,7 +44,6 @@ gitlab-runner:
 # 使用既有 DB 而非獨立啟一個
 postgresql:
   install: false
-
 
 # 調整內建 Redis 的資源（如果你沒用外部 Redis）
 redis:

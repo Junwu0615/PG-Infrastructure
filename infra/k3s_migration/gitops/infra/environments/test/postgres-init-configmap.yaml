@@ -1,0 +1,213 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-configmap
+  namespace: infra-data
+data:
+  init.sql: |
+    -- ==========================================================
+    -- 0. 階段性輸出：開始初始化
+    -- ==========================================================
+    \echo '==================================================='
+    \echo '[INIT-STAGE 1/4] 開始建立基礎使用者、角色與擴充功能...'
+    \echo '==================================================='
+
+    -- 建立監控帳號
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'postgres_exporter') THEN
+            CREATE USER postgres_exporter WITH PASSWORD 'exporter';
+        END IF;
+    END
+    $$;
+    GRANT pg_monitor TO postgres_exporter;
+
+    -- 建立 GitLab 帳號
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'gitlab') THEN
+            CREATE USER gitlab WITH PASSWORD 'SuperSecurePostgresPassword';
+            ALTER USER gitlab WITH SUPERUSER;
+        END IF;
+    END
+    $$;
+
+    -- 建立業務相關角色
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'oltp_owner') THEN
+            CREATE ROLE oltp_owner NOLOGIN;
+        END IF;
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'oltp_user') THEN
+            CREATE ROLE oltp_user LOGIN PASSWORD 'oltp_pwd';
+        END IF;
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'olap_owner') THEN
+            CREATE ROLE olap_owner NOLOGIN;
+        END IF;
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'olap_user') THEN
+            CREATE ROLE olap_user LOGIN PASSWORD 'olap_pwd';
+        END IF;
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'migration_user') THEN
+            CREATE ROLE migration_user LOGIN PASSWORD 'migration_pwd';
+        END IF;
+    END
+    $$;
+
+    -- 允許當前超級使用者（postgres）為這些角色配置 DEFAULT PRIVILEGES
+    GRANT oltp_owner, olap_owner, migration_user TO postgres;
+
+    -- 安裝 dblink 以便動態建立資料庫
+    CREATE EXTENSION IF NOT EXISTS dblink;
+
+    -- ==========================================================
+    -- 2. 建立多資料庫與全域設定
+    -- ==========================================================
+    \echo '==================================================='
+    \echo '[INIT-STAGE 2/4] 開始動態建立多資料庫並配置時區...'
+    \echo '==================================================='
+    
+    DO $$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'gitlabhq_production') THEN
+            PERFORM dblink_exec('dbname=' || current_database(), 'CREATE DATABASE gitlabhq_production OWNER gitlab');
+        END IF;
+        IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'biz_db') THEN
+            PERFORM dblink_exec('dbname=' || current_database(), 'CREATE DATABASE biz_db');
+        END IF;
+    END
+    $$;
+
+    -- 全域/資料庫層級時區調整 (安全檢查：確保資料庫存在才修改)
+    ALTER DATABASE postgres SET timezone TO 'Asia/Taipei';
+    ALTER DATABASE gitlabhq_production SET timezone TO 'Asia/Taipei';
+    ALTER DATABASE biz_db SET timezone TO 'Asia/Taipei';
+    
+    DO $$
+    BEGIN
+        IF EXISTS (SELECT FROM pg_database WHERE datname = 'airflow') THEN
+            EXECUTE 'ALTER DATABASE airflow SET timezone TO ''Asia/Taipei''';
+        END IF;
+    END
+    $$;
+
+    GRANT ALL PRIVILEGES ON DATABASE gitlabhq_production TO gitlab;
+
+    -- 在原本的資料庫（如 postgres）收回 PUBLIC 權限，避免預設漏洞
+    REVOKE ALL ON SCHEMA public FROM PUBLIC;
+
+    -- ==========================================================
+    -- 3. 切換至業務資料庫 (biz_db)
+    -- ==========================================================
+    \echo '==================================================='
+    \echo '[INIT-STAGE 3/4] 切換至 biz_db 進行 Schema 建立與擴充功能配置...'
+    \echo '==================================================='
+    \c biz_db
+
+    -- 必須在新的資料庫內重新授予超級使用者角色權限，否則接下來的 ALTER DEFAULT 會失敗
+    GRANT oltp_owner, olap_owner, migration_user TO postgres;
+
+    -- 安裝擴充功能
+    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+    CREATE EXTENSION IF NOT EXISTS btree_gist;
+    CREATE EXTENSION IF NOT EXISTS hypopg;
+    CREATE EXTENSION IF NOT EXISTS pg_wait_sampling; -- 若環境不支援，K8s 運行時注意日誌
+
+    -- 建立 Schema
+    CREATE SCHEMA IF NOT EXISTS oltp;
+    CREATE SCHEMA IF NOT EXISTS olap;
+
+    -- 修正：將 pgbench 預設表建立在 oltp schema 中（或依您業務調整），避免留在被封鎖的 public
+    CREATE TABLE IF NOT EXISTS oltp.pgbench_accounts (
+        aid INT PRIMARY KEY,
+        bid INT,
+        abalance INT,
+        filler CHAR(84)
+    );
+
+    -- 設定用戶時區
+    ALTER ROLE postgres_exporter SET timezone TO 'Asia/Taipei';
+    ALTER ROLE migration_user SET timezone TO 'Asia/Taipei';
+    ALTER ROLE oltp_owner SET timezone TO 'Asia/Taipei';
+    ALTER ROLE olap_owner SET timezone TO 'Asia/Taipei';
+    ALTER ROLE oltp_user SET timezone TO 'Asia/Taipei';
+    ALTER ROLE olap_user SET timezone TO 'Asia/Taipei';
+
+    -- ==========================================================
+    -- 4. 權限與資源限制設定
+    -- ==========================================================
+    \echo '==================================================='
+    \echo '[INIT-STAGE 4/4] 配置進階權限授權與角色資源限制...'
+    \echo '==================================================='
+
+    -- 授權 OLTP Schema
+    ALTER SCHEMA oltp OWNER TO oltp_owner;
+    GRANT USAGE ON SCHEMA oltp TO oltp_user;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA oltp TO oltp_user;
+    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA oltp TO oltp_user;
+    
+    ALTER DEFAULT PRIVILEGES FOR ROLE oltp_owner IN SCHEMA oltp GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO oltp_user;
+    ALTER DEFAULT PRIVILEGES FOR ROLE oltp_owner IN SCHEMA oltp GRANT USAGE, SELECT ON SEQUENCES TO oltp_user;
+
+    -- 授權 OLAP Schema
+    ALTER SCHEMA olap OWNER TO olap_owner;
+    GRANT USAGE ON SCHEMA olap TO olap_user;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA olap TO olap_user;
+    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA olap TO olap_user;
+    
+    ALTER DEFAULT PRIVILEGES FOR ROLE olap_owner IN SCHEMA olap GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO olap_user;
+    ALTER DEFAULT PRIVILEGES FOR ROLE olap_owner IN SCHEMA olap GRANT USAGE, SELECT ON SEQUENCES TO olap_user;
+
+    -- 交叉授權 (OLAP 讀取 OLTP)
+    GRANT USAGE ON SCHEMA oltp TO olap_user;
+    GRANT SELECT ON ALL TABLES IN SCHEMA oltp TO olap_user;
+    ALTER DEFAULT PRIVILEGES FOR ROLE oltp_owner IN SCHEMA oltp GRANT SELECT ON TABLES TO olap_user;
+
+    -- 授權 Migration 帳號
+    GRANT oltp_owner TO migration_user;
+    GRANT olap_owner TO migration_user;
+    GRANT USAGE, CREATE ON SCHEMA oltp TO migration_user;
+    GRANT USAGE, CREATE ON SCHEMA olap TO migration_user;
+
+    ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA oltp GRANT ALL ON TABLES TO oltp_owner;
+    ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA oltp GRANT ALL ON SEQUENCES TO oltp_owner;
+    ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA oltp GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO oltp_user;
+    ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA oltp GRANT USAGE, SELECT ON SEQUENCES TO oltp_user;
+    ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA oltp GRANT SELECT ON TABLES TO olap_user;
+
+    ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA olap GRANT ALL ON TABLES TO olap_owner;
+    ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA olap GRANT ALL ON SEQUENCES TO olap_owner;
+    ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA olap GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO olap_user;
+    ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA olap GRANT USAGE, SELECT ON SEQUENCES TO olap_user;
+
+    -- 收回 biz_db 的 Public 預設權限
+    REVOKE ALL ON SCHEMA oltp FROM PUBLIC;
+    REVOKE ALL ON SCHEMA olap FROM PUBLIC;
+    REVOKE ALL ON SCHEMA public FROM PUBLIC;
+
+    -- 設定搜尋路徑與資源限制
+    ALTER ROLE oltp_owner SET search_path = oltp, public;
+    ALTER ROLE oltp_user SET search_path = oltp, public;
+    ALTER ROLE olap_owner SET search_path = olap, public;
+    ALTER ROLE olap_user SET search_path = olap, public;
+
+    -- 資源與連線限制
+    ALTER ROLE oltp_user SET statement_timeout = '10s';
+    ALTER ROLE olap_user SET statement_timeout = '60s';
+    ALTER ROLE oltp_user SET lock_timeout = '3s';
+    ALTER ROLE olap_user SET lock_timeout = '10s';
+    ALTER ROLE oltp_user SET idle_in_transaction_session_timeout = '30s';
+    ALTER ROLE olap_user SET idle_in_transaction_session_timeout = '60s';
+    
+    ALTER ROLE oltp_user SET work_mem = '8MB';
+    ALTER ROLE olap_user SET work_mem = '64MB';
+    ALTER ROLE oltp_user SET max_parallel_workers_per_gather = 0;
+    ALTER ROLE olap_user SET max_parallel_workers_per_gather = 4;
+    
+    ALTER ROLE oltp_user CONNECTION LIMIT 100;
+    ALTER ROLE olap_user CONNECTION LIMIT 5;
+    ALTER ROLE oltp_user SET temp_file_limit = '0.5GB';
+    ALTER ROLE olap_user SET temp_file_limit = '2GB';
+
+    \echo '==================================================='
+    \echo '[SUCCESS] 全階段初始化腳本執行完畢！'
+    \echo '==================================================='

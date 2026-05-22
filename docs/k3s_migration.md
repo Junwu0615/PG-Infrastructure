@@ -105,18 +105,29 @@ kubectl get secrets -n infra-data
 kubectl get secrets -n infra-tools
 
 # 檢視密碼明文
-kubectl get secret gitlab-postgres-pass -n infra-data -o jsonpath="{.data.password}" | base64 --decode
+kubectl get secret gitlab-postgres-pass -n infra-tools -o jsonpath="{.data.password}" | base64 --decode
 
+# 檢視 ConfigMap
+kubectl get ConfigMap -n infra-data
 
 # 檢視已建立需對外網路服務
 kubectl get svc -n infra-tools
 kubectl get svc -n infra-data
 
 # 虛擬化名稱檢視 log
+kubectl logs -n infra-data -l app.kubernetes.io/name=postgresql
+
 kubectl get pods -n infra-tools --show-labels
+kubectl logs -n infra-tools -l app=gitaly
 kubectl logs -n infra-tools -l app=sidekiq
 kubectl logs -n infra-tools -l app=webservice
 kubectl logs -n infra-tools -l app=migrations
+kubectl logs -n infra-tools -l app=gitlab-exporter
+kubectl logs -n infra-tools -l app=gitlab-shell
+
+kubectl describe pod -n infra-tools -l app=migrations
+kubectl describe pod -n infra-tools -l app=webservice
+kubectl describe pod -n infra-data -l app.kubernetes.io/name=postgresql
 
 
 # 新增官方 Helm 倉庫
@@ -142,20 +153,46 @@ kubectl delete statefulset gitlab-infra-postgresql -n infra-tools --ignore-not-f
 
 # 刪除卡死的 gitlab-infra
 kubectl delete jobs -n infra-tools -l release=gitlab-infra
-
-# 2. 建立密碼
+ 
+# 2.1.1. 建立 K8s Secret: PostgreSQL # admin
+kubectl create secret generic postgres-custom-auth \
+--namespace infra-data \
+--from-literal=postgres-password='SuperSecurePostgresPassword' \
+--from-literal=password='SuperSecurePostgresPassword'
+  
+# 2.1.2. 建立 K8s Secret: PostgreSQL # gitlab
 kubectl create secret generic gitlab-postgres-pass \
-  -n infra-data \
-  --from-literal=password="password" \
+  --namespace infra-tools \
+  --from-literal=password="SuperSecurePostgresPassword" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-# 3. 啟動 postgresql
+# 2.2. 建立 K8s Secret: Redis
+kubectl create secret generic gitlab-redis-pass \
+  --namespace infra-tools \
+  --from-literal=secret="GitLabRedisPassword123" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# 2.3. 建立 K8s Secret:  MinIO 物件儲存憑證
+kubectl create secret generic gitlab-minio-secret \
+  --namespace infra-tools \
+  --from-literal=accesskey="minioadmin" \
+  --from-literal=secretkey="minioadminpassword" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# 3.1 套用 ConfigMap + 啟動 postgresql
+kubectl apply -f gitops/infra/environments/test/postgres-init-configmap.yaml
 helm install postgres-infra bitnami/postgresql \
   --namespace infra-data \
   --create-namespace \
   -f gitops/infra/environments/test/postgres-values.yaml \
-  --no-hooks \
   --timeout 600s
+  
+# 3.2 確認是否吃進初始化檔案
+kubectl exec -it -n infra-data sts/postgres-infra-postgresql -- ls -la /docker-entrypoint-initdb.d/
+  
+# 3.3 測試連線 ( pwd: SuperSecurePostgresPassword )
+kubectl exec -it postgres-infra-postgresql-0 -n infra-data \
+    -- psql -U gitlab -d gitlabhq_production
 
 # 4.1 啟動 Gitlab ( 全家桶 | v10 開始需要自行建立全部拆光光 )
 helm install gitlab-infra gitlab/gitlab \
@@ -163,7 +200,6 @@ helm install gitlab-infra gitlab/gitlab \
   --create-namespace \
   -f gitops/infra/environments/test/gitlab-values.yaml \
   --version "^9.0.0" \
-  --no-hooks \
   --timeout 600s
 
 # 4.2 覆蓋升級
@@ -184,10 +220,10 @@ helm uninstall gitlab-infra -n infra-tools
 helm uninstall postgres-infra -n infra-data
 
 # pvc
-kubectl delete pvc -n infra-data -l app.kubernetes.io/instance=postgres-infra
+kubectl delete pvc -n infra-data --all
 
 # secrets
-kubectl delete secret -n infra-tools $(kubectl get secrets -n infra-tools -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep '^gitlab-infra-')
+kubectl delete secret -n infra-tools $(kubectl get secrets -n infra-tools -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep '^gitlab-infra-') --ignore-not-found
 kubectl delete secret gitlab-postgres-pass -n infra-tools --ignore-not-found
 ```
 
