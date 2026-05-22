@@ -100,6 +100,25 @@ kubectl create namespace infra-tools      # => GitLab, Portainer, Vault
 kubectl create namespace dev-apps         # => 自定義業務服務: cp, inst 
 
 
+# 檢視已建立密碼
+kubectl get secrets -n infra-data
+kubectl get secrets -n infra-tools
+
+# 檢視密碼明文
+kubectl get secret gitlab-postgres-pass -n infra-data -o jsonpath="{.data.password}" | base64 --decode
+
+
+# 檢視已建立需對外網路服務
+kubectl get svc -n infra-tools
+kubectl get svc -n infra-data
+
+# 虛擬化名稱檢視 log
+kubectl get pods -n infra-tools --show-labels
+kubectl logs -n infra-tools -l app=sidekiq
+kubectl logs -n infra-tools -l app=webservice
+kubectl logs -n infra-tools -l app=migrations
+
+
 # 新增官方 Helm 倉庫
     # 新增 gitlab
     helm repo add gitlab https://charts.gitlab.io/
@@ -116,55 +135,60 @@ kubectl create namespace dev-apps         # => 自定義業務服務: cp, inst
 
 # 手動過渡期
 # 基礎設施基底 ( gitlab + postgresql + airflow )
-    # GitLab 內部需要讀取外部 Redis,PostgreSQL,MinIO 的密碼
-  
-# 1. 建立 K8s Secret: PostgreSQL
+
+# 1. 防呆
+# 徹底刪除可能卡死的「內建」Postgres StatefulSet
+kubectl delete statefulset gitlab-infra-postgresql -n infra-tools --ignore-not-found=true
+
+# 刪除卡死的 gitlab-infra
+kubectl delete jobs -n infra-tools -l release=gitlab-infra
+
+# 2. 建立密碼
 kubectl create secret generic gitlab-postgres-pass \
-  --namespace infra-tools \
-  --from-literal=password="SuperSecurePostgresPassword" \
+  -n infra-data \
+  --from-literal=password="password" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-# 2. 建立 K8s Secret: Redis
-kubectl create secret generic gitlab-redis-pass \
-  --namespace infra-tools \
-  --from-literal=secret="GitLabRedisPassword123" \
-  --dry-run=client -o yaml | kubectl apply -f -
+# 3. 啟動 postgresql
+helm install postgres-infra bitnami/postgresql \
+  --namespace infra-data \
+  --create-namespace \
+  -f gitops/infra/environments/test/postgres-values.yaml \
+  --no-hooks \
+  --timeout 600s
 
-# 3. 建立 K8s Secret:  MinIO 物件儲存憑證
-kubectl create secret generic gitlab-minio-secret \
-  --namespace infra-tools \
-  --from-literal=accesskey="minioadmin" \
-  --from-literal=secretkey="minioadminpassword" \
-  --dry-run=client -o yaml | kubectl apply -f -
-
-# 可讀取已建立密碼
-kubectl get secrets -n infra-tools
-
-# 4. 啟動 Redis
-helm install gitlab-redis bitnami/redis \
-  --namespace infra-tools \
-  --set auth.password="GitLabRedisPassword123" \
-  --set architecture=standalone \
-  --set master.persistence.enabled=false # 測試環境，先不用持久化
-  
-# 5. 啟動 MinIO
-helm install gitlab-minio minio/minio \
-  --namespace infra-tools \
-  --set rootUser="minioadmin" \
-  --set rootPassword="minioadminpassword" \
-  --set persistence.enabled=false \
-  --set mode=standalone
-  
-# 6. 啟動 Gitlab
+# 4.1 啟動 Gitlab ( 全家桶 | v10 開始需要自行建立全部拆光光 )
 helm install gitlab-infra gitlab/gitlab \
+  --namespace infra-tools \
+  --create-namespace \
+  -f gitops/infra/environments/test/gitlab-values.yaml \
+  --version "^9.0.0" \
+  --no-hooks \
+  --timeout 600s
+
+# 4.2 覆蓋升級
+helm upgrade gitlab-infra gitlab/gitlab \
   --namespace infra-tools \
   -f gitops/infra/environments/test/gitlab-values.yaml \
   --version "^9.0.0" \
+  --force \
   --timeout 600s
   
 
+# 5. 啟動 airflow
 
-# 啟動 airflow
+
+# 砍上述一系列依賴設置
+# pods
+helm uninstall gitlab-infra -n infra-tools
+helm uninstall postgres-infra -n infra-data
+
+# pvc
+kubectl delete pvc -n infra-data -l app.kubernetes.io/instance=postgres-infra
+
+# secrets
+kubectl delete secret -n infra-tools $(kubectl get secrets -n infra-tools -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep '^gitlab-infra-')
+kubectl delete secret gitlab-postgres-pass -n infra-tools --ignore-not-found
 ```
 
 <br><br><br>

@@ -4,62 +4,85 @@
 global:
   hosts:
     domain: k3s.local
+
   ingress:
     configureCertmanager: false
     provider: traefik
+
   email:
     from: admin@k3s.local
     display_name: GitLab
 
-
-# 壓低 GitLab 核心組件的記憶體索求 (防止 Insufficient memory)
-gitlab:
-  webservice:
-    resources:
-      requests:
-        memory: 1.5Gi # 壓低初始記憶體需求
-  sidekiq:
-    resources:
-      requests:
-        memory: 750Mi
-
-
-# 關閉極度吃資源的 Gitaly 高可用，改用單機版
-gitaly:
-  gid: 0
-  securityContext:
-    runAsUser: 0
-  resources:
-    requests:
-      memory: 512Mi
-
-
-# 啟用舊版內建的微型資料庫，並限制其記憶體
-postgresql:
-  install: true
-  resources:
-    requests:
-      memory: 256Mi
-
-
-# 啟用舊版內建的微型 Redis，並限制其記憶體
-redis:
-  install: true
-  resources:
-    requests:
-      memory: 128Mi
-
-
-# 啟動舊版內建 MinIO (相容舊 CPU 指令集)
-registry:
-  enabled: false # 先關閉 Container Registry 節省資源
-
+  # ==========================================
+  # 外部資料庫精準對接 (已確認位於 infra-tools)
+  # ==========================================
+  psql:
+    host: postgres-infra-postgresql.infra-data.svc.cluster.local
+    port: 5432
+    database: gitlabhq_production
+    username: gitlab
+    password:
+      secret: gitlab-postgres-pass # 讀取建立 Secret
+      key: password
 
 # ==========================================
-# 關閉其他不必要的大型組件
+# [關閉/調整] 內建微型 [服務/資料庫]
 # ==========================================
 gitlab-runner:
   install: false
+
+# 使用既有 DB 而非獨立啟一個
+postgresql:
+  install: false
+
+
+# 調整內建 Redis 的資源（如果你沒用外部 Redis）
+redis:
+  install: true
+  master:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+
+# 調整 GitLab 主要 Web 服務的資源（最吃資源的地方）
+gitlab:
+  webservice:
+    minReplicas: 1 # 預設是 2，改成 1 節省一半資源
+    maxReplicas: 2
+    resources:
+      requests:
+        cpu: 200m   # 從預設的 4G/2G 砍到基礎運作量
+        memory: 1.5Gi # GitLab Rails 框架最低限度建議 1.5G ~ 2G
+      limits:
+        cpu: 1000m
+        memory: 3Gi
+
+  # 調整後台非同步任務的資源
+  sidekiq:
+    minReplicas: 1
+    maxReplicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 600Mi
+      limits:
+        cpu: 500m
+        memory: 1.5Gi
+
+  # 調整 Git 儲存庫核心服務
+  gitaly:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 500Mi
+      limits:
+        cpu: 500m
+        memory: 1.5Gi
+
+# 關閉 Container Registry 節省資源
+registry:
+  enabled: false
 
 certmanager:
   enabled: false
@@ -68,4 +91,11 @@ nginx-ingress:
   enabled: false
 
 prometheus:
+  enabled: false
+
+# 不需要 GitLab Kubernetes 代理服務 (Agent Server)
+gitlab-kas:
+  enabled: false
+
+kas:
   enabled: false
