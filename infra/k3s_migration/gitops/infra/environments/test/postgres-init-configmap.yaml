@@ -5,138 +5,52 @@ metadata:
   namespace: infra-data
 data:
   init.sql: |
+    -- 1. 基礎設定
     DO $$
     BEGIN
-        RAISE NOTICE '===================================================';
-        RAISE NOTICE '[INIT-STAGE 1/3] 開始建立基礎使用者、角色與擴充功能...';
-        RAISE NOTICE '===================================================';
-    END
-    $$;
-
-    -- 1. 建立監控帳號
-    DO $$
-    BEGIN
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'postgres_exporter') THEN
-            CREATE USER postgres_exporter WITH PASSWORD 'exporter';
-        END IF;
-    END
-    $$;
-    GRANT pg_monitor TO postgres_exporter;
-
-    -- 2. 建立 GitLab 帳號 (密碼必須與你 GitLab Pod 連線用的相符)
-    DO $$
-    BEGIN
+        RAISE NOTICE '[INIT-STAGE 1/3] 建立帳號與權限...';
+        -- 既有角色建立
         IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'gitlab') THEN
             CREATE USER gitlab WITH PASSWORD 'SuperSecurePostgresPassword';
-            ALTER USER gitlab WITH SUPERUSER;
         END IF;
-    END
-    $$;
-
-    -- 3. 建立業務相關角色與使用者
-    DO $$
-    BEGIN
         IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'oltp_owner') THEN
-            CREATE ROLE oltp_owner NOLOGIN;
+            CREATE ROLE oltp_owner WITH LOGIN PASSWORD 'oltp_pwd';
         END IF;
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'oltp_user') THEN
-            CREATE USER oltp_user WITH PASSWORD 'oltp_pwd';
-        END IF;
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'olap_owner') THEN
-            CREATE ROLE olap_owner NOLOGIN;
-        END IF;
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'olap_user') THEN
-            CREATE USER olap_user WITH PASSWORD 'olap_pwd';
-        END IF;
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'migration_user') THEN
-            CREATE USER migration_user WITH PASSWORD 'migration_pwd';
-        END IF;
+        -- 既有擴充安裝
+        CREATE EXTENSION IF NOT EXISTS dblink;
     END
     $$;
 
-    -- 允許當前超級使用者為這些角色配置 DEFAULT PRIVILEGES
-    GRANT oltp_owner, olap_owner TO postgres;
-
-    -- 4. 安裝 dblink (必須在 postgres 資料庫下安裝，用於動態建庫)
-    CREATE EXTENSION IF NOT EXISTS dblink;
-
-    -- ==========================================================
-    -- [INIT-STAGE 2/3] 動態建立多資料庫 (嚴謹密碼認證版)
-    -- ==========================================================
+    -- 2. 資料庫建立
     DO $$
+    DECLARE pg_pwd text := 'SuperSecurePostgresPassword'; 
     BEGIN
-        RAISE NOTICE '===================================================';
-        RAISE NOTICE '[INIT-STAGE 2/3] 開始建立 gitlabhq_production 與 biz_db...';
-        RAISE NOTICE '===================================================';
-    END
-    $$;
-
-    DO $$
-    DECLARE
-        -- 這裡請換成你實際部屬時設定的 POSTGRES_PASSWORD
-        -- 如果在 K8s env 中沒特別改，Bitnami 預設在初始化時會吃這個密碼
-        pg_pwd text := 'SuperSecurePostgresPassword'; 
-    BEGIN
-        -- 建立安全的 dblink 連線通道
-        PERFORM dblink_connect('db_creation_conn', 'host=127.0.0.1 dbname=' || current_database() || ' user=postgres password=' || pg_pwd);
-
-        -- 建立 gitlabhq_production
+        RAISE NOTICE '[INIT-STAGE 2/3] 建立多資料庫...';
+        PERFORM dblink_connect('conn', 'host=127.0.0.1 dbname=postgres user=postgres password=' || pg_pwd);
         IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'gitlabhq_production') THEN
-            PERFORM dblink_exec('db_creation_conn', 'CREATE DATABASE gitlabhq_production OWNER gitlab');
+            PERFORM dblink_exec('conn', 'CREATE DATABASE gitlabhq_production OWNER gitlab');
         END IF;
-
-        -- 建立 biz_db
         IF NOT EXISTS (SELECT FROM pg_database WHERE datname = 'biz_db') THEN
-            PERFORM dblink_exec('db_creation_conn', 'CREATE DATABASE biz_db');
+            PERFORM dblink_exec('conn', 'CREATE DATABASE biz_db OWNER oltp_owner');
         END IF;
-
-        -- 斷開 dblink 連線
-        PERFORM dblink_disconnect('db_creation_conn');
-    EXCEPTION 
-        WHEN OTHERS THEN
-            -- 確保出錯時也會把連線斷開，避免 block
-            IF position('db_creation_conn' in dblink_current_connections()) > 0 THEN
-                PERFORM dblink_disconnect('db_creation_conn');
-            END IF;
-            RAISE EXCEPTION '動態建立資料庫失敗: %', SQLERRM;
+        PERFORM dblink_disconnect('conn');
     END
     $$;
 
-    -- ==========================================================
-    -- [INIT-STAGE 3/3] 配置時區與調整權限
-    -- ==========================================================
+    -- 3. 權限與 Extension 對齊 (核心改進)
     DO $$
     BEGIN
-        RAISE NOTICE '===================================================';
-        RAISE NOTICE '[INIT-STAGE 3/3] 配置資料庫時區與權限...';
-        RAISE NOTICE '===================================================';
-    END
-    $$;
-
-    -- 調整時區 (加入存在性檢查，避免還沒建的 DB 噴錯)
-    ALTER DATABASE postgres SET timezone TO 'Asia/Taipei';
-
-    DO $$
-    BEGIN
-        IF EXISTS (SELECT FROM pg_database WHERE datname = 'gitlabhq_production') THEN
-            EXECUTE 'ALTER DATABASE gitlabhq_production SET timezone ''Asia/Taipei''';
-            EXECUTE 'GRANT ALL PRIVILEGES ON DATABASE gitlabhq_production TO gitlab';
-        END IF;
+        RAISE NOTICE '[INIT-STAGE 3/3] 配置目標庫權限...';
+        -- 為 gitlabhq_production 自動補齊 GitLab 必須的權限與 Extension
+        PERFORM dblink_connect('db_fix_conn', 'host=127.0.0.1 dbname=gitlabhq_production user=postgres password=''SuperSecurePostgresPassword''');
+        PERFORM dblink_exec('db_fix_conn', 'ALTER SCHEMA public OWNER TO gitlab');
+        PERFORM dblink_exec('db_fix_conn', 'CREATE EXTENSION IF NOT EXISTS pg_trgm');
+        PERFORM dblink_exec('db_fix_conn', 'CREATE EXTENSION IF NOT EXISTS btree_gist');
+        PERFORM dblink_exec('db_fix_conn', 'GRANT ALL ON SCHEMA public TO gitlab');
+        PERFORM dblink_disconnect('db_fix_conn');
         
-        IF EXISTS (SELECT FROM pg_database WHERE datname = 'biz_db') THEN
-            EXECUTE 'ALTER DATABASE biz_db SET timezone ''Asia/Taipei''';
-        END IF;
-
-        IF EXISTS (SELECT FROM pg_database WHERE datname = 'airflow') THEN
-            EXECUTE 'ALTER DATABASE airflow SET timezone ''Asia/Taipei''';
-        END IF;
-    END
-    $$;
-
-    DO $$
-    BEGIN
-        RAISE NOTICE '===================================================';
-        RAISE NOTICE '[SUCCESS] 全階段基礎架構與多資料庫初始化完畢！';
-        RAISE NOTICE '===================================================';
+        -- 設定全域時區
+        ALTER DATABASE gitlabhq_production SET timezone TO 'Asia/Taipei';
+        ALTER DATABASE biz_db SET timezone TO 'Asia/Taipei';
     END
     $$;

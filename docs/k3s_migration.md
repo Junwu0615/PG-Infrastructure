@@ -119,12 +119,17 @@ kubectl logs -n infra-data -l app.kubernetes.io/name=postgresql
 
 kubectl get pods -n infra-tools --show-labels
 kubectl logs -n infra-tools -l app=gitaly
+kubectl logs -n infra-tools -l app=minio
 kubectl logs -n infra-tools -l app=sidekiq
 kubectl logs -n infra-tools -l app=webservice
 kubectl logs -n infra-tools -l app=migrations
 kubectl logs -n infra-tools -l app=gitlab-exporter
 kubectl logs -n infra-tools -l app=gitlab-shell
 
+# 抓取崩潰日誌
+kubectl logs -n infra-tools -l app=webservice -c dependencies
+
+# 病歷表
 kubectl describe pod -n infra-tools -l app=migrations
 kubectl describe pod -n infra-tools -l app=webservice
 kubectl describe pod -n infra-data -l app.kubernetes.io/name=postgresql
@@ -210,6 +215,12 @@ helm upgrade gitlab-infra gitlab/gitlab \
   --force \
   --timeout 600s
   
+# 4.3 確認能訪問 UI
+# 先確認能否訪問 再建立穩定 Ingress
+kubectl port-forward -n infra-tools svc/gitlab-infra-webservice-default 8080:8181
+
+# 查看 ingress 設置 ( K3s 是否有啟動 Traefik # 預設 )
+kubectl get pods -n kube-system | grep traefik
 
 # 5. 啟動 airflow
 
