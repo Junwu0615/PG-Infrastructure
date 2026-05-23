@@ -77,12 +77,6 @@ Kubectl ( k ):
     kubectl get nodes -L service-type
     
 Helm:
-    # [暫時] 塞本地 imags 到 VM
-        make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar
-        make load-images TAR_FILE=my-python-app.tar
-    
-    # 部署 v5 版本測試腳本
-    make deploy ver=v5
 ```
 
 <br>
@@ -224,7 +218,6 @@ kubectl delete ingress gitlab-infra-webservice-default -n infra-tools
 kubectl apply -f gitops/infra/base/ingress/gitlab-ingress.yaml
 kubectl apply -f traefik-rbac.yaml
 
-
 # 4.2 覆蓋升級
 helm upgrade gitlab-infra gitlab/gitlab \
   --namespace infra-tools \
@@ -252,10 +245,15 @@ helm upgrade gitlab-infra gitlab/gitlab \
     kubectl get ingressroute -n infra-tools
     
     # 訪問測試 1
-    curl -v -H "Host: gitlab.k3s.local" http://192.168.133.10/
-    curl -v -H "Host: gitlab.k3s.local" http://172.28.113.34/
+    # ip addr show | grep -E "inet |192.168"
+    curl -v -H "Host: gitlab.k3s.local" http://192.168.0.20/
+
+    # 訪問測試 2 確認走向
+    tracert 192.168.0.20
+    # [X] Windows 建立指向性路由 ( check: Get-NetAdapter )
+    route add 192.168.0.20 mask 255.255.255.255 0.0.0.0 IF 11
     
-    # 訪問測試 2
+    # 訪問測試 3
     http://gitlab.k3s.local
     
     # 確認是否確實收到請求
