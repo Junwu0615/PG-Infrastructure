@@ -41,6 +41,39 @@ resource "libvirt_cloudinit_disk" "commoninit" {
   pool = "default"
 }
 
+# 4.0 定義網路 (寫死 DHCP 規則)
+resource "libvirt_network" "k3s_net" {
+  name   = "k3s_fixed_net"
+  bridge = "virbr1"
+  mode   = "nat"
+  domain = "k3s.local"
+  addresses = ["${var.net_segment}.0/24"]
+
+  dhcp {
+    enabled = true
+    # dynamic "host" {
+    #   for_each = range(var.node_count)
+    #   content {
+    #     name = "k3s-node-${host.value}"
+    #     ip   = "${var.net_segment}.${10 + host.value}"
+    #     mac  = format("52:54:00:00:00:%02x", host.value + 10)
+    #   }
+    # }
+  }
+
+  dns {
+    enabled = true
+    # 自動為所有節點產生 DNS 與靜態 DHCP 對應
+    dynamic "hosts" {
+      for_each = range(var.node_count)
+      content {
+        hostname = "k3s-node-${hosts.value}"
+        ip       = "${var.net_segment}.${10 + hosts.value}"
+      }
+    }
+  }
+}
+
 # 4. 建立 VM 節點
 resource "libvirt_domain" "k3s_nodes" {
   count  = var.node_count
@@ -52,7 +85,11 @@ resource "libvirt_domain" "k3s_nodes" {
   cloudinit = libvirt_cloudinit_disk.commoninit[count.index].id # 引用對應索引
 
   network_interface {
-    network_name   = "default"
+    # network_name   = "default"
+    network_id     = libvirt_network.k3s_net.id
+    # 每個節點都有固定 MAC，確保 IP 被固定
+    mac = format("52:54:00:00:00:%02x", 10 + count.index)
+    addresses    = ["${var.net_segment}.${10 + count.index}"]
     wait_for_lease = true
   }
 
@@ -75,9 +112,10 @@ resource "libvirt_domain" "k3s_nodes" {
 # 5. 生成 Inventory 檔案 [cite: 3, 6]
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/inventory.tftpl", {
+    nodes = [for i in range(var.node_count) : "${var.net_segment}.${10 + i}"]
     user       = var.vm_user
-    master_ip  = libvirt_domain.k3s_nodes[0].network_interface.0.addresses[0]
-    agent_ips  = slice(libvirt_domain.k3s_nodes[*].network_interface.0.addresses[0], 1, var.node_count)
+    master_ip  = "${var.net_segment}.10"
+    agent_ips  = [for i in range(1, var.node_count) : "${var.net_segment}.${10 + i}"]
   })
   filename = "../ansible/inventory.ini"
 }

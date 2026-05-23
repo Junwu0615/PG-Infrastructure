@@ -222,6 +222,19 @@ k3d --version
     sudo virsh net-list --all
     
 
+# 固定 VM 網路 IP # 手動 ( terraform 全自動 )
+sudo virsh net-edit default
+    # 編輯
+    <network>
+      <name>default</name>
+      ...
+      <dhcp>
+        <range start='192.168.122.2' end='192.168.122.254'/>
+        <host mac='52:54:00:00:00:00' name='k3s-node-0' ip='192.168.122.10'/>
+      </dhcp>
+    </network>
+
+
 # VM 指令集
     # UI 視窗 
     virt-manager

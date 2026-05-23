@@ -102,41 +102,41 @@ rollback:
 	helm rollback $(RELEASE_NAME) $(ver)
 	@echo "✅  <make rollback> done."
 
-label-nodes:
-	@echo "* 動態指定服務標籤配置 | infra-data=$(infra-data) infra-tools=$(infra-tools)"
-	@# 使用 bash 執行整段腳本，避免 /bin/sh 的相容性問題
-	@bash -c ' \
-		echo "-> 清除 Master 節點配置"; \
-		kubectl label nodes k3s-node-0 service-type=none --overwrite; \
-		kubectl cordon k3s-node-0; \
-		\
-		nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
-		\
-		for node in $$nodes; do \
-			echo "Clearing labels on $$node"; \
-			kubectl label nodes $$node service-type- infra-data- infra-tools- --overwrite >/dev/null; \
-		done; \
-		\
-		i=0; \
-		node_list=($$nodes); \
-		total=$${#node_list[@]}; \
-		\
-		for node in "$${node_list[@]}"; do \
-			if [ $$i -lt $(infra-data) ]; then \
-				echo "Labeling $$node as infra-data"; \
-				kubectl label nodes $$node service-type=infra-data --overwrite; \
-			elif [ $$i -lt $$(( $(infra-data) + $(infra-tools) )) ]; then \
-				echo "Labeling $$node as infra-tools"; \
-				kubectl label nodes $$node service-type=infra-tools --overwrite; \
-			else \
-				echo "Labeling $$node as general"; \
-				kubectl label nodes $$node service-type=general --overwrite; \
-			fi; \
-			i=$$((i + 1)); \
-		done'
-	@echo "\n* 檢查標籤結果："
-	@kubectl get nodes -L service-type
-	@echo "✅ <make label-nodes> done."
+#label-nodes:
+#	@echo "* 動態指定服務標籤配置 | infra-data=$(infra-data) infra-tools=$(infra-tools)"
+#	@# 使用 bash 執行整段腳本，避免 /bin/sh 的相容性問題
+#	@bash -c ' \
+#		echo "-> 清除 Master 節點配置"; \
+#		kubectl label nodes k3s-node-0 service-type=none --overwrite; \
+#		kubectl cordon k3s-node-0; \
+#		\
+#		nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
+#		\
+#		for node in $$nodes; do \
+#			echo "Clearing labels on $$node"; \
+#			kubectl label nodes $$node service-type- infra-data- infra-tools- --overwrite >/dev/null; \
+#		done; \
+#		\
+#		i=0; \
+#		node_list=($$nodes); \
+#		total=$${#node_list[@]}; \
+#		\
+#		for node in "$${node_list[@]}"; do \
+#			if [ $$i -lt $(infra-data) ]; then \
+#				echo "Labeling $$node as infra-data"; \
+#				kubectl label nodes $$node service-type=infra-data --overwrite; \
+#			elif [ $$i -lt $$(( $(infra-data) + $(infra-tools) )) ]; then \
+#				echo "Labeling $$node as infra-tools"; \
+#				kubectl label nodes $$node service-type=infra-tools --overwrite; \
+#			else \
+#				echo "Labeling $$node as general"; \
+#				kubectl label nodes $$node service-type=general --overwrite; \
+#			fi; \
+#			i=$$((i + 1)); \
+#		done'
+#	@echo "\n* 檢查標籤結果："
+#	@kubectl get nodes -L service-type
+#	@echo "✅ <make label-nodes> done."
 
 init:
 	@echo "* 初始化 terraform 配置"
@@ -147,7 +147,7 @@ init:
 apply:
 	@echo "* 安裝 VM 環境"
 	cd $(TERRAFORM_PATH) && \
-	terraform apply -auto-approve -var="VAR_FILE=$(VAR_FILE)" \
+	terraform apply -auto-approve -var-file="$(VAR_FILE)"
 	@echo "✅  <make apply> done."
 
 destroy:

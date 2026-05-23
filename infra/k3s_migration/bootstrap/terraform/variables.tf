@@ -10,6 +10,11 @@ variable "vm_user" {
   default = "debian"
 }
 
+variable "net_segment" {
+  description = "網段 ex: 192.168.133.?"
+  default = "192.168.133"
+}
+
 variable "node_count" {
   description = "生成節點總數"
   default = 3

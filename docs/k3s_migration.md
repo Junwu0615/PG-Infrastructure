@@ -54,7 +54,7 @@ Terraform:
     make init
     
     # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
-    make apply -var-file=./env_tfvars/test.tfvars
+    make apply VAR_FILE=./env_tfvars/test.tfvars
     
     # 拆除 VM 環境
     make destroy
@@ -70,10 +70,11 @@ Ansible:
     make power-manage action=reboot
 
 Kubectl ( k ):
-    # 標籤設置，節點 0 為 Master，接著 2 個節點的 service-type 為 app，其餘為 service
-    make label-nodes app=2
-    make label-nodes app=0 infra-data=1 infra-tools=1
-    make label-nodes infra-data=1 infra-tools=1
+    # 標籤設置
+    kubectl label nodes k3s-node-0 service-type=none --overwrite
+    kubectl label nodes k3s-node-1 service-type=infra-data --overwrite
+    kubectl label nodes k3s-node-2 service-type=infra-tools --overwrite
+    kubectl get nodes -L service-type
     
 Helm:
     # [暫時] 塞本地 imags 到 VM
