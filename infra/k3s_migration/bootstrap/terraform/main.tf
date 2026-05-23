@@ -104,7 +104,7 @@ resource "libvirt_domain" "k3s_nodes" {
 # 5. 生成 Inventory 檔案 [cite: 3, 6]
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/inventory.tftpl", {
-    nodes = [for i in range(var.node_count) : "${var.net_segment}.${var.net_segment_start + i}"]
+    nodes      = [for i in range(var.node_count) : "${var.net_segment}.${var.net_segment_start + i}"]
     user       = var.vm_user
     master_ip  = "${var.net_segment}.${var.net_segment_start}"
     agent_ips  = [for i in range(1, var.node_count) : "${var.net_segment}.${var.net_segment_start + i}"]
@@ -123,6 +123,17 @@ resource "null_resource" "ansible_trigger" {
   depends_on = [libvirt_domain.k3s_nodes, local_file.ansible_inventory]
 
   provisioner "local-exec" {
-    command = "sleep 30 && export ANSIBLE_HOST_KEY_CHECKING=False && ansible-playbook -i ../ansible/inventory.ini ../ansible/playbooks/site.yml"
+    command = <<EOT
+      sleep 30
+
+      # 使用迴圈清理所有節點的 SSH 指紋
+      %{ for i in range(var.node_count) }
+      ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.${var.net_segment_start + i}" || true
+      %{ endfor }
+
+      # 執行 Ansible
+      export ANSIBLE_HOST_KEY_CHECKING=False
+      ansible-playbook -i ../ansible/inventory.ini ../ansible/playbooks/site.yml
+    EOT
   }
 }
