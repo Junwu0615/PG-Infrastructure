@@ -102,6 +102,12 @@ gitlab:
         cpu: 500m
         memory: 1.5Gi
 
+  gitlab-shell:
+    ingress:
+      enabled: false
+    service:
+      type: ClusterIP
+
 # 關閉 Container Registry 節省資源
 registry:
   enabled: false

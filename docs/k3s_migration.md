@@ -113,6 +113,15 @@ kubectl get secret gitlab-postgres-pass -n infra-tools -o jsonpath="{.data.passw
 # 檢視 ConfigMap
 kubectl get ConfigMap -n infra-data
 
+# 檢視 ingress
+kubectl get ingress -n infra-tools
+
+# 檢視 ingressroute
+kubectl get ingressroute -n infra-tools
+
+# 檢視 svc traefik
+kubectl get svc -n kube-system traefik -o yaml
+
 # 檢視已建立需對外網路服務
 kubectl get svc -n infra-tools
 kubectl get svc -n infra-data
@@ -202,13 +211,17 @@ kubectl exec -it -n infra-data sts/postgres-infra-postgresql -- ls -la /docker-e
 kubectl exec -it postgres-infra-postgresql-0 -n infra-data \
     -- psql -U gitlab -d gitlabhq_production
 
-# 4.1 啟動 Gitlab ( 全家桶 | v10 開始需要自行建立全部拆光光 )
+# 4.1.1 啟動 Gitlab ( 全家桶 | v10 開始需要自行建立全部拆光光 )
 helm install gitlab-infra gitlab/gitlab \
   --namespace infra-tools \
   --create-namespace \
   -f gitops/infra/environments/test/gitlab-values.yaml \
   --version "^9.0.0" \
   --timeout 600s
+  
+# 4.1.2 更新自定義 ingress
+kubectl delete ingress gitlab-infra-webservice-default -n infra-tools
+kubectl apply -f gitops/infra/base/ingress/gitlab-ingress.yaml
 
 # 4.2 覆蓋升級
 helm upgrade gitlab-infra gitlab/gitlab \
@@ -235,7 +248,13 @@ helm upgrade gitlab-infra gitlab/gitlab \
     # 查看 Traefik 實際偵測到的路由 ( ADDRESS 有值 )
     kubectl get ingress -n infra-tools
     
-    # 訪問測試
+    # 訪問測試 1
+    curl -v -H "Host: gitlab.k3s.local" http://192.168.133.10/
+     
+    # 訪問測試 2
+    http://192.168.133.10/
+    
+    # 訪問測試 3
     http://gitlab.k3s.local
     
     # 確認是否確實收到請求
@@ -252,9 +271,26 @@ helm uninstall postgres-infra -n infra-data
 # pvc
 kubectl delete pvc -n infra-data --all
 
+# ingress
+kubectl delete ingress -n infra-tools --all
+
+# ingressroute
+kubectl delete ingressroute -n infra-tools --all
+
+# helmchartconfig
+kubectl delete helmchartconfig -n kube-system --all
+
+# pv
+kubectl delete pv -n infra-data --all
+kubectl delete pv -n infra-tools --all
+
 # secrets
 kubectl delete secret -n infra-tools $(kubectl get secrets -n infra-tools -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep '^gitlab-infra-') --ignore-not-found
 kubectl delete secret gitlab-postgres-pass -n infra-tools --ignore-not-found
+
+# 刪除殘留的 ClusterRole/Binding (針對 Traefik)
+kubectl delete clusterrolebinding traefik-kube-system --ignore-not-found
+kubectl delete clusterrole traefik-kube-system --ignore-not-found
 ```
 
 <br><br><br>

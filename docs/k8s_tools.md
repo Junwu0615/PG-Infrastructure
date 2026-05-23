@@ -126,6 +126,18 @@ kubectl delete node <node name>
     
     # 生效設定檔
     source ~/.bashrc
+    
+# ⭐ Ingress 導引 (k3s)
+    sudo mkdir -p /var/lib/rancher/k3s/server/manifests/
+    sudo rm /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+    sudo cat /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+    sudo nano /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+    kubectl rollout restart deployment/traefik -n kube-system
+    kubectl delete pod -n kube-system -l app.kubernetes.io/name=traefik
+    kubectl logs -n kube-system -l app.kubernetes.io/name=traefik -f
+    
+    # 查看 Traefik 是否在 HTTPS (443) 上有回應
+    curl -kvI https://gitlab.k3s.local
 ```
   
 <br>
