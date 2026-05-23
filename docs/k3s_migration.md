@@ -54,7 +54,7 @@ Terraform:
     make init
     
     # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
-    make apply node_num=5 node_cpu=4 node_memory=6144
+    make apply node_num=3 node_cpu=4 node_memory=8092
     
     # 拆除 VM 環境
     make destroy
@@ -72,6 +72,8 @@ Ansible:
 Kubectl ( k ):
     # 標籤設置，節點 0 為 Master，接著 2 個節點的 service-type 為 app，其餘為 service
     make label-nodes app=2
+    make label-nodes app=0 infra-data=1 infra-tools=1
+    make label-nodes infra-data=1 infra-tools=1
     
 Helm:
     # [暫時] 塞本地 imags 到 VM
@@ -216,11 +218,27 @@ helm upgrade gitlab-infra gitlab/gitlab \
   --timeout 600s
   
 # 4.3 確認能訪問 UI
-# 先確認能否訪問 再建立穩定 Ingress
-kubectl port-forward -n infra-tools svc/gitlab-infra-webservice-default 8080:8181
-
-# 查看 ingress 設置 ( K3s 是否有啟動 Traefik # 預設 )
-kubectl get pods -n kube-system | grep traefik
+    # 查看 Service 指向哪個 Port
+    kubectl get svc -n infra-tools gitlab-infra-webservice-default -o jsonpath='{.spec.ports}'
+    
+    # 先確認能否訪問 再建立穩定 Ingress
+    kubectl port-forward -n infra-tools svc/gitlab-infra-webservice-default 8090:8181
+    
+    # 查看 ingress 設置 ( K3s 是否有啟動 Traefik # 預設 )
+    kubectl get pods -n kube-system | grep traefik
+    
+    # [管理員 powershell] 增加路徑 # 統一由 Master 轉發
+    notepad C:\Windows\System32\drivers\etc\hosts
+    192.168.122.153 gitlab.k3s.local
+    
+    # 查看 Traefik 實際偵測到的路由 ( ADDRESS 有值 )
+    kubectl get ingress -n infra-tools
+    
+    # 訪問測試
+    http://gitlab.k3s.local
+    
+    # 確認是否確實收到請求
+    kubectl logs -n kube-system -l app.kubernetes.io/name=traefik -f
 
 # 5. 啟動 airflow
 

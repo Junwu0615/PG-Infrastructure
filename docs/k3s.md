@@ -513,7 +513,7 @@ Helm:
         notepad C:\Windows\System32\drivers\etc\hosts
         
         # 增加底下這行 # 統一由 Master 轉發
-        192.168.0.17  portainer.local
+        192.168.0.17 portainer.local
         
     3. 有更新過 ingress ( # helm/app-stack/templates/ingress.yaml ) 則再次部署
     make deploy ver=v5

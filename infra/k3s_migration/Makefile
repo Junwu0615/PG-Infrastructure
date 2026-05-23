@@ -10,10 +10,12 @@ load-images save \
 status power-manage init apply destroy label-nodes vm_format \
 init-gitops
 
+
 app ?= 1
 node_num ?= 3
 node_memory ?= "2048"
 node_cpu ?= 2
+
 
 init-gitops:
 	@echo "* 一鍵部署基礎設置 ( GitOps )"
@@ -106,26 +108,62 @@ rollback:
 	helm rollback $(RELEASE_NAME) $(ver)
 	@echo "✅  <make rollback> done."
 
+#label-nodes:
+#	@echo "* 動態指定服務標籤配置 | make label-nodes app=$(app)"
+#	@# 1. 處理 Master (k3s-node-0)
+#	kubectl label nodes k3s-node-0 service-type=none --overwrite
+#	@# 2. 遍歷其餘節點
+#	@nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
+#	count=1; \
+#	for node in $$nodes; do \
+#		if [ $$count -le $(app) ]; then \
+#			echo "Labeling $$node as app"; \
+#			kubectl label nodes $$node service-type=app --overwrite; \
+#		else \
+#			echo "Labeling $$node as service"; \
+#			kubectl label nodes $$node service-type=service --overwrite; \
+#		fi; \
+#		count=$$((count + 1)); \
+#	done
+#	@echo "\n* 檢查標籤結果："
+#	kubectl get nodes -L service-type
+#	@echo "✅  <make label-nodes> done."
+
 label-nodes:
-	@echo "* 動態指定服務標籤配置 | make label-nodes app=$(app)"
-	@# 1. 處理 Master (k3s-node-0)
-	kubectl label nodes k3s-node-0 service-type=none --overwrite
-	@# 2. 遍歷其餘節點
-	@nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
-	count=1; \
-	for node in $$nodes; do \
-		if [ $$count -le $(app) ]; then \
-			echo "Labeling $$node as app"; \
-			kubectl label nodes $$node service-type=app --overwrite; \
-		else \
-			echo "Labeling $$node as service"; \
-			kubectl label nodes $$node service-type=service --overwrite; \
-		fi; \
-		count=$$((count + 1)); \
-	done
+	@echo "* 動態指定服務標籤配置 | infra-data=$(infra-data) infra-tools=$(infra-tools)"
+	@# 使用 bash 執行整段腳本，避免 /bin/sh 的相容性問題
+	@bash -c ' \
+		echo "-> 清除 Master 節點配置"; \
+		kubectl label nodes k3s-node-0 service-type=none --overwrite; \
+		kubectl cordon k3s-node-0; \
+		\
+		nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
+		\
+		for node in $$nodes; do \
+			echo "Clearing labels on $$node"; \
+			kubectl label nodes $$node service-type- infra-data- infra-tools- --overwrite >/dev/null; \
+		done; \
+		\
+		i=0; \
+		node_list=($$nodes); \
+		total=$${#node_list[@]}; \
+		\
+		for node in "$${node_list[@]}"; do \
+			if [ $$i -lt $(infra-data) ]; then \
+				echo "Labeling $$node as infra-data"; \
+				kubectl label nodes $$node service-type=infra-data --overwrite; \
+			elif [ $$i -lt $$(( $(infra-data) + $(infra-tools) )) ]; then \
+				echo "Labeling $$node as infra-tools"; \
+				kubectl label nodes $$node service-type=infra-tools --overwrite; \
+			else \
+				echo "Labeling $$node as general"; \
+				kubectl label nodes $$node service-type=general --overwrite; \
+			fi; \
+			i=$$((i + 1)); \
+		done'
 	@echo "\n* 檢查標籤結果："
-	kubectl get nodes -L service-type
-	@echo "✅  <make label-nodes> done."
+	@kubectl get nodes -L service-type
+	@echo "✅ <make label-nodes> done."
 
 init:
 	@echo "* 初始化 terraform 配置"

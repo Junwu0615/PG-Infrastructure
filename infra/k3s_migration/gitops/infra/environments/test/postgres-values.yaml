@@ -6,6 +6,17 @@ global:
         adminPasswordKey: "postgres-password"
         userPasswordKey: "password"
 
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: service-type
+          operator: In
+          values:
+            - infra-data
+
 primary:
   # 掛載剛剛手動建立的多資料庫初始化 ConfigMap
   extraVolumes:

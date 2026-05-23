@@ -4,10 +4,12 @@
 global:
   hosts:
     domain: k3s.local
+    https: false
 
   ingress:
     configureCertmanager: false
     provider: traefik
+    class: "traefik"
 
   email:
     from: admin@k3s.local
@@ -34,6 +36,17 @@ global:
     enabled: true
     credentials:
       secret: gitlab-minio-secret
+
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: service-type
+          operator: In
+          values:
+            - infra-tools
 
 # ==========================================
 # [關閉/調整] 內建微型 [服務/資料庫]
@@ -108,3 +121,8 @@ gitlab-kas:
 
 kas:
   enabled: false
+
+# 不產生 tls 區塊
+ingress:
+  tls:
+    enabled: false

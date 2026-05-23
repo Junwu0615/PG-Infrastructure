@@ -1,0 +1,11 @@
+#
+127.0.0.1 localhost
+::1 localhost
+# Added by Docker Desktop
+192.168.0.15 host.docker.internal
+192.168.0.15 gateway.docker.internal
+# To allow the same kube context to work on the host and the container:
+127.0.0.1 kubernetes.docker.internal
+# End of section
+#192.168.122.153 portainer.k3s.local
+192.168.122.153 gitlab.k3s.local
