@@ -222,6 +222,8 @@ helm install gitlab-infra gitlab/gitlab \
 # 4.1.2 更新自定義 ingress
 kubectl delete ingress gitlab-infra-webservice-default -n infra-tools
 kubectl apply -f gitops/infra/base/ingress/gitlab-ingress.yaml
+kubectl apply -f traefik-rbac.yaml
+
 
 # 4.2 覆蓋升級
 helm upgrade gitlab-infra gitlab/gitlab \
@@ -247,14 +249,13 @@ helm upgrade gitlab-infra gitlab/gitlab \
     
     # 查看 Traefik 實際偵測到的路由 ( ADDRESS 有值 )
     kubectl get ingress -n infra-tools
+    kubectl get ingressroute -n infra-tools
     
     # 訪問測試 1
     curl -v -H "Host: gitlab.k3s.local" http://192.168.133.10/
-     
-    # 訪問測試 2
-    http://192.168.133.10/
+    curl -v -H "Host: gitlab.k3s.local" http://172.28.113.34/
     
-    # 訪問測試 3
+    # 訪問測試 2
     http://gitlab.k3s.local
     
     # 確認是否確實收到請求

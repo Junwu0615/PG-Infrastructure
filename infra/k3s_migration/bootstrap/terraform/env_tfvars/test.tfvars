@@ -3,7 +3,8 @@
 vm_user    = "debian"
 ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
-net_segment = "192.168.133"
+net_segment = "192.168.0"
+net_segment_start = 20
 node_count = 3
 node_config = {
   "k3s-node-0" = { memory = 4096, vcpu = 2 } # Master

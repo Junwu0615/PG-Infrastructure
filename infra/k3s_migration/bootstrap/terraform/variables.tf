@@ -11,8 +11,13 @@ variable "vm_user" {
 }
 
 variable "net_segment" {
-  description = "網段 ex: 192.168.133.?"
-  default = "192.168.133"
+  description = "網段 ex: 192.168.0.?"
+  default = "192.168.0"
+}
+
+variable "net_segment_start" {
+  description = "網段開始位置"
+  default = 20
 }
 
 variable "node_count" {

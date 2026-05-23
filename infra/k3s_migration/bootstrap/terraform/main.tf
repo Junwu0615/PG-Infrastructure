@@ -51,14 +51,6 @@ resource "libvirt_network" "k3s_net" {
 
   dhcp {
     enabled = true
-    # dynamic "host" {
-    #   for_each = range(var.node_count)
-    #   content {
-    #     name = "k3s-node-${host.value}"
-    #     ip   = "${var.net_segment}.${10 + host.value}"
-    #     mac  = format("52:54:00:00:00:%02x", host.value + 10)
-    #   }
-    # }
   }
 
   dns {
@@ -68,7 +60,7 @@ resource "libvirt_network" "k3s_net" {
       for_each = range(var.node_count)
       content {
         hostname = "k3s-node-${hosts.value}"
-        ip       = "${var.net_segment}.${10 + hosts.value}"
+        ip       = "${var.net_segment}.${var.net_segment_start + hosts.value}"
       }
     }
   }
@@ -88,8 +80,8 @@ resource "libvirt_domain" "k3s_nodes" {
     # network_name   = "default"
     network_id     = libvirt_network.k3s_net.id
     # 每個節點都有固定 MAC，確保 IP 被固定
-    mac = format("52:54:00:00:00:%02x", 10 + count.index)
-    addresses    = ["${var.net_segment}.${10 + count.index}"]
+    mac = format("52:54:00:00:00:%02x", var.net_segment_start + count.index)
+    addresses    = ["${var.net_segment}.${var.net_segment_start + count.index}"]
     wait_for_lease = true
   }
 
@@ -112,10 +104,10 @@ resource "libvirt_domain" "k3s_nodes" {
 # 5. 生成 Inventory 檔案 [cite: 3, 6]
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/inventory.tftpl", {
-    nodes = [for i in range(var.node_count) : "${var.net_segment}.${10 + i}"]
+    nodes = [for i in range(var.node_count) : "${var.net_segment}.${var.net_segment_start + i}"]
     user       = var.vm_user
-    master_ip  = "${var.net_segment}.10"
-    agent_ips  = [for i in range(1, var.node_count) : "${var.net_segment}.${10 + i}"]
+    master_ip  = "${var.net_segment}.${var.net_segment_start}"
+    agent_ips  = [for i in range(1, var.node_count) : "${var.net_segment}.${var.net_segment_start + i}"]
   })
   filename = "../ansible/inventory.ini"
 }

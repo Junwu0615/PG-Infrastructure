@@ -28,6 +28,7 @@ metadata:
 spec:
   entryPoints:
     - web
+#    - websecure
   routes:
   - match: Host(`gitlab.k3s.local`)
     kind: Rule
