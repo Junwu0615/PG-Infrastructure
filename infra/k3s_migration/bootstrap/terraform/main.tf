@@ -45,8 +45,9 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 resource "libvirt_domain" "k3s_nodes" {
   count  = var.node_count
   name   = "k3s-node-${count.index}"
-  memory = var.node_memory
-  vcpu   = var.node_cpu
+
+  memory = lookup(var.node_config, "k3s-node-${count.index}", var.node_config["default"]).memory
+  vcpu   = lookup(var.node_config, "k3s-node-${count.index}", var.node_config["default"]).vcpu
 
   cloudinit = libvirt_cloudinit_disk.commoninit[count.index].id # 引用對應索引
 

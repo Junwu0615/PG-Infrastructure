@@ -11,12 +11,6 @@ status power-manage init apply destroy label-nodes vm_format \
 init-gitops
 
 
-app ?= 1
-node_num ?= 3
-node_memory ?= "2048"
-node_cpu ?= 2
-
-
 init-gitops:
 	@echo "* 一鍵部署基礎設置 ( GitOps )"
 
@@ -108,27 +102,6 @@ rollback:
 	helm rollback $(RELEASE_NAME) $(ver)
 	@echo "✅  <make rollback> done."
 
-#label-nodes:
-#	@echo "* 動態指定服務標籤配置 | make label-nodes app=$(app)"
-#	@# 1. 處理 Master (k3s-node-0)
-#	kubectl label nodes k3s-node-0 service-type=none --overwrite
-#	@# 2. 遍歷其餘節點
-#	@nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
-#	count=1; \
-#	for node in $$nodes; do \
-#		if [ $$count -le $(app) ]; then \
-#			echo "Labeling $$node as app"; \
-#			kubectl label nodes $$node service-type=app --overwrite; \
-#		else \
-#			echo "Labeling $$node as service"; \
-#			kubectl label nodes $$node service-type=service --overwrite; \
-#		fi; \
-#		count=$$((count + 1)); \
-#	done
-#	@echo "\n* 檢查標籤結果："
-#	kubectl get nodes -L service-type
-#	@echo "✅  <make label-nodes> done."
-
 label-nodes:
 	@echo "* 動態指定服務標籤配置 | infra-data=$(infra-data) infra-tools=$(infra-tools)"
 	@# 使用 bash 執行整段腳本，避免 /bin/sh 的相容性問題
@@ -174,10 +147,7 @@ init:
 apply:
 	@echo "* 安裝 VM 環境"
 	cd $(TERRAFORM_PATH) && \
-	terraform apply -auto-approve \
-	  -var="node_count=$(node_num)" \
-	  -var="node_cpu=$(node_cpu)" \
-	  -var="node_memory=$(node_memory)"
+	terraform apply -auto-approve -var="VAR_FILE=$(VAR_FILE)" \
 	@echo "✅  <make apply> done."
 
 destroy:
