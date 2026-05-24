@@ -1,6 +1,14 @@
 # ansible/playbooks/init_nodes.yml
 
 ---
+- name: Wait for SSH
+  hosts: all
+  gather_facts: false
+  tasks:
+    - wait_for_connection:
+        delay: 10
+        timeout: 600
+
 - name: Prepare Nodes
   hosts: k3s_cluster
   become: yes

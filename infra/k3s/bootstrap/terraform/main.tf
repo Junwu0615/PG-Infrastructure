@@ -158,35 +158,32 @@ resource "local_file" "ansible_inventory" {
 # 8. wait_for_ssh
 resource "null_resource" "wait_for_ssh" {
   depends_on = [
+    libvirt_domain.gateway,
     libvirt_domain.k3s_nodes,
-    libvirt_domain.gateway
   ]
 
   provisioner "local-exec" {
     command = <<EOT
     set -e
 
-    TIMEOUT=300
+    TIMEOUT=600
 
     for ip in $(seq ${var.net_segment_start} $(( ${var.net_segment_start} + ${var.node_count} - 1 )) ); do
-      echo "waiting ${var.net_segment}.$ip ssh..."
+      echo "waiting ${var.net_segment}.$ip:22"
 
       START=$(date +%s)
 
-      until ssh -o StrictHostKeyChecking=no \
-              -o ConnectTimeout=3 \
-              ${var.vm_user}@${var.net_segment}.$ip "echo ok" 2>/dev/null; do
-
-        sleep 3
+      until nc -z ${var.net_segment}.$ip 22; do
+        sleep 5
 
         NOW=$(date +%s)
         if [ $((NOW - START)) -gt $TIMEOUT ]; then
-          echo "timeout waiting ${var.net_segment}.$ip"
+          echo "TIMEOUT: ${var.net_segment}.$ip"
           exit 1
         fi
       done
 
-      echo "${var.net_segment}.$ip ready"
+      echo "${var.net_segment}.$ip port open"
     done
     EOT
   }
