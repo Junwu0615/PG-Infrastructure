@@ -509,6 +509,15 @@ Helm:
     kubectl get ingress -A
     
     2. 修改 Windows Hosts 檔案 ( C:\Windows\System32\drivers\etc\hosts )
+    
+        Windows
+          ↓
+        portproxy
+          ↓
+        WSL2 ingress
+          ↓
+        K8s ingress-nginx
+        
         # 用 [管理員] powershell 叫起來 否則有權限問題
         notepad C:\Windows\System32\drivers\etc\hosts
         

@@ -6,8 +6,8 @@ ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 
 .PHONY: rollback deploy clean build \
+status init apply destroy terraform-list label-nodes vm_format vm-power \
 load-images save \
-status power-manage init apply destroy label-nodes vm_format \
 init-gitops
 
 
@@ -102,42 +102,6 @@ rollback:
 	helm rollback $(RELEASE_NAME) $(ver)
 	@echo "✅  <make rollback> done."
 
-#label-nodes:
-#	@echo "* 動態指定服務標籤配置 | infra-data=$(infra-data) infra-tools=$(infra-tools)"
-#	@# 使用 bash 執行整段腳本，避免 /bin/sh 的相容性問題
-#	@bash -c ' \
-#		echo "-> 清除 Master 節點配置"; \
-#		kubectl label nodes k3s-node-0 service-type=none --overwrite; \
-#		kubectl cordon k3s-node-0; \
-#		\
-#		nodes=$$(kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v "k3s-node-0"); \
-#		\
-#		for node in $$nodes; do \
-#			echo "Clearing labels on $$node"; \
-#			kubectl label nodes $$node service-type- infra-data- infra-tools- --overwrite >/dev/null; \
-#		done; \
-#		\
-#		i=0; \
-#		node_list=($$nodes); \
-#		total=$${#node_list[@]}; \
-#		\
-#		for node in "$${node_list[@]}"; do \
-#			if [ $$i -lt $(infra-data) ]; then \
-#				echo "Labeling $$node as infra-data"; \
-#				kubectl label nodes $$node service-type=infra-data --overwrite; \
-#			elif [ $$i -lt $$(( $(infra-data) + $(infra-tools) )) ]; then \
-#				echo "Labeling $$node as infra-tools"; \
-#				kubectl label nodes $$node service-type=infra-tools --overwrite; \
-#			else \
-#				echo "Labeling $$node as general"; \
-#				kubectl label nodes $$node service-type=general --overwrite; \
-#			fi; \
-#			i=$$((i + 1)); \
-#		done'
-#	@echo "\n* 檢查標籤結果："
-#	@kubectl get nodes -L service-type
-#	@echo "✅ <make label-nodes> done."
-
 init:
 	@echo "* 初始化 terraform 配置"
 	cd $(TERRAFORM_PATH) && \
@@ -156,20 +120,28 @@ destroy:
 	terraform destroy -auto-approve
 	@echo "✅  <make destroy> done."
 
+terraform-list:
+	@echo "* 確認 Terraform 狀態清單是否缺失"
+	cd $(TERRAFORM_PATH) && \
+	terraform state list
+	@echo "✅  <make state-list> done."
+
 status:
 	@echo "* 檢查 k8s 狀態"
 	kubectl get nodes -o wide
 	kubectl get pods -o wide
 
-power-manage:
-	@echo "* 電源管理 action = [stop / reboot]"
-	@echo "* 檢查是否有傳入 action 且不為空"
+vm-power:
+	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"
+
 	@if [ -z "$(action)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make power-manage action=stop"; \
+		echo "Error: ex: make vm-power action=start"; \
 		exit 1; \
 	fi
-	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/power_manage.yml -e "action=$(action)" -K
-	@echo "✅  <make power-manage> done."
+
+	@bash scripts/vm-power.sh $(action)
+
+	@echo "✅  <make vm-power> done."
 
 vm_format:
 	@for vm in $$(sudo virsh list --all --name); do \

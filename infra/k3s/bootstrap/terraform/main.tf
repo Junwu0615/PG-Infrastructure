@@ -178,7 +178,7 @@ resource "libvirt_domain" "k3s_nodes" {
 # 7. 生成 Inventory 檔案 [cite: 3, 6]
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/inventory.tftpl", {
-    # gateway_ip = "${var.net_segment}.10"
+    gateway_ip = "${var.net_segment}.10"
 
     nodes      = [for i in range(var.node_count) : "${var.net_segment}.${var.net_segment_start + i}"]
     user       = var.vm_user

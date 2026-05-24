@@ -5,8 +5,9 @@ TERRAFORM_PATH=./bootstrap/terraform
 ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 
-.PHONY: test-clean rollback deploy clean build \
-status power-manage init apply destroy state-list label-nodes load-images save
+.PHONY: rollback deploy clean build \
+status init apply destroy terraform-list label-nodes vm_format vm-power \
+load-images save test-clean
 
 app ?= 1
 
@@ -84,7 +85,7 @@ destroy:
 	terraform destroy -auto-approve
 	@echo "✅  <make destroy> done."
 
-state-list:
+terraform-list:
 	@echo "* 確認 Terraform 狀態清單是否缺失"
 	cd $(TERRAFORM_PATH) && \
 	terraform state list
@@ -94,16 +95,6 @@ status:
 	@echo "* 檢查 k8s 狀態"
 	kubectl get nodes -o wide
 	kubectl get pods -o wide
-
-power-manage:
-	@echo "* 電源管理 action = [stop / reboot]"
-	@echo "* 檢查是否有傳入 action 且不為空"
-	@if [ -z "$(action)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make power-manage action=stop"; \
-		exit 1; \
-	fi
-	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/power_manage.yml -e "action=$(action)" -K
-	@echo "✅  <make power-manage> done."
 
 test-clean:
 	# 1. 停止 systemd 服務 (如果存在)
@@ -175,3 +166,34 @@ rollback:
 	@echo "* 當前設定錯誤 => 進行回滾"
 	helm rollback $(RELEASE_NAME) $(ver)
 	@echo "✅  <make rollback> done."
+
+vm-power:
+	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"
+
+	@if [ -z "$(action)" ]; then \
+		echo "Error: ex: make vm-power action=start"; \
+		exit 1; \
+	fi
+
+	@bash scripts/vm-power.sh $(action)
+
+	@echo "✅  <make vm-power> done."
+
+vm_format:
+	@for vm in $$(sudo virsh list --all --name); do \
+		if [ -n "$$vm" ]; then \
+			echo "=== 虛擬機: $$vm ==="; \
+			vcpu=$$(sudo virsh dumpxml "$$vm" | grep 'vcpu' | sed -e 's/<[^>]*>//g' | xargs); \
+			ram_kib=$$(sudo virsh dumpxml "$$vm" | grep 'currentMemory' | sed -e 's/<[^>]*>//g' | xargs); \
+			ram_mb=$$((ram_kib / 1024)); \
+			disk_path=$$(sudo virsh domblklist "$$vm" | awk 'NR==3 {print $$2}'); \
+			if [ -f "$$disk_path" ]; then \
+				disk_size=$$(sudo qemu-img info "$$disk_path" | grep 'virtual size' | awk -F'(' '{print $$1}' | awk -F':' '{print $$2}' | xargs); \
+			else \
+				disk_size="找不到實體磁碟"; \
+			fi; \
+			echo "  [CPU]  : $$vcpu 核"; \
+			echo "  [RAM]  : $$ram_mb MB (~ $$((ram_mb / 1024)) GB)"; \
+			echo "  [DISK] : $$disk_size"; \
+		fi; \
+	done
