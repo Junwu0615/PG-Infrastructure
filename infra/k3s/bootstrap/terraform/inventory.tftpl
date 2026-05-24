@@ -11,3 +11,6 @@ ${ip} ansible_user=${user}
 [k3s_cluster:children]
 masters
 agents
+
+[gateway]
+${gateway_ip} ansible_user=${user}

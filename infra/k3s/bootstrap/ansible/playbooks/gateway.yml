@@ -1,0 +1,37 @@
+---
+- name: Setup Gateway Reverse Proxy
+  hosts: gateway
+  become: yes
+
+  tasks:
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Enable nginx
+      systemd:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: Configure portainer reverse proxy
+      copy:
+        dest: /etc/nginx/conf.d/portainer.conf
+        content: |
+          server {
+              listen 80;
+              server_name portainer.local;
+
+              location / {
+                  proxy_pass http://{{ groups['agents'][0] }}:9000;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+              }
+          }
+
+    - name: Restart nginx
+      systemd:
+        name: nginx
+        state: restarted

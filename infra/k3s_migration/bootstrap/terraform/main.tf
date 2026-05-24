@@ -44,14 +44,12 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 # 4.0 定義網路 (寫死 DHCP 規則)
 resource "libvirt_network" "k3s_net" {
   name   = "k3s_net"
-  # bridge = "k3sbr0"
   mode   = "nat"
   domain = "k3s.local"
   addresses = ["${var.net_segment}.0/24"]
 
   dhcp {
     enabled = true
-    # enabled = false
   }
 
   dns {
@@ -78,7 +76,6 @@ resource "libvirt_domain" "k3s_nodes" {
   cloudinit = libvirt_cloudinit_disk.commoninit[count.index].id # 引用對應索引
 
   network_interface {
-    # network_name   = "default"
     network_id     = libvirt_network.k3s_net.id
     # 每個節點都有固定 MAC，確保 IP 被固定
     mac = format("52:54:00:00:00:%02x", var.net_segment_start + count.index)
