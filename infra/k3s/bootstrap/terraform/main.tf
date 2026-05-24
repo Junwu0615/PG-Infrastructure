@@ -61,10 +61,10 @@ resource "libvirt_network" "k3s_net" {
   dns {
     enabled = true
 
-    hosts {
-      hostname = "gateway"
-      ip       = "${var.net_segment}.10"
-    }
+    # hosts {
+    #   hostname = "gateway"
+    #   ip       = "${var.net_segment}.10"
+    # }
 
     dynamic "hosts" {
       for_each = range(var.node_count)
@@ -119,66 +119,66 @@ resource "libvirt_domain" "k3s_nodes" {
 }
 
 # 6. Gateway VM
-resource "libvirt_volume" "gateway_disk" {
-  name           = "k3s-gateway.qcow2"
-  pool           = "default"
-  base_volume_id = libvirt_volume.debian_base.id
-  size           = 10737418240
-}
-
-resource "libvirt_cloudinit_disk" "gateway_init" {
-  name = "k3s-gateway-ci.iso"
-  pool = "default"
-
-  user_data = templatefile("${path.module}/gateway_cloud_init.cfg", {
-    ssh_public_key = file(var.ssh_public_key_path)
-    hostname       = "k3s-gateway"
-    vm_user        = var.vm_user
-  })
-}
-
-resource "libvirt_domain" "gateway" {
-  depends_on = [
-    libvirt_volume.gateway_disk,
-    libvirt_cloudinit_disk.gateway_init,
-  ]
-
-  name   = "k3s-gateway"
-  memory = 1024
-  vcpu   = 1
-
-  cloudinit = libvirt_cloudinit_disk.gateway_init.id
-
-  network_interface {
-    network_id = libvirt_network.k3s_net.id
-    hostname   = "k3s-node-gateway"
-    addresses  = ["${var.net_segment}.10"]
-    mac = format(
-      "52:54:00:00:00:%02x",
-      10
-    )
-    wait_for_lease = true
-  }
-
-  disk {
-    volume_id = libvirt_volume.gateway_disk.id
-  }
-
-  console {
-    type = "pty"
-    target_port = "0"
-    target_type = "serial"
-  }
-
-  graphics {
-    type = "spice"
-  }
-}
+# resource "libvirt_volume" "gateway_disk" {
+#   name           = "k3s-gateway.qcow2"
+#   pool           = "default"
+#   base_volume_id = libvirt_volume.debian_base.id
+#   size           = 10737418240
+# }
+#
+# resource "libvirt_cloudinit_disk" "gateway_init" {
+#   name = "k3s-gateway-ci.iso"
+#   pool = "default"
+#
+#   user_data = templatefile("${path.module}/gateway_cloud_init.cfg", {
+#     ssh_public_key = file(var.ssh_public_key_path)
+#     hostname       = "k3s-gateway"
+#     vm_user        = var.vm_user
+#   })
+# }
+#
+# resource "libvirt_domain" "gateway" {
+#   depends_on = [
+#     libvirt_volume.gateway_disk,
+#     libvirt_cloudinit_disk.gateway_init,
+#   ]
+#
+#   name   = "k3s-gateway"
+#   memory = 1024
+#   vcpu   = 1
+#
+#   cloudinit = libvirt_cloudinit_disk.gateway_init.id
+#
+#   network_interface {
+#     network_id = libvirt_network.k3s_net.id
+#     hostname   = "k3s-node-gateway"
+#     addresses  = ["${var.net_segment}.10"]
+#     mac = format(
+#       "52:54:00:00:00:%02x",
+#       10
+#     )
+#     wait_for_lease = true
+#   }
+#
+#   disk {
+#     volume_id = libvirt_volume.gateway_disk.id
+#   }
+#
+#   console {
+#     type = "pty"
+#     target_port = "0"
+#     target_type = "serial"
+#   }
+#
+#   graphics {
+#     type = "spice"
+#   }
+# }
 
 # 7. 生成 Inventory 檔案 [cite: 3, 6]
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/inventory.tftpl", {
-    gateway_ip = "${var.net_segment}.10"
+    # gateway_ip = "${var.net_segment}.10"
 
     nodes      = [for i in range(var.node_count) : "${var.net_segment}.${var.net_segment_start + i}"]
     user       = var.vm_user
@@ -193,7 +193,7 @@ resource "null_resource" "wait_for_ssh" {
   depends_on = [
     local_file.ansible_inventory,
     libvirt_domain.k3s_nodes,
-    libvirt_domain.gateway,
+    # libvirt_domain.gateway,
   ]
 
   provisioner "local-exec" {
@@ -224,7 +224,7 @@ resource "null_resource" "wait_for_ssh" {
 resource "null_resource" "ansible_trigger" {
   depends_on = [
     local_file.ansible_inventory,
-    libvirt_domain.gateway,
+    # libvirt_domain.gateway,
     libvirt_domain.k3s_nodes,
     null_resource.wait_for_ssh,
   ]
@@ -238,7 +238,7 @@ resource "null_resource" "ansible_trigger" {
   provisioner "local-exec" {
     command = <<EOT
       # 清理 SSH 指紋 ( gateway )
-      ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.10" || true
+      # ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.10" || true
 
       # 清理 SSH 指紋 ( 迴圈清理所有節點 )
       %{ for i in range(var.node_count) }
