@@ -113,6 +113,9 @@ kubectl get ingress -n infra-tools
 # 檢視 ingressroute
 kubectl get ingressroute -n infra-tools
 
+# ...
+kubectl get ingressroutetcps.traefik.io -A
+
 # 檢視 svc traefik
 kubectl get svc -n kube-system traefik -o yaml
 
@@ -215,6 +218,7 @@ helm install gitlab-infra gitlab/gitlab \
   
 # 4.1.2 更新自定義 ingress
 kubectl delete ingress gitlab-infra-webservice-default -n infra-tools
+kubectl delete ingressroutetcps.traefik.io gitlab-infra-gitlab-shell -n infra-tools
 kubectl apply -f gitops/infra/base/ingress/gitlab-ingress.yaml
 kubectl apply -f traefik-rbac.yaml
 
@@ -246,12 +250,18 @@ helm upgrade gitlab-infra gitlab/gitlab \
     
     # 訪問測試 1
     # ip addr show | grep -E "inet |192.168"
-    curl -v -H "Host: gitlab.k3s.local" http://192.168.0.20/
+    curl -v -H "Host: gitlab.k3s.local" http://10.88.0.20/
+    
+    # ip addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'
+    curl -v -H "Host: gitlab.k3s.local" http://172.28.113.34/
 
     # 訪問測試 2 確認走向
-    tracert 192.168.0.20
+    tracert 10.88.0.20
     # [X] Windows 建立指向性路由 ( check: Get-NetAdapter )
-    route add 192.168.0.20 mask 255.255.255.255 0.0.0.0 IF 11
+        # 移除路由 
+        route delete 10.88.0.20
+        # 建立路由
+        route add 10.88.0.20 mask 255.255.255.255 0.0.0.0 IF 11
     
     # 訪問測試 3
     http://gitlab.k3s.local

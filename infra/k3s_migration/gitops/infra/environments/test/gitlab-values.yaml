@@ -62,6 +62,9 @@ postgresql:
 redis:
   install: true
   master:
+    # 開發環境建議關閉持久化以減少 I/O 壓力
+    persistence:
+      enabled: false
     resources:
       requests:
         cpu: 50m
@@ -107,6 +110,9 @@ gitlab:
       enabled: false
     service:
       type: ClusterIP
+
+  shell:
+    enabled: false
 
 # 關閉 Container Registry 節省資源
 registry:
