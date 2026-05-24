@@ -133,6 +133,7 @@ resource "libvirt_cloudinit_disk" "gateway_init" {
   user_data = templatefile("${path.module}/gateway_cloud_init.cfg", {
     ssh_public_key = file(var.ssh_public_key_path)
     hostname       = "k3s-gateway"
+    vm_user        = var.vm_user
   })
 }
 

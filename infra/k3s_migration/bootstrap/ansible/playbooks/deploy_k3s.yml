@@ -49,13 +49,15 @@
     - name: Fetch K3s config
       fetch:
         src: /etc/rancher/k3s/k3s.yaml
-        dest: ~/.kube/config-k3s
+#        dest: ~/.kube/config-k3s
+        dest: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
         flat: yes
 
     - name: Fix Kubeconfig IP
       delegate_to: localhost
       become: no
       replace:
-        path: ~/.kube/config-k3s
+#        path: ~/.kube/config-k3s
+        path: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
         regexp: 'server: https://.*:6443'
         replace: "server: https://{{ inventory_hostname }}:6443"
