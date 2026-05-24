@@ -53,6 +53,9 @@ terraform destroy -auto-approve
 # Terraform 如何自動理清這些模組間的依賴關係
 terraform graph
 
+# 確認 Terraform 狀態清單是否缺失
+terraform state list
+
 # 測試內容方式
 1. terraform console
 2. module.monitoring_services.module.generic_worker.docker_container.this["prometheus"].command

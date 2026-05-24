@@ -236,6 +236,9 @@ k3d --version
     # 4. 驗證網路狀態，確保 State 顯示為 active，Autostart 顯示為 yes
     sudo virsh net-list --all
     
+    # * 檢視設定
+    sudo virsh net-info k3s_net
+    
     # * 刪除舊定義 (k3s_net)
         # 1. 強制刪除網卡
         sudo ip link set virbr1 down 2>/dev/null
