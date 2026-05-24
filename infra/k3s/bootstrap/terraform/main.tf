@@ -23,6 +23,10 @@ resource "libvirt_volume" "debian_base" {
 
 # 2. 建立節點磁碟
 resource "libvirt_volume" "node_disk" {
+  depends_on = [
+    libvirt_volume.debian_base,
+  ]
+
   count          = var.node_count
   name           = "k3s-disk-${count.index}.qcow2"
   pool           = "default"
@@ -48,7 +52,7 @@ resource "libvirt_network" "k3s_net" {
   name      = "k3s_net"
   mode      = "nat"
   domain    = "k8s.local"
-  addresses = ["10.210.0.0/24"]
+  addresses = ["${var.net_segment}.0/24"]
 
   dhcp {
     enabled = true
@@ -56,11 +60,30 @@ resource "libvirt_network" "k3s_net" {
 
   dns {
     enabled = true
+
+    hosts {
+      hostname = "gateway"
+      ip       = "${var.net_segment}.10"
+    }
+
+    dynamic "hosts" {
+      for_each = range(var.node_count)
+      content {
+        hostname = "k3s-node-${hosts.value}"
+        ip       = "${var.net_segment}.${var.net_segment_start + hosts.value}"
+      }
+    }
   }
 }
 
 # 5. 建立 VM 節點
 resource "libvirt_domain" "k3s_nodes" {
+  depends_on = [
+    libvirt_volume.node_disk,
+    libvirt_cloudinit_disk.node_init,
+    libvirt_network.k3s_net,
+  ]
+
   count = var.node_count
   name   = "k3s-node-${count.index}"
   memory = lookup(var.node_config, "k3s-node-${count.index}", var.node_config["default"]).memory
@@ -70,7 +93,8 @@ resource "libvirt_domain" "k3s_nodes" {
 
   network_interface {
     network_id = libvirt_network.k3s_net.id
-
+    hostname   = "k3s-node-${count.index}"
+    addresses  = ["${var.net_segment}.${var.net_segment_start + count.index}"]
     mac = format(
       "52:54:00:00:00:%02x",
       var.net_segment_start + count.index
@@ -113,6 +137,11 @@ resource "libvirt_cloudinit_disk" "gateway_init" {
 }
 
 resource "libvirt_domain" "gateway" {
+  depends_on = [
+    libvirt_volume.gateway_disk,
+    libvirt_cloudinit_disk.gateway_init,
+  ]
+
   name   = "k3s-gateway"
   memory = 1024
   vcpu   = 1
@@ -121,9 +150,12 @@ resource "libvirt_domain" "gateway" {
 
   network_interface {
     network_id = libvirt_network.k3s_net.id
-
-    mac = "52:54:00:00:00:ff"
-
+    hostname   = "k3s-node-gateway"
+    addresses  = ["${var.net_segment}.10"]
+    mac = format(
+      "52:54:00:00:00:%02x",
+      10
+    )
     wait_for_lease = true
   }
 
@@ -158,32 +190,30 @@ resource "local_file" "ansible_inventory" {
 # 8. wait_for_ssh
 resource "null_resource" "wait_for_ssh" {
   depends_on = [
-    libvirt_domain.gateway,
+    local_file.ansible_inventory,
     libvirt_domain.k3s_nodes,
+    libvirt_domain.gateway,
   ]
 
   provisioner "local-exec" {
     command = <<EOT
-    set -e
+    for ip in \
+    $(seq ${var.net_segment_start} $(( ${var.net_segment_start} + ${var.node_count} - 1 )) )
+    do
+      TARGET=${var.net_segment}.$ip
 
-    TIMEOUT=600
+      echo "Waiting SSH on $TARGET"
 
-    for ip in $(seq ${var.net_segment_start} $(( ${var.net_segment_start} + ${var.node_count} - 1 )) ); do
-      echo "waiting ${var.net_segment}.$ip:22"
-
-      START=$(date +%s)
-
-      until nc -z ${var.net_segment}.$ip 22; do
+      until ssh \
+        -o StrictHostKeyChecking=no \
+        -o BatchMode=yes \
+        -o ConnectTimeout=5 \
+        ${var.vm_user}@$TARGET 'echo ok' >/dev/null 2>&1
+      do
         sleep 5
-
-        NOW=$(date +%s)
-        if [ $((NOW - START)) -gt $TIMEOUT ]; then
-          echo "TIMEOUT: ${var.net_segment}.$ip"
-          exit 1
-        fi
       done
 
-      echo "${var.net_segment}.$ip port open"
+      echo "$TARGET SSH ready"
     done
     EOT
   }
@@ -191,17 +221,18 @@ resource "null_resource" "wait_for_ssh" {
 
 # 9. 執行佈署
 resource "null_resource" "ansible_trigger" {
+  depends_on = [
+    local_file.ansible_inventory,
+    libvirt_domain.gateway,
+    libvirt_domain.k3s_nodes,
+    null_resource.wait_for_ssh,
+  ]
+
   # 當節點數量改變時，強制重新觸發 Ansible
   triggers = {
     node_count = var.node_count
     inventory_config = local_file.ansible_inventory.content
   }
-
-  depends_on = [
-    libvirt_domain.gateway,
-    libvirt_domain.k3s_nodes,
-    null_resource.wait_for_ssh,
-  ]
 
   provisioner "local-exec" {
     command = <<EOT

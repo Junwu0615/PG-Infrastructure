@@ -299,11 +299,11 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |--:|:--|:--:|:--|
 | **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | [gitlab.k8s.local](http://gitlab.k8s.local) |
 | **Jenkins** | `Continuous Delivery` | X | X |
-| **ArgoCD** | `Continuous Delivery` | X | [argocd.k8s.local](http://argocd.k8s.local) |
+| **ArgoCD** | `Continuous Delivery` | X | [argo-cd.k8s.local](http://argo-cd.k8s.local) |
 | **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | [docker-registry.k8s.local](http://docker-registry.k8s.local) |
 | **Docker Registry UI** | for `Docker Registry` | X | X |
 | **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | [portainer.k8s.local](http://portainer.k8s.local) |
-| **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | [hashiCorp-vault.k8s.local](http://hashiCorp-vault.k8s.local) |
+| **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | [hashicorp-vault.k8s.local](http://hashicorp-vault.k8s.local) |
 
 </ul>
 </details>

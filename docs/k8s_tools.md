@@ -239,6 +239,9 @@ k3d --version
     # * 檢視設定
     sudo virsh net-info k3s_net
     
+    # ⭐ 檢視 dhcp 分配狀態是否如預期
+    virsh net-dhcp-leases k3s_net
+    
     # * 刪除舊定義 (k3s_net)
         # 1. 強制刪除網卡
         sudo ip link set virbr1 down 2>/dev/null
