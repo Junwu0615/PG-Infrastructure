@@ -44,13 +44,14 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 # 4.0 定義網路 (寫死 DHCP 規則)
 resource "libvirt_network" "k3s_net" {
   name   = "k3s_fixed_net"
-  bridge = "virbr1"
+  bridge = "br-k3s-nodes"
   mode   = "nat"
   domain = "k3s.local"
   addresses = ["${var.net_segment}.0/24"]
 
   dhcp {
-    enabled = true
+    # enabled = true
+    enabled = false
   }
 
   dns {

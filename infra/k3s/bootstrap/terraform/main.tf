@@ -35,23 +35,54 @@ resource "libvirt_cloudinit_disk" "commoninit" {
   count = var.node_count
   name  = "commoninit-${count.index}.iso" # 每個節點需要獨立的 ISO 以區分 Hostname
   user_data = templatefile("${path.module}/cloud_init.cfg", {
-    ssh_public_key = file("~/.ssh/id_rsa.pub")
+    ssh_public_key = file(var.ssh_public_key_path)
     hostname       = "k3s-node-${count.index}" # 傳入正確的 Hostname
   })
   pool = "default"
+}
+
+# 4.0 定義網路 (寫死 DHCP 規則)
+resource "libvirt_network" "k3s_net" {
+  name   = "k3s_fixed_net"
+  bridge = "br-k3s-nodes"
+  mode   = "nat"
+  domain = "k3s.local"
+  addresses = ["${var.net_segment}.0/24"]
+
+  dhcp {
+    # enabled = true
+    enabled = false
+  }
+
+  dns {
+    enabled = true
+    # 自動為所有節點產生 DNS 與靜態 DHCP 對應
+    dynamic "hosts" {
+      for_each = range(var.node_count)
+      content {
+        hostname = "k3s-node-${hosts.value}"
+        ip       = "${var.net_segment}.${var.net_segment_start + hosts.value}"
+      }
+    }
+  }
 }
 
 # 4. 建立 VM 節點
 resource "libvirt_domain" "k3s_nodes" {
   count  = var.node_count
   name   = "k3s-node-${count.index}"
-  memory = "2048"
-  vcpu   = 2
+
+  memory = lookup(var.node_config, "k3s-node-${count.index}", var.node_config["default"]).memory
+  vcpu   = lookup(var.node_config, "k3s-node-${count.index}", var.node_config["default"]).vcpu
 
   cloudinit = libvirt_cloudinit_disk.commoninit[count.index].id # 引用對應索引
 
   network_interface {
-    network_name   = "default"
+    # network_name   = "default"
+    network_id     = libvirt_network.k3s_net.id
+    # 每個節點都有固定 MAC，確保 IP 被固定
+    mac = format("52:54:00:00:00:%02x", var.net_segment_start + count.index)
+    addresses    = ["${var.net_segment}.${var.net_segment_start + count.index}"]
     wait_for_lease = true
   }
 
@@ -74,9 +105,10 @@ resource "libvirt_domain" "k3s_nodes" {
 # 5. 生成 Inventory 檔案 [cite: 3, 6]
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/inventory.tftpl", {
+    nodes      = [for i in range(var.node_count) : "${var.net_segment}.${var.net_segment_start + i}"]
     user       = var.vm_user
-    master_ip  = libvirt_domain.k3s_nodes[0].network_interface.0.addresses[0]
-    agent_ips  = slice(libvirt_domain.k3s_nodes[*].network_interface.0.addresses[0], 1, var.node_count)
+    master_ip  = "${var.net_segment}.${var.net_segment_start}"
+    agent_ips  = [for i in range(1, var.node_count) : "${var.net_segment}.${var.net_segment_start + i}"]
   })
   filename = "../ansible/inventory.ini"
 }
@@ -92,6 +124,17 @@ resource "null_resource" "ansible_trigger" {
   depends_on = [libvirt_domain.k3s_nodes, local_file.ansible_inventory]
 
   provisioner "local-exec" {
-    command = "sleep 30 && export ANSIBLE_HOST_KEY_CHECKING=False && ansible-playbook -i ../ansible/inventory.ini ../ansible/playbooks/site.yml"
+    command = <<EOT
+      sleep 30
+
+      # 使用迴圈清理所有節點的 SSH 指紋
+      %{ for i in range(var.node_count) }
+      ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.${var.net_segment_start + i}" || true
+      %{ endfor }
+
+      # 執行 Ansible
+      export ANSIBLE_HOST_KEY_CHECKING=False
+      ansible-playbook -i ../ansible/inventory.ini ../ansible/playbooks/site.yml
+    EOT
   }
 }

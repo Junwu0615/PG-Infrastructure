@@ -75,7 +75,7 @@ init:
 apply:
 	@echo "* 安裝 VM 環境"
 	cd $(TERRAFORM_PATH) && \
-	terraform apply -auto-approve
+	terraform apply -auto-approve -var-file="$(VAR_FILE)"
 	@echo "✅  <make apply> done."
 
 destroy:

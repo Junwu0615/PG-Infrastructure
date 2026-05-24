@@ -221,17 +221,41 @@ k3d --version
 ### *F.　WSL2 ENV. Startup VM*
 ```
 # VM 網路
-    # 1. 初始化
-    sudo virsh net-define /etc/libvirt/qemu/networks/default.xml
+    # 1. 初始化  (k3s_net)
+    sudo virsh net-define /etc/libvirt/qemu/networks/k3s_net.xml
         
-    # 2. 啟動名為 default 的虛擬網路
-    sudo virsh net-start default
+    # 2. 啟動虛擬網路 (k3s_net)
+    sudo virsh net-start k3s_net
     
-    # 3. 設定 default 網路為「開機自動啟動」，避免下次重啟又進鬼打牆循環
-    sudo virsh net-autostart default
+    # 3. 設定網路「開機自動啟動」，避免下次重啟又進鬼打牆循環 (k3s_net)
+    sudo virsh net-autostart k3s_net
+    
+    # 關閉自動啟動 (k3s_net)
+    sudo virsh net-autostart k3s_net --disable
     
     # 4. 驗證網路狀態，確保 State 顯示為 active，Autostart 顯示為 yes
     sudo virsh net-list --all
+    
+    # * 刪除舊定義 (k3s_net)
+        # 1. 強制刪除網卡
+        sudo ip link set virbr1 down 2>/dev/null
+        sudo ip link delete virbr1 2>/dev/null
+        
+        # 2. 清理 Libvirt 網路定義
+        sudo virsh net-destroy k3s_net 2>/dev/null
+        sudo virsh net-undefine k3s_net 2>/dev/null
+        
+        # 3. 刪除 Libvirt 自動產生的 DHCP/DNS 狀態檔
+        sudo rm -rf /var/lib/libvirt/dnsmasq/k3s_net.conf
+        sudo rm -rf /var/lib/libvirt/dnsmasq/k3s_net.status
+        sudo rm -rf /var/lib/libvirt/network/k3s_net.xml
+        
+        # 4. 重啟 Libvirt 服務以刷新所有內部狀態
+        sudo systemctl restart libvirtd
+    
+    # * 建立設定檔 (k3s_net)
+    sudo cat /etc/libvirt/qemu/networks/k3s_net.xml
+    sudo nano /etc/libvirt/qemu/networks/k3s_net.xml
     
 
 # 固定 VM 網路 IP # 手動 ( terraform 全自動 )
