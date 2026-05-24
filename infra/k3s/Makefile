@@ -6,7 +6,7 @@ ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 
 .PHONY: test-clean rollback deploy clean build \
-status power-manage init apply destroy label-nodes load-images save
+status power-manage init apply destroy state-list label-nodes load-images save
 
 app ?= 1
 
@@ -83,6 +83,12 @@ destroy:
 	cd $(TERRAFORM_PATH) && \
 	terraform destroy -auto-approve
 	@echo "✅  <make destroy> done."
+
+state-list:
+	@echo "* 確認 Terraform 狀態清單是否缺失"
+	cd $(TERRAFORM_PATH) && \
+	terraform state list
+	@echo "✅  <make state-list> done."
 
 status:
 	@echo "* 檢查 k8s 狀態"

@@ -231,11 +231,11 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
-| **PostgreSQL** | `OLTP` Primary Business DB | [5432](http://127.0.0.1:5432) | `TBD` |
-| **PostgreSQL** | Metadata DB for Airflow | [5433](http://127.0.0.1:5433) | `TBD` |
+| **PostgreSQL** | `OLTP` Primary Business DB | [5432](http://127.0.0.1:5432) | http://postgresql.k8s.local |
+| **PostgreSQL** | Metadata DB for Airflow | [5433](http://127.0.0.1:5433) | http://postgresql.k8s.local |
 | **PgAdmin** | PostgreSQL Web Management UI | [5050](http://127.0.0.1:5050) | X |
-| **Apache Airflow** | `OLAP` Workflow Orchestration | [8100](http://127.0.0.1:8100) | `TBD` |
-| **Superset** | `OLAP` BI Visualization Dashboard | `TBD` | `TBD` |
+| **Apache Airflow** | `OLAP` Workflow Orchestration | [8100](http://127.0.0.1:8100) | http://airflow.k8s.local |
+| **Superset** | `OLAP` BI Visualization Dashboard | `TBD` | http://superset.k8s.local |
 
 </ul>
 </details>
@@ -247,10 +247,10 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
-| **MQTT Broker** | High-concurrency `IoT` Message Ingestion | [1883](http://127.0.0.1:1883) | `TBD` |
-| **Apache Kafka** | Distributed Streaming Platform `Backbone` | [9092](http://127.0.0.1:9092) | `TBD` |
-| **Kafka UI** | Topic & Cluster & Consumer Management | [9093](http://127.0.0.1:9093) | `TBD` |
-| **Schema Registry** | Centralized Schema Governance `Avro/JSON` | [8081](http://127.0.0.1:8081) | `TBD` |
+| **MQTT Broker** | High-concurrency `IoT` Message Ingestion | [1883](http://127.0.0.1:1883) | http://mqtt.k8s.local |
+| **Apache Kafka** | Distributed Streaming Platform `Backbone` | [9092](http://127.0.0.1:9092) | http://kafka.k8s.local |
+| **Kafka UI** | Topic & Cluster & Consumer Management | [9093](http://127.0.0.1:9093) | http://kafka-ui.k8s.local |
+| **Schema Registry** | Centralized Schema Governance `Avro/JSON` | [8081](http://127.0.0.1:8081) | http://schema-registry.k8s.local |
 
 </ul>
 </details>
@@ -262,9 +262,9 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
-| **Debezium** | `CDC` from Postgres | `TBD` | `TBD` |
-| **Apache Iceberg** | `OLAP` High-performance Table Format `Data Lake` | `TBD` | `TBD` |
-| **Apache Flink** | Stateful Computations over Data Streams | `TBD` | `TBD` |
+| **Debezium** | `CDC` from Postgres | `TBD` | http://debezium.k8s.local |
+| **Apache Iceberg** | `OLAP` High-performance Table Format `Data Lake` | `TBD` | http://iceberg.k8s.local |
+| **Apache Flink** | Stateful Computations over Data Streams | `TBD` | http://flink.k8s.local |
 
 </ul>
 </details>
@@ -277,15 +277,15 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
 | **PoWA** | - | X | X |
-| **Postgres Exporter** | Database Performance Metrics | [9187](http://127.0.0.1:9187) | `TBD` |
-| **Node Exporter** | Host Resource Metrics | [9100](http://127.0.0.1:9100) | `TBD` |
-| **Prometheus** | Metrics Time-Series DB | [9090](http://127.0.0.1:9090) | `TBD` |
-| **Grafana** | Dashboard | [3000](http://127.0.0.1:3000) | `TBD` |
-| **Loki** | `Manage Log` | [3100](http://127.0.0.1:3100) | `TBD` |
+| **Postgres Exporter** | Database Performance Metrics | [9187](http://127.0.0.1:9187) | - |
+| **Node Exporter** | Host Resource Metrics | [9100](http://127.0.0.1:9100) | - |
+| **Prometheus** | Metrics Time-Series DB | [9090](http://127.0.0.1:9090) | http://prometheus.k8s.local |
+| **Grafana** | Dashboard | [3000](http://127.0.0.1:3000) | http://grafana.k8s.local |
+| **Loki** | `Manage Log` | [3100](http://127.0.0.1:3100) | http://loki.k8s.local |
 | **Promtail** | for `Loki` | - | - |
-| **Elasticsearch** | `Manage Log` Distributed Search Engine | [9200](http://127.0.0.1:9200) | `TBD` |
-| **Logstash** | `Manage Log` Log Processing Pipeline | [9600](http://127.0.0.1:9600) | `TBD` |
-| **Kibana** | `Manage Log` Log Exploration UI | [5601](http://127.0.0.1:5601) | `TBD` |
+| **Elasticsearch** | `Manage Log` Distributed Search Engine | [9200](http://127.0.0.1:9200) | http://elasticsearch.k8s.local |
+| **Logstash** | `Manage Log` Log Processing Pipeline | [9600](http://127.0.0.1:9600) | http://logstash.k8s.local |
+| **Kibana** | `Manage Log` Log Exploration UI | [5601](http://127.0.0.1:5601) | http://kibana.k8s.local |
 
 </ul>
 </details>
@@ -297,13 +297,13 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
-| **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | `TBD` |
+| **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | http://gitlab.k8s.local |
 | **Jenkins** | `Continuous Delivery` | X | X |
-| **ArgoCD** | `Continuous Delivery` | X | `TBD` |
-| **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | `TBD` |
+| **ArgoCD** | `Continuous Delivery` | X | http://argoCD.k8s.local |
+| **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | http://docker-registry.k8s.local |
 | **Docker Registry UI** | for `Docker Registry` | X | X |
-| **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | `TBD` |
-| **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | `TBD` |
+| **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | http://portainer.k8s.local |
+| **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | http://hashiCorp-vault.k8s.local |
 
 </ul>
 </details>

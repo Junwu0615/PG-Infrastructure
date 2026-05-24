@@ -47,7 +47,7 @@ resource "libvirt_cloudinit_disk" "node_init" {
 resource "libvirt_network" "k3s_net" {
   name      = "k3s_net"
   mode      = "nat"
-  domain    = "k3s.local"
+  domain    = "k8s.local"
   addresses = ["10.210.0.0/24"]
 
   dhcp {
@@ -58,7 +58,6 @@ resource "libvirt_network" "k3s_net" {
     enabled = true
   }
 }
-
 
 # 5. 建立 VM 節點
 resource "libvirt_domain" "k3s_nodes" {
@@ -85,8 +84,8 @@ resource "libvirt_domain" "k3s_nodes" {
 
   console {
     type = "pty"
-    # target_port = "0"
-    # target_type = "serial"
+    target_port = "0"
+    target_type = "serial"
   }
 
   graphics {
@@ -109,6 +108,7 @@ resource "libvirt_cloudinit_disk" "gateway_init" {
 
   user_data = templatefile("${path.module}/gateway_cloud_init.cfg", {
     ssh_public_key = file(var.ssh_public_key_path)
+    hostname       = "k3s-gateway"
   })
 }
 
@@ -116,8 +116,6 @@ resource "libvirt_domain" "gateway" {
   name   = "k3s-gateway"
   memory = 1024
   vcpu   = 1
-
-  # hostname = "k3s-gateway"
 
   cloudinit = libvirt_cloudinit_disk.gateway_init.id
 
@@ -135,16 +133,14 @@ resource "libvirt_domain" "gateway" {
 
   console {
     type = "pty"
-    # target_port = "0"
-    # target_type = "serial"
+    target_port = "0"
+    target_type = "serial"
   }
 
   graphics {
     type = "spice"
-    # listen_type = "address"
   }
 }
-
 
 # 7. 生成 Inventory 檔案 [cite: 3, 6]
 resource "local_file" "ansible_inventory" {
@@ -159,7 +155,44 @@ resource "local_file" "ansible_inventory" {
   filename = "../ansible/inventory.ini"
 }
 
-# 8. 執行佈署
+# 8. wait_for_ssh
+resource "null_resource" "wait_for_ssh" {
+  depends_on = [
+    libvirt_domain.k3s_nodes,
+    libvirt_domain.gateway
+  ]
+
+  provisioner "local-exec" {
+    command = <<EOT
+    set -e
+
+    TIMEOUT=300
+
+    for ip in $(seq ${var.net_segment_start} $(( ${var.net_segment_start} + ${var.node_count} - 1 )) ); do
+      echo "waiting ${var.net_segment}.$ip ssh..."
+
+      START=$(date +%s)
+
+      until ssh -o StrictHostKeyChecking=no \
+              -o ConnectTimeout=3 \
+              ${var.vm_user}@${var.net_segment}.$ip "echo ok" 2>/dev/null; do
+
+        sleep 3
+
+        NOW=$(date +%s)
+        if [ $((NOW - START)) -gt $TIMEOUT ]; then
+          echo "timeout waiting ${var.net_segment}.$ip"
+          exit 1
+        fi
+      done
+
+      echo "${var.net_segment}.$ip ready"
+    done
+    EOT
+  }
+}
+
+# 9. 執行佈署
 resource "null_resource" "ansible_trigger" {
   # 當節點數量改變時，強制重新觸發 Ansible
   triggers = {
@@ -170,14 +203,15 @@ resource "null_resource" "ansible_trigger" {
   depends_on = [
     libvirt_domain.gateway,
     libvirt_domain.k3s_nodes,
-    local_file.ansible_inventory
+    null_resource.wait_for_ssh,
   ]
 
   provisioner "local-exec" {
     command = <<EOT
-      sleep 30
+      # 清理 SSH 指紋 ( gateway )
+      ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.10" || true
 
-      # 使用迴圈清理所有節點的 SSH 指紋
+      # 清理 SSH 指紋 ( 迴圈清理所有節點 )
       %{ for i in range(var.node_count) }
       ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.${var.net_segment_start + i}" || true
       %{ endfor }

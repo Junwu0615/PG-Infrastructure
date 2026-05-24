@@ -45,7 +45,7 @@ resource "libvirt_cloudinit_disk" "commoninit" {
 resource "libvirt_network" "k3s_net" {
   name   = "k3s_net"
   mode   = "nat"
-  domain = "k3s.local"
+  domain = "k8s.local"
   addresses = ["${var.net_segment}.0/24"]
 
   dhcp {
