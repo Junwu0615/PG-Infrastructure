@@ -218,7 +218,7 @@ k3d --version
 
 <br>
 
-### *F.　WSL2 ENV. Startup VM*
+### *G.　WSL2 ENV. Startup VM*
 ```
 # VM 網路
     # 1. 初始化  (k3s_net)
