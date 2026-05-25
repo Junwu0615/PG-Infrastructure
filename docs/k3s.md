@@ -520,7 +520,7 @@ Helm:
           ↓
         pod service
         
-        # STEP 1 安裝 ingress-nginx ( 不採用 Traefik )
+        # ⚠️ STEP 1 安裝 ingress-nginx ( 不採用 Traefik )
             # 安裝 ingress-nginx
                 # kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/baremetal/deploy.yaml
                 
@@ -654,7 +654,7 @@ Helm:
     make deploy ver=v5
     
     3.1. 訪問測試
-    curl -v -H "Host: portainer.k8s.local" http://10.88.0.20/
+    curl -v -H "Host: portainer.k8s.local" http://10.88.0.20:30161
     
     3.2. 訪問測試
     http://portainer.k8s.local

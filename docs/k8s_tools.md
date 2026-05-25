@@ -127,7 +127,7 @@ kubectl delete node <node name>
     # 生效設定檔
     source ~/.bashrc
     
-# ⭐ Ingress 導引 (k3s)
+# [X] ⭐ Ingress 導引 (k3s)
     sudo mkdir -p /var/lib/rancher/k3s/server/manifests/
     sudo rm /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
     sudo cat /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
@@ -220,7 +220,7 @@ k3d --version
 
 ### *G.　WSL2 ENV. Startup VM*
 ```
-# VM 網路
+# [手動] VM 網路
     # 1. 初始化  (k3s_net)
     sudo virsh net-define /etc/libvirt/qemu/networks/k3s_net.xml
         
@@ -264,7 +264,7 @@ k3d --version
     sudo nano /etc/libvirt/qemu/networks/k3s_net.xml
     
 
-# 固定 VM 網路 IP # 手動 ( terraform 全自動 )
+# [手動] 固定 VM 網路 IP # 手動 ( terraform 全自動 )
 sudo virsh net-edit default
     # 編輯
     <network>
