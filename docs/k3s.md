@@ -477,11 +477,14 @@ Ansible:
     # 檢視狀態 ( pods + nodes )
     make status
     
+    # VM 開機 ( K3s 集群 )
+    make vm-power action=start
+    
     # VM 關機 ( K3s 集群 )
-    make power-manage action=stop
+    make vm-power action=stop
     
     # VM 重新啟動 ( K3s 集群 )
-    make power-manage action=reboot
+    make vm-power action=reboot
 
 Kubectl ( k ):
     # 標籤設置，節點 0 為 Master，接著 2 個節點的 service-type 為 app，其餘為 service
@@ -527,10 +530,14 @@ Helm:
     3. 有更新過 ingress ( # helm/app-stack/templates/ingress.yaml ) 則再次部署
     make deploy ver=v5
     
-    4. 測試是否能訪問
-    http://portainer.local
-        # 若是觸發防護機制 則砍掉節點讓 k8s 重生它
-        kubectl delete pod -l app=portainer
+    4.1. 訪問測試
+    curl -v -H "Host: portainer.k8s.local" http://10.88.0.20/
+    
+    4.2. 訪問測試
+    http://portainer.k8s.local
+    
+    * 若是觸發防護機制 則砍掉節點讓 k8s 重生它
+    kubectl delete pod -l app=portainer
 
 
 👁️ 測試 16： 高可用單一實例 ( HA Singleton )

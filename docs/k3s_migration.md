@@ -63,11 +63,14 @@ Ansible:
     # 檢視狀態 ( pods + nodes )
     make status
     
+    # VM 開機 ( K3s 集群 )
+    make vm-power action=start
+    
     # VM 關機 ( K3s 集群 )
-    make power-manage action=stop
+    make vm-power action=stop
     
     # VM 重新啟動 ( K3s 集群 )
-    make power-manage action=reboot
+    make vm-power action=reboot
 
 Kubectl ( k ):
     # 標籤設置
