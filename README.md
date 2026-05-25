@@ -34,7 +34,6 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   ├── docker
     │   │   ├── airflow
     │   │   │   ├── config
-    │   │   │   ├── dags ( copy `PG-Airflow-DAGs` )
     │   │   │   ├── deploy_dags.sh
     │   │   │   ├── docker-compose.yaml
     │   │   │   └── plugins
@@ -87,6 +86,8 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │   └── registry
     │   │       └── docker-compose.yaml
     │   ├── docker-compose.yaml
+    │   ├── gitlab-runner
+    │   │   └── config.toml
     │   ├── terraform
     │   │   ├── main.tf
     │   │   ├── modules
@@ -108,57 +109,32 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   └── wsl2
     ├── gcp
     ├── k3d
-    │   ├── Makefile
-    │   ├── app
-    │   │   ├── app.py
-    │   │   └── dockerfile
-    │   │       └── Dockerfile.app
-    │   └── helm
-    │       └── app-stack
-    │           ├── Chart.yaml
-    │           ├── templates
-    │           │   ├── app
-    │           │   │   └── app-deploy.yaml
-    │           │   ├── configmap.yaml
-    │           │   ├── db-pvc.yaml
-    │           │   ├── ingress.yaml
-    │           │   ├── portainer
-    │           │   │   ├── portainer-deploy.yaml
-    │           │   │   └── portainer-service.yaml
-    │           │   ├── postgres
-    │           │   │   ├── db-deploy.yaml
-    │           │   │   └── db-service.yaml
-    │           │   └── secret.yaml
-    │           ├── values-dev.yaml
-    │           ├── values-prod.yaml
-    │           └── values.yaml
     ├── k3s
     │   ├── Makefile
-    │   ├── ansible
-    │   │   ├── ansible.cfg
-    │   │   ├── group_vars
-    │   │   │   └── all.yml
-    │   │   ├── inventory.ini
-    │   │   └── playbooks
-    │   │       ├── deploy_k3s.yml
-    │   │       ├── init_nodes.yml
-    │   │       ├── power_manage.yml
-    │   │       └── site.yml
     │   ├── app
     │   │   ├── app.py
     │   │   └── dockerfile
     │   │       └── Dockerfile.app
-    │   ├── archive
-    │   │   ├── v1
-    │   │   │   ├── Makefile
-    │   │   │   └── ansible
-    │   │   │       ├── ansible.cfg
-    │   │   │       ├── inventory.ini
-    │   │   │       └── playbooks
-    │   │   │           ├── deploy_k3s.yml
-    │   │   │           ├── init_nodes.yml
-    │   │   │           └── power_manage.yml
-    │   │   └── v2
+    │   ├── bootstrap
+    │   │   ├── ansible
+    │   │   │   ├── ansible.cfg
+    │   │   │   ├── group_vars
+    │   │   │   │   └── all.yml
+    │   │   │   └── playbooks
+    │   │   │       ├── deploy_k3s.yml
+    │   │   │       ├── gateway.yml
+    │   │   │       ├── init_nodes.yml
+    │   │   │       ├── power_manage.yml
+    │   │   │       └── site.yml
+    │   │   ├── archive
+    │   │   └── terraform
+    │   │       ├── cloud_init.cfg
+    │   │       ├── gateway_cloud_init.cfg
+    │   │       ├── inventory.tftpl
+    │   │       ├── main.tf
+    │   │       ├── outputs.tf
+    │   │       ├── terraform.tfvars
+    │   │       └── variables.tf
     │   ├── helm
     │   │   └── app-stack
     │   │       ├── Chart.yaml
@@ -178,43 +154,75 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │       ├── values-dev.yaml
     │   │       ├── values-prod.yaml
     │   │       └── values.yaml
-    │   └── terraform
-    │       ├── cloud_init.cfg
-    │       ├── inventory.tftpl
-    │       ├── main.tf
-    │       ├── outputs.tf
-    │       ├── terraform.tfstate
-    │       ├── terraform.tfstate.backup
-    │       ├── terraform.tfvars
-    │       └── variables.tf
-    ├── kubeadm
+    │   ├── ingress_settings
+    │   │   ├── config.yaml
+    │   │   ├── k8s-http-proxy.service
+    │   │   └── k8s-https-proxy.service
+    │   └── scripts
+    │       └── vm-power.sh
     ├── k3s_migration
+    │   ├── Makefile
+    │   ├── archive
+    │   ├── bootstrap
+    │   │   ├── ansible
+    │   │   │   ├── ansible.cfg
+    │   │   │   ├── group_vars
+    │   │   │   │   └── all.yml
+    │   │   │   ├── inventory.ini
+    │   │   │   └── playbooks
+    │   │   │       ├── deploy_k3s.yml
+    │   │   │       ├── gateway.yml
+    │   │   │       ├── init_nodes.yml
+    │   │   │       ├── power_manage.yml
+    │   │   │       └── site.yml
+    │   │   └── terraform
+    │   │       ├── cloud_init.cfg
+    │   │       ├── env_tfvars
+    │   │       │   └── test.tfvars
+    │   │       ├── inventory.tftpl
+    │   │       ├── main.tf
+    │   │       ├── outputs.tf
+    │   │       ├── terraform.tfstate
+    │   │       └── variables.tf
+    │   ├── gitops
+    │   │   ├── apps
+    │   │   │   ├── base
+    │   │   │   │   ├── cp
+    │   │   │   │   └── inst
+    │   │   │   └── environments
+    │   │   │       ├── prod
+    │   │   │       ├── stage
+    │   │   │       └── test
+    │   │   │           ├── cp-values.yaml
+    │   │   │           ├── inst-values.yaml
+    │   │   │           └── kustomization.yaml
+    │   │   ├── argocd-bootstrap
+    │   │   │   ├── base
+    │   │   │   └── root-apps
+    │   │   │       ├── prod-root.yaml
+    │   │   │       ├── stage-root.yaml
+    │   │   │       └── test-root.yaml
+    │   │   └── infra
+    │   │       ├── base
+    │   │       │   ├── argo_cd
+    │   │       │   ├── docker_registry
+    │   │       │   ├── grafana
+    │   │       │   ├── hashicorp_vault
+    │   │       │   ├── ingress
+    │   │       │   │   └── gitlab-ingress.yaml
+    │   │       │   ├── loki
+    │   │       │   ├── postgresql
+    │   │       │   └── prometheus
+    │   │       └── environments
+    │   │           ├── prod
+    │   │           ├── stage
+    │   │           └── test
+    │   │               └── archive
+    │   ├── scripts
+    │   │   └── vm-power.sh
+    │   └── win_hosts
+    ├── kubeadm
     └── minikube
-        ├── Makefile
-        ├── app
-        │   ├── app.py
-        │   └── dockerfile
-        │       └── Dockerfile.app
-        ├── helm
-        │   └── app-stack
-        │       ├── Chart.yaml
-        │       ├── templates
-        │       │   ├── app
-        │       │   │   └── app-deploy.yaml
-        │       │   ├── configmap.yaml
-        │       │   ├── db-pvc.yaml
-        │       │   ├── ingress.yaml
-        │       │   ├── portainer
-        │       │   │   ├── portainer-deploy.yaml
-        │       │   │   └── portainer-service.yaml
-        │       │   ├── postgres
-        │       │   │   ├── db-deploy.yaml
-        │       │   │   └── db-service.yaml
-        │       │   └── secret.yaml
-        │       ├── values-dev.yaml
-        │       ├── values-prod.yaml
-        │       └── values.yaml
-        └── k8s-manifests
 ```
 
 </ul>
