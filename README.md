@@ -326,36 +326,36 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 △ = 省作業時間 ( 部分與重型服務的 Docker Compose 綑綁 ) => 不遷移
 ``` 
 
-|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**Kubeadm**|**GCP**|
-|--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| **PostgreSQL** | O | - | O | O | O | O | O |
-| **PgAdmin** | O | - | - | - | X | X | X |
-| **PoWA** | X | X | X | X | X | X | X |
-| **Apache Airflow** | O | - | - | - | * | * | * |
-| **Superset** | O | - | - | - | * | * | * |
-| **MQTT Broker** | O | - | - | - | △ | △ | △ |
-| **Apache Kafka** | O | - | - | - | * | * | * |
-| **Kafka UI** | O | - | - | - | △ | △ | △ |
-| **Schema Registry** | O | - | - | - | △ | △ | △ |
-| **Debezium** | O | - | - | - | △ | △ | △ |
-| **Apache Iceberg** | O | - | - | - | * | * | * |
-| **Apache Flink** | O | - | - | - | * | * | * |
-| **Postgres Exporter** | O | O | - | - | O | O | O |
-| **Node Exporter** | O | O | - | - | O | O | O |
-| **Prometheus** | O | O | - | - | O | O | O |
-| **Grafana** | O | O | - | - | O | O | O |
-| **Loki** | O | - | - | - | O | O | O |
-| **Promtail** | O | - | - | - | O | O | O |
-| **Elasticsearch** | O | - | - | - | * | * | * |
-| **Logstash** | O | - | - | - | * | * | * |
-| **Kibana** | O | - | - | - | * | * | * |
-| **Gitlab** | O | - | - | - | * | * | * |
-| **Jenkins** | X | X | X | X | X | X | X |
-| **ArgoCD** | X | - | - | - | O | O | O |
-| **Docker Registry** | O | - | - | - | O | O | O |
-| **Docker Registry UI** | X | X | X | X | X | X | X |
-| **Portainer** | O | O | - | - | △ | △ | △ |
-| **HashiCorp Vault** | O | - | - | - | O | O | O |
+|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**K3s<br>Migration**|**Kubeadm**|**GCP**|
+|--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| **PostgreSQL** | O | - | O | O | O | O | O | O |
+| **PgAdmin** | O | - | X | X | X | X | X | X |
+| **PoWA** | X | X | X | X | X | X | X | X |
+| **Apache Airflow** | O | - | - | - | - | * | * | * |
+| **Superset** | O | - | - | - | - | * | * | * |
+| **MQTT Broker** | O | - | - | - | - | △ | △ | △ |
+| **Apache Kafka** | O | - | - | - | - | * | * | * |
+| **Kafka UI** | O | - | - | - | - | △ | △ | △ |
+| **Schema Registry** | O | - | - | - | - | △ | △ | △ |
+| **Debezium** | O | - | - | - | - | △ | △ | △ |
+| **Apache Iceberg** | O | - | - | - | - | * | * | * |
+| **Apache Flink** | O | - | - | - | - | * | * | * |
+| **Postgres Exporter** | O | O | - | - | - | O | O | O |
+| **Node Exporter** | O | O | - | - | - | O | O | O |
+| **Prometheus** | O | O | - | - | - | O | O | O |
+| **Grafana** | O | O | - | - | - | O | O | O |
+| **Loki** | O | - | - | - | - | O | O | O |
+| **Promtail** | O | - | - | - | - | O | O | O |
+| **Elasticsearch** | O | - | - | - | - | * | * | * |
+| **Logstash** | O | - | - | - | - | * | * | * |
+| **Kibana** | O | - | - | - | - | * | * | * |
+| **Gitlab** | O | - | - | - | - | * | * | * |
+| **Jenkins** | X | X | X | X | X | X | X | X |
+| **ArgoCD** | X | - | - | - | - | O | O | O |
+| **Docker Registry** | O | - | - | - | - | O | O | O |
+| **Docker Registry UI** | X | X | X | X | X | X | X | X |
+| **Portainer** | O | O | - | - | O | △ | △ | △ |
+| **HashiCorp Vault** | O | - | - | - | - | O | O | O |
 
 <br>
 
