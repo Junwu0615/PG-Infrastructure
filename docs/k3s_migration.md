@@ -245,7 +245,7 @@ helm upgrade gitlab-infra gitlab/gitlab \
     
     # [管理員 powershell] 增加路徑 # 統一由 Master 轉發
     notepad C:\Windows\System32\drivers\etc\hosts
-    192.168.122.153 gitlab.k3s.local
+    192.168.122.153 gitlab.k8s.local
     
     # 查看 Traefik 實際偵測到的路由 ( ADDRESS 有值 )
     kubectl get ingress -n infra-tools
@@ -253,10 +253,10 @@ helm upgrade gitlab-infra gitlab/gitlab \
     
     # 訪問測試 1
     # ip addr show | grep -E "inet |192.168"
-    curl -v -H "Host: gitlab.k3s.local" http://10.88.0.20/
+    curl -v -H "Host: gitlab.k8s.local" http://10.88.0.20/
     
     # ip addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}'
-    curl -v -H "Host: gitlab.k3s.local" http://172.28.113.34/
+    curl -v -H "Host: gitlab.k8s.local" http://172.28.113.34/
 
     # 訪問測試 2 確認走向
     tracert 10.88.0.20
@@ -267,7 +267,7 @@ helm upgrade gitlab-infra gitlab/gitlab \
         route add 10.88.0.20 mask 255.255.255.255 0.0.0.0 IF 11
     
     # 訪問測試 3
-    http://gitlab.k3s.local
+    http://gitlab.k8s.local
     
     # 確認是否確實收到請求
     kubectl logs -n kube-system -l app.kubernetes.io/name=traefik -f

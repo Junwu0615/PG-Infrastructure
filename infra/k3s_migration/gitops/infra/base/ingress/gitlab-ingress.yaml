@@ -1,15 +1,19 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
+
 metadata:
   name: gitlab-ingress
   namespace: infra-tools
-  annotations:
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/router.entrypoints: web
+#  annotations:
+#    kubernetes.io/ingress.class: traefik
+#    traefik.ingress.kubernetes.io/router.entrypoints: web
+    
 spec:
-  ingressClassName: traefik
+#  ingressClassName: traefik
+  ingressClassName: nginx
+  
   rules:
-  - host: gitlab.k3s.local
+  - host: gitlab.k8s.local
     http:
       paths:
       - path: /
@@ -30,7 +34,7 @@ spec:
 #    - web
 ##    - websecure
 #  routes:
-#  - match: Host(`gitlab.k3s.local`)
+#  - match: Host(`gitlab.k8s.local`)
 #    kind: Rule
 #    services:
 #    - name: gitlab-infra-webservice-default

@@ -137,7 +137,7 @@ kubectl delete node <node name>
     kubectl logs -n kube-system -l app.kubernetes.io/name=traefik -f
     
     # 查看 Traefik 是否在 HTTPS (443) 上有回應
-    curl -kvI https://gitlab.k3s.local
+    curl -kvI https://gitlab.k8s.local
 ```
   
 <br>
