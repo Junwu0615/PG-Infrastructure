@@ -314,7 +314,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 ### *C.　Service Support Form*
 ```
-* = Homelab 硬體吃不消 ( 折衷改為 Docker Compose ) => 不遷移
+*  = Homelab 硬體吃不消 ( 折衷改為 Docker Compose ) => 不遷移
 △ = 省作業時間 ( 部分與重型服務的 Docker Compose 綑綁 ) => 不遷移
 ``` 
 

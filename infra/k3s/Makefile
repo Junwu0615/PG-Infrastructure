@@ -6,7 +6,7 @@ ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 
 .PHONY: rollback deploy clean build \
-status init apply destroy terraform-list label-nodes vm_format vm-power \
+status init apply destroy terraform-list label-nodes vm-format vm-power \
 load-images save test-clean
 
 app ?= 1
@@ -179,7 +179,7 @@ vm-power:
 
 	@echo "✅  <make vm-power> done."
 
-vm_format:
+vm-format:
 	@for vm in $$(sudo virsh list --all --name); do \
 		if [ -n "$$vm" ]; then \
 			echo "=== 虛擬機: $$vm ==="; \
