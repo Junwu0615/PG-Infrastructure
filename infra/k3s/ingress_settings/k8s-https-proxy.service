@@ -1,0 +1,10 @@
+[Unit]
+Description=K8s HTTPS Proxy
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/socat TCP-LISTEN:443,fork TCP:10.88.0.20:32109
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

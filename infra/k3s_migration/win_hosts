@@ -7,7 +7,7 @@
 # To allow the same kube context to work on the host and the container:
 127.0.0.1 kubernetes.docker.internal
 # End of section
-# 10.88.0.20 portainer.k3s.local
-10.88.0.20 gitlab.k3s.local
-10.88.0.20 minio.k3s.local
-10.88.0.20 kas.k3s.local
+127.0.0.1 portainer.k8s.local
+127.0.0.1 gitlab.k8s.local
+127.0.0.1 minio.k8s.local
+127.0.0.1 kas.k8s.local

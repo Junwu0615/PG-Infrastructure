@@ -508,32 +508,155 @@ Helm:
 👁️ 測試 0 - 14： 重新復刻
 
 👁️ 測試 15： Ingress 流量入口 ( Traefik )
+
+    * 單一環境連線路徑:
+        Chrome
+          ↓
+        Windows:8080
+          ↓ netsh portproxy
+        WSL2:80
+          ↓ socat
+        ingress-nginx
+          ↓
+        pod service
+        
+        # STEP 1 安裝 ingress-nginx ( 不採用 Traefik )
+            # 安裝 ingress-nginx
+                # kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/baremetal/deploy.yaml
+                
+            # 修改 Service 為 NodePort
+                # kubectl edit svc ingress-nginx-controller -n ingress-nginx
+                # 改配置
+                    type: NodePort
+                    
+                    ports:
+                    - appProtocol: http
+                        name: http
+                        nodePort: 30161
+                        port: 80
+                        protocol: TCP
+                        targetPort: http
+                    - appProtocol: https
+                        name: https
+                        nodePort: 32109
+                        port: 443
+                        protocol: TCP
+                        targetPort: https
+                        
+            # 驗證: kubectl get svc -n ingress-nginx
+            NAME                                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
+            ingress-nginx-controller             NodePort    10.43.169.19   <none>        80:30161/TCP,443:32109/TCP   3m43s
+        
+        # STEP 2 Expose ingress controller
+            # Disable Traefik
+                # sudo cat /etc/rancher/k3s/config.yaml
+                # sudo nano /etc/rancher/k3s/config.yaml
+                # sudo systemctl restart k3s
+      
+        # STEP 3 WSL 開 port forward
+            # [不推薦] 手動 # 視窗不能關
+                # sudo socat TCP-LISTEN:80,fork TCP:10.88.0.20:30161
+                # sudo socat TCP-LISTEN:443,fork TCP:10.88.0.20:32109
+                
+            # 背景常駐
+                # 安裝 socat
+                sudo apt update
+                sudo apt install socat -y
+                    # 確認安裝狀態
+                    pc@DESKTOP-PC:~$ which socat
+                    /usr/bin/socat
+                                
+                    # WSL2 監聽查詢 ( 預期如下 )
+                    pc@DESKTOP-PC:~$ sudo ss -ltnp | grep :80
+                    LISTEN 0      5                   *:80               *:*    users:(("socat",pid=202306,fd=5))
+                
+                # 建立檔案
+                # sudo cat /etc/systemd/system/k8s-http-proxy.service
+                # sudo nano /etc/systemd/system/k8s-http-proxy.service
+                
+                # sudo cat /etc/systemd/system/k8s-https-proxy.service
+                # sudo nano /etc/systemd/system/k8s-https-proxy.service
+                
+                # 啟動
+                # sudo systemctl daemon-reload
+                # sudo systemctl enable --now k8s-http-proxy
+                # sudo systemctl enable --now k8s-https-proxy
+                
+                # 驗證 1 # 預期得到 404 Not Found
+                curl http://10.88.0.20:30161
+                
+                # 驗證 2
+                systemctl status k8s-http-proxy
+                systemctl status k8s-https-proxy
+                
+                # 驗證 3
+                curl http://localhost
+                
+                * 重啟
+                sudo systemctl restart k8s-http-proxy
+                sudo systemctl restart k8s-https-proxy
+            
+        # STEP 4 Windows → WSL2
+            # 先不用 80 改用 8080; 查詢目前是否有被占用; 若無直接往下; 若有進行排除或擇別的port
+            netstat -ano | findstr :8080
+        
+            # ip addr show eth0 ( 查詢得到: 172.28.113.34 )
+            pc@DESKTOP-PC:~$ ip addr show eth0
+            2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+                link/ether 00:15:5d:92:5b:06 brd ff:ff:ff:ff:ff:ff
+                inet 172.28.113.34/20 brd 172.28.127.255 scope global eth0
+                   valid_lft forever preferred_lft forever
+                inet6 fe80::215:5dff:fe92:5b06/64 scope link
+                   valid_lft forever preferred_lft forever
+            
+            # [管理員] Windows Admin PowerShell ( 替換查到 IP )
+            netsh interface portproxy add v4tov4 `
+                listenaddress=0.0.0.0 `
+                listenport=8080 `
+                connectaddress=172.28.113.34 `
+                connectport=80
+                
+            netsh interface portproxy add v4tov4 `
+                listenaddress=0.0.0.0 `
+                listenport=443 `
+                connectaddress=172.28.113.34 `
+                connectport=443
+                
+                # 刪除方式
+                netsh interface portproxy delete v4tov4 listenport=80 listenaddress=0.0.0.0
+                netsh interface portproxy delete v4tov4 listenport=443 listenaddress=0.0.0.0
+                
+            # 驗證
+            PS C:\WINDOWS\system32> netsh interface portproxy show all
+            Listen on ipv4:             Connect to ipv4:
+            Address         Port        Address         Port
+            --------------- ----------  --------------- ----------
+            192.168.0.15    8090        172.28.113.34   8090
+            192.168.0.15    5100        172.28.113.34   5100
+            0.0.0.0         8080        172.28.113.34   80
+            
+        # STEP 5 修改 Windows Hosts 檔案
+            # 用 [管理員] powershell 叫起來 否則有權限問題
+            notepad C:\Windows\System32\drivers\etc\hosts
+            
+            # 增加底下格式
+            127.0.0.1 portainer.k8s.local
+        
+        # STEP 6 Ingress YAML
+        # STEP 7 Test: http://portainer.k8s.local
+    
+    0. 進行前置作業 ( 單一環境連線路徑 )
+    
     1. 檢查 Ingress 狀態
     kubectl get ingress -A
-    
-    2. 修改 Windows Hosts 檔案 ( C:\Windows\System32\drivers\etc\hosts )
-    
-        Windows
-          ↓
-        portproxy
-          ↓
-        WSL2 ingress
-          ↓
-        K8s ingress-nginx
         
-        # 用 [管理員] powershell 叫起來 否則有權限問題
-        notepad C:\Windows\System32\drivers\etc\hosts
-        
-        # 增加底下這行 # 統一由 Master 轉發
-        192.168.0.17 portainer.local
-        
-    3. 有更新過 ingress ( # helm/app-stack/templates/ingress.yaml ) 則再次部署
+    2. 有更新過 ingress ( # helm/app-stack/templates/ingress.yaml ) 則再次部署
     make deploy ver=v5
     
-    4.1. 訪問測試
+    3.1. 訪問測試
     curl -v -H "Host: portainer.k8s.local" http://10.88.0.20/
     
-    4.2. 訪問測試
+    3.2. 訪問測試
     http://portainer.k8s.local
     
     * 若是觸發防護機制 則砍掉節點讓 k8s 重生它

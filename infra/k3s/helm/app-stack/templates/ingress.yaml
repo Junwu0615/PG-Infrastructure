@@ -1,21 +1,22 @@
-# helm/app-stack/templates/ingress.yaml
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
+
 metadata:
   name: app-ingress
-  annotations:
-{{/*    nginx.ingress.kubernetes.io/rewrite-target: /*/}}
-    kubernetes.io/ingress.class: traefik
+
 spec:
+  ingressClassName: nginx
+
   rules:
-  - host: portainer.local
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: portainer-service  # 確保這與你的 portainer-service.yaml 名稱一致
-            port:
-              number: 9000  # Portainer 預設 Web Port
+    - host: portainer.k8s.local
+
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+
+            backend:
+              service:
+                name: portainer-service
+                port:
+                  number: 9000
