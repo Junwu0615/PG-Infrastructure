@@ -28,6 +28,7 @@ X = 已棄用
 | **Kafka UI** | O | - | - | - | - | △ | - | - |
 | **Schema Registry** | O | - | - | - | - | △ | - | - |
 | **Debezium** | O | - | - | - | - | △ | - | - |
+| **MinIO** | O | - | - | - | - | △ | - | - |
 | **Apache Iceberg** | O | - | - | - | - | * | - | - |
 | **Apache Flink** | O | - | - | - | - | * | - | - |
 | **Postgres Exporter** | O | O | - | - | - | O | - | - |
@@ -316,6 +317,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
+| **MinIO** | `Object Storage` High-performance AWS S3<br>Compatible `Data Lakehouse` | `TBD` | △ |
 | **Debezium** | `CDC` from Postgres | `TBD` | △ |
 | **Apache Iceberg** | `OLAP` High-performance Table Format `Data Lake` | `TBD` | * |
 | **Apache Flink** | Stateful Computations over Data Streams | `TBD` | * |
