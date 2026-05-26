@@ -5,7 +5,7 @@
 ### *A.　Roadmap*
 
 <details>
-<summary><b><i>　Service Support Form </i></b></summary>
+<summary><b><i>　a.1.　Service Support Form </i></b></summary>
 <ul>
 
 ```
@@ -52,7 +52,7 @@ X = 已棄用
 </details>
 
 <details>
-<summary><b><i>　Project Tree </i></b></summary>
+<summary><b><i>　a.2.　Project Tree </i></b></summary>
 <ul>
 
 ```bash
@@ -287,7 +287,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
 | **PostgreSQL** | `OLTP` Primary Business DB | [5432](http://127.0.0.1:5432) | [8080](http://postgresql.k8s.local:8080) |
-| **PostgreSQL** | Metadata DB for Airflow | [5433](http://127.0.0.1:5433) | * |
+| **PostgreSQL** | Metadata DB for `Airflow` | [5433](http://127.0.0.1:5433) | △ |
 | **PgAdmin** | PostgreSQL Web Management UI | [5050](http://127.0.0.1:5050) | X |
 | **Apache Airflow** | `OLAP` Workflow Orchestration | [8100](http://127.0.0.1:8100) | * |
 | **Superset** | `OLAP` BI Visualization Dashboard | `TBD` | * |
