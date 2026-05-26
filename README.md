@@ -5,6 +5,52 @@
 ### *A.　Roadmap*
 
 <details>
+<summary><b><i>　Service Support Form </i></b></summary>
+<ul>
+
+```
+O = 已實現
+X = 已棄用
+- = 未實現
+* = Homelab 硬體吃不消 ( 折衷改為 Docker Compose ) => 不遷移
+△ = 省作業時間 ( 部分與重型服務的 Docker Compose 綑綁 ) => 不遷移
+``` 
+
+|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**K3s Migration**|**Kubeadm**|**GCP**|
+|--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| **PostgreSQL** | O | - | O | O | O | O | - | - |
+| **PgAdmin** | O | - | X | X | X | X | X | X |
+| **PoWA** | X | X | X | X | X | X | X | X |
+| **Apache Airflow** | O | - | - | - | - | * | - | - |
+| **Superset** | O | - | - | - | - | * | - | - |
+| **MQTT Broker** | O | - | - | - | - | △ | - | - |
+| **Apache Kafka** | O | - | - | - | - | * | - | - |
+| **Kafka UI** | O | - | - | - | - | △ | - | - |
+| **Schema Registry** | O | - | - | - | - | △ | - | - |
+| **Debezium** | O | - | - | - | - | △ | - | - |
+| **Apache Iceberg** | O | - | - | - | - | * | - | - |
+| **Apache Flink** | O | - | - | - | - | * | - | - |
+| **Postgres Exporter** | O | O | - | - | - | O | - | - |
+| **Node Exporter** | O | O | - | - | - | O | - | - |
+| **Prometheus** | O | O | - | - | - | O | - | - |
+| **Grafana** | O | O | - | - | - | O | - | - |
+| **Loki** | O | - | - | - | - | O | - | - |
+| **Promtail** | O | - | - | - | - | O | - | - |
+| **Elasticsearch** | O | - | - | - | - | * | - | - |
+| **Logstash** | O | - | - | - | - | * | - | - |
+| **Kibana** | O | - | - | - | - | * | - | - |
+| **Gitlab** | O | - | - | - | - | * | - | - |
+| **Jenkins** | X | X | X | X | X | X | X | X |
+| **ArgoCD** | X | - | - | - | - | O | - | - |
+| **Docker Registry** | O | - | - | - | - | O | - | - |
+| **Docker Registry UI** | X | X | X | X | X | X | X | X |
+| **Portainer** | O | O | - | - | O | △ | - | - |
+| **HashiCorp Vault** | O | - | - | - | - | O | - | - |
+
+</ul>
+</details>
+
+<details>
 <summary><b><i>　Project Tree </i></b></summary>
 <ul>
 
@@ -240,10 +286,10 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
 | **PostgreSQL** | `OLTP` Primary Business DB | [5432](http://127.0.0.1:5432) | [8080](http://postgresql.k8s.local:8080) |
-| **PostgreSQL** | Metadata DB for Airflow | [5433](http://127.0.0.1:5433) | [8080](http://postgresql.k8s.local:8080) |
+| **PostgreSQL** | Metadata DB for Airflow | [5433](http://127.0.0.1:5433) | * |
 | **PgAdmin** | PostgreSQL Web Management UI | [5050](http://127.0.0.1:5050) | X |
-| **Apache Airflow** | `OLAP` Workflow Orchestration | [8100](http://127.0.0.1:8100) | [8080](http://airflow.k8s.local:8080) |
-| **Superset** | `OLAP` BI Visualization Dashboard | `TBD` | [8080](http://superset.k8s.local:8080) |
+| **Apache Airflow** | `OLAP` Workflow Orchestration | [8100](http://127.0.0.1:8100) | * |
+| **Superset** | `OLAP` BI Visualization Dashboard | `TBD` | * |
 
 </ul>
 </details>
@@ -255,10 +301,10 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
-| **MQTT Broker** | High-concurrency `IoT` Message Ingestion | [1883](http://127.0.0.1:1883) | [8080](http://mqtt.k8s.local:8080) |
-| **Apache Kafka** | Distributed Streaming Platform `Backbone` | [9092](http://127.0.0.1:9092) | [8080](http://kafka.k8s.local:8080) |
-| **Kafka UI** | Topic & Cluster & Consumer Management | [9093](http://127.0.0.1:9093) | [8080](http://kafka-ui.k8s.local:8080) |
-| **Schema Registry** | Centralized Schema Governance `Avro/JSON` | [8081](http://127.0.0.1:8081) | [8080](http://schema-registry.k8s.local:8080) |
+| **MQTT Broker** | High-concurrency `IoT` Message Ingestion | [1883](http://127.0.0.1:1883) | △ |
+| **Apache Kafka** | Distributed Streaming Platform `Backbone` | [9092](http://127.0.0.1:9092) | * |
+| **Kafka UI** | Topic & Cluster & Consumer Management | [9093](http://127.0.0.1:9093) | △ |
+| **Schema Registry** | Centralized Schema Governance `Avro/JSON` | [8081](http://127.0.0.1:8081) | △ |
 
 </ul>
 </details>
@@ -270,9 +316,9 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
-| **Debezium** | `CDC` from Postgres | `TBD` | [8080](http://debezium.k8s.local:8080) |
-| **Apache Iceberg** | `OLAP` High-performance Table Format `Data Lake` | `TBD` | [8080](http://iceberg.k8s.local:8080) |
-| **Apache Flink** | Stateful Computations over Data Streams | `TBD` | [8080](http://flink.k8s.local:8080) |
+| **Debezium** | `CDC` from Postgres | `TBD` | △ |
+| **Apache Iceberg** | `OLAP` High-performance Table Format `Data Lake` | `TBD` | * |
+| **Apache Flink** | Stateful Computations over Data Streams | `TBD` | * |
 
 </ul>
 </details>
@@ -291,9 +337,9 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 | **Grafana** | Dashboard | [3000](http://127.0.0.1:3000) | [8080](http://grafana.k8s.local:8080) |
 | **Loki** | `Manage Log` | [3100](http://127.0.0.1:3100) | [8080](http://loki.k8s.local:8080) |
 | **Promtail** | for `Loki` | - | - |
-| **Elasticsearch** | `Manage Log` Distributed Search Engine | [9200](http://127.0.0.1:9200) | [8080](http://elasticsearch.k8s.local:8080) |
-| **Logstash** | `Manage Log` Log Processing Pipeline | [9600](http://127.0.0.1:9600) | [8080](http://logstash.k8s.local:8080) |
-| **Kibana** | `Manage Log` Log Exploration UI | [5601](http://127.0.0.1:5601) | [8080](http://kibana.k8s.local:8080) |
+| **Elasticsearch** | `Manage Log` Distributed Search Engine | [9200](http://127.0.0.1:9200) | * |
+| **Logstash** | `Manage Log` Log Processing Pipeline | [9600](http://127.0.0.1:9600) | * |
+| **Kibana** | `Manage Log` Log Exploration UI | [5601](http://127.0.0.1:5601) | * |
 
 </ul>
 </details>
@@ -305,71 +351,30 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 
 |**Service**|**Description**|**Docker**|**K8s**|
 |--:|:--|:--:|:--:|
-| **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | [8080](http://gitlab.k8s.local:8080) |
+| **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | * |
 | **Jenkins** | `Continuous Delivery` | X | X |
 | **ArgoCD** | `Continuous Delivery` | X | [8080](http://argo-cd.k8s.local:8080) |
 | **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | [8080](http://docker-registry.k8s.local:8080) |
 | **Docker Registry UI** | for `Docker Registry` | X | X |
-| **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | [8080](http://portainer.k8s.local:8080) |
+| **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | △ |
 | **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | [8080](http://hashicorp-vault.k8s.local:8080) |
 
 </ul>
 </details>
 
-
 <br>
 
-
-### *C.　Service Support Form*
-```
-*  = Homelab 硬體吃不消 ( 折衷改為 Docker Compose ) => 不遷移
-△ = 省作業時間 ( 部分與重型服務的 Docker Compose 綑綁 ) => 不遷移
-``` 
-
-|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**K3s Migration**|**Kubeadm**|**GCP**|
-|--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| **PostgreSQL** | O | - | O | O | O | O | O | O |
-| **PgAdmin** | O | - | X | X | X | X | X | X |
-| **PoWA** | X | X | X | X | X | X | X | X |
-| **Apache Airflow** | O | - | - | - | - | * | * | * |
-| **Superset** | O | - | - | - | - | * | * | * |
-| **MQTT Broker** | O | - | - | - | - | △ | △ | △ |
-| **Apache Kafka** | O | - | - | - | - | * | * | * |
-| **Kafka UI** | O | - | - | - | - | △ | △ | △ |
-| **Schema Registry** | O | - | - | - | - | △ | △ | △ |
-| **Debezium** | O | - | - | - | - | △ | △ | △ |
-| **Apache Iceberg** | O | - | - | - | - | * | * | * |
-| **Apache Flink** | O | - | - | - | - | * | * | * |
-| **Postgres Exporter** | O | O | - | - | - | O | O | O |
-| **Node Exporter** | O | O | - | - | - | O | O | O |
-| **Prometheus** | O | O | - | - | - | O | O | O |
-| **Grafana** | O | O | - | - | - | O | O | O |
-| **Loki** | O | - | - | - | - | O | O | O |
-| **Promtail** | O | - | - | - | - | O | O | O |
-| **Elasticsearch** | O | - | - | - | - | * | * | * |
-| **Logstash** | O | - | - | - | - | * | * | * |
-| **Kibana** | O | - | - | - | - | * | * | * |
-| **Gitlab** | O | - | - | - | - | * | * | * |
-| **Jenkins** | X | X | X | X | X | X | X | X |
-| **ArgoCD** | X | - | - | - | - | O | O | O |
-| **Docker Registry** | O | - | - | - | - | O | O | O |
-| **Docker Registry UI** | X | X | X | X | X | X | X | X |
-| **Portainer** | O | O | - | - | O | △ | △ | △ |
-| **HashiCorp Vault** | O | - | - | - | - | O | O | O |
-
-<br>
-
-### *D.　Notice*
-- #### *d.1.　[Dev Startup Service](./docs/dev_startup_service.md)*
-- #### *d.2.　[WSL2 Docker Engine](./docs/wsl2_docker_engine.md)*
-- #### *d.3.　[Terraform & Ansible](./docs/terraform_ansible.md)*
-- #### *d.4.　[Docker Compose + Terraform & Ansible](./docs/docker_compose.md)*
-- #### *d.5.　[K8s Tools](./docs/k8s_tools.md)*
-- #### *d.6.　[MiniKube](./docs/minikube.md)*
-- #### *d.7.　[K3s in Docker ( K3d )](./docs/k3d.md)*
-- #### *d.8.　[Lightweight Kubernetes ( K3s )](./docs/k3s.md)*
-- #### *d.9.　[K3s Migration](./docs/k3s_migration.md)*
-- #### *d.10.　[Kubeadm](./docs/kubeadm.md)*
-- #### *d.11.　[GCP](./docs/gcp.md)*
+### *C.　Notice*
+- #### *c.1.　[Dev Startup Service](./docs/dev_startup_service.md)*
+- #### *c.2.　[WSL2 Docker Engine](./docs/wsl2_docker_engine.md)*
+- #### *c.3.　[Terraform & Ansible](./docs/terraform_ansible.md)*
+- #### *c.4.　[Docker Compose + Terraform & Ansible](./docs/docker_compose.md)*
+- #### *c.5.　[K8s Tools](./docs/k8s_tools.md)*
+- #### *c.6.　[MiniKube](./docs/minikube.md)*
+- #### *c.7.　[K3s in Docker ( K3d )](./docs/k3d.md)*
+- #### *c.8.　[Lightweight Kubernetes ( K3s )](./docs/k3s.md)*
+- #### *c.9.　[K3s Migration](./docs/k3s_migration.md)*
+- #### *c.10.　[Kubeadm](./docs/kubeadm.md)*
+- #### *c.11.　[GCP](./docs/gcp.md)*
 
 <br><br><br>
