@@ -12,14 +12,14 @@
 O = 已實現
 X = 已棄用
 - = 未實現
-* = Homelab 硬體吃不消 ( 折衷改為 Docker Compose ) => 不遷移
+* = Homelab 記憶體 OOM ( 折衷改為 Docker Compose ) => 不遷移
 △ = 省作業時間 ( 部分與重型服務的 Docker Compose 綑綁 ) => 不遷移
 ``` 
 
-|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**K3s Migration**|**Kubeadm**|**GCP**|
+|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**K3s<br>( Migration )**|**Kubeadm**|**GCP**|
 |--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | **PostgreSQL** | O | - | O | O | O | O | - | - |
-| **PgAdmin** | O | - | X | X | X | X | X | X |
+| **PgAdmin** | O | X | X | X | X | X | X | X |
 | **PoWA** | X | X | X | X | X | X | X | X |
 | **Apache Airflow** | O | - | - | - | - | * | - | - |
 | **Superset** | O | - | - | - | - | * | - | - |
