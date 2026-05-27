@@ -33,7 +33,7 @@ k3s_migration/
     │       ├── stage/
     │       └── prod/
     │
-    └── apps/                          # 自定義研業務服務（ cp, inst ）
+    └── applications/                          # 自定義研業務服務（ cp, inst ）
         ├── base/
         │   ├── inst/                  # 手刻的 K8s Deployment/Service YAML
         │   └── cp/
@@ -91,19 +91,40 @@ Helm:
 <ul>
 
 ```
-# 持續觀察
+* --- 持續觀察 --- *
 kubectl get pods -n infra-data -w
 kubectl get pods -n infra-monitor -w
 kubectl get pods -n infra-tools -w
 kubectl get pods -n dev-apps -w
+```
+---
+```
+* --- 新增官方 Helm 倉庫 --- *
 
+# 新增 gitlab
+helm repo add gitlab https://charts.gitlab.io/
 
-# 建立命名空間
+# 新增 bitnami
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+# 新增 minio 官方倉庫
+helm repo add minio https://charts.min.io/
+
+# 結尾更新
+helm repo update
+```
+---
+```
+* --- 建立命名空間 --- *
+
 kubectl create namespace infra-data       # => Postgres, Kafka, Airflow
 kubectl create namespace infra-monitor    # => Prometheus, Grafana, ELK
 kubectl create namespace infra-tools      # => GitLab, Portainer, Vault
 kubectl create namespace dev-apps         # => 自定義業務服務: cp, inst 
-
+```
+---
+```
+* --- 常見操作 --- *
 
 # 檢視已建立密碼
 kubectl get secrets -n infra-data
@@ -151,24 +172,10 @@ kubectl logs -n infra-tools -l app=webservice -c dependencies
 kubectl describe pod -n infra-tools -l app=migrations
 kubectl describe pod -n infra-tools -l app=webservice
 kubectl describe pod -n infra-data -l app.kubernetes.io/name=postgresql
-
-
-# 新增官方 Helm 倉庫
-    # 新增 gitlab
-    helm repo add gitlab https://charts.gitlab.io/
-    
-    # 新增 bitnami
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-    
-    # 新增 minio 官方倉庫
-    helm repo add minio https://charts.min.io/
-    
-    # 結尾更新
-    helm repo update
-
-
-# 手動過渡期
-# 基礎設施基底 ( gitlab + postgresql + airflow )
+```
+---
+```
+* --- 手動過渡期: 基礎設施基底 ( gitlab + postgresql + airflow ) --- *
 
 # 1. 防呆
 # 徹底刪除可能卡死的「內建」Postgres StatefulSet
@@ -268,9 +275,12 @@ helm upgrade gitlab-infra gitlab/gitlab \
     kubectl logs -n kube-system -l app.kubernetes.io/name=traefik -f
 
 # [X] 5. 啟動 airflow
+=> ⚠️ 遇到 OOMKilled => 折衷改為 Docker Compose
+```
+---
+```
+* --- 砍上述一系列依賴設置 --- *
 
-
-# 砍上述一系列依賴設置
 # pods
 helm uninstall gitlab-infra -n infra-tools
 helm uninstall postgres-infra -n infra-data
@@ -309,24 +319,220 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 <ul>
 
 ```
-# 開啟 Docker Compose
+# 啟動 Docker Compose
 cd infra/docker-compose
 make gitlab action=up
-make postgresql action=up
+#make postgresql action=up
 #make registry action=up
 #make airflow action=up
 make portainer action=up
-make monitoring action=up
+#make monitoring action=up
 make mqtt action=up
 make kafka action=up
 make elk action=up
 
 
+# 啟動 k3s 集群
+```
+---
+```
+* --- GitLab GitOps 專案結構樹 --- *
+    GitLab ( SCM / CI Source )
+    │
+    ├── infra-live/           # ⚠️ GitOps 部署來源 ( ArgoCD Watch ) # Source of Truth
+    ├── infra-modules/        # 可重用 K8S/Terraform Module
+    ├── app-manifests/        # 業務服務 YAML/Helm Values
+    ├── docker-services/      # Compose Stateful Services
+    ├── platform-docs/        # 文件
+    └── README
 
-# 開啟 k3s 集群
+
+* --- K3s 部署結構樹 ( GitOps 與其對齊 ) --- *
+    infra-live/
+    │
+    ├── bootstrap/ # 叢集初始化必備元件
+    │   ├── argocd/
+    │   ├── namespaces/
+    │   ├── cert-manager/
+    │   ├── ingress-nginx/
+    │   └── sealed-secrets/
+    │
+    ├── environments/       ⚠️ Promotion Layer
+    │   └── homelab/
+    │       ├── test/
+    │       ├── stage/
+    │       └── prod/
+    │
+    ├── applications/       ⚠️ Deployable Units  
+    │   ├── observability/
+    │   │   ├── tracing/
+    │   │   │   ├── [X] tempo/
+    │   │   │   ├── [X] jaeger/
+    │   │   │   └── [X] opentelemetry/
+    │   │   │
+    │   │   ├── visualization/
+    │   │   │   └── grafana/
+    │   │   │
+    │   │   ├── metrics/
+    │   │   │   ├── exporters/
+    │   │   │   │   ├── postgres-exporter/
+    │   │   │   │   └── node-exporter/
+    │   │   │   └── prometheus/
+    │   │   │
+    │   │   └── logging/
+    │   │       ├── loki/
+    │   │       └── promtail/
+    │   │
+    │   ├── platform/
+    │   │   ├── registry/
+    │   │   └── argocd/     ⚠️ Deployment Controller
+    │   │
+    │   ├── security/
+    │   │   └── vault/
+    │   │
+    │   ├── databases/
+    │   │   └── postgresql/
+    │   │
+    │   └── storage/
+    │       ├── [X] longhorn/
+    │       ├── [X] rook-ceph/
+    │       ├── [X] minio/
+    │       └── nfs/
+    │
+    ├── argocd/
+    │   ├── projects/
+    │   └── applications/
+    │
+    ├── policies/
+    │
+    ├── templates/
+    │
+    └── README
+    
+    infra-live/bootstrap/
+    └── namespaces/
+        ├── monitoring.yaml
+        ├── logging.yaml
+        ├── security.yaml
+        └── platform.yaml
+    
+    infra-live/environments/test/
+    ├── root-app.yaml               ⚠️ App-of-Apps Pattern
+    ├── core/core.yaml
+    ├── observability/observability.yaml
+    ├── security/security.yaml
+    ├── storage/storage.yaml
+    └── apps/apps.yaml
+    
+    infra-live/argocd               ⚠️ ArgoCD 治理邊界
+    ├── applications/
+    │   ├── grafana-app.yaml
+    │   ├── prometheus-app.yaml
+    │   └── ...
+    │
+    └── projects/
+        ├── observability-project.yaml
+        ├── platform-project.yaml
+        ├── security-project.yaml
+        ├── databases-project.yaml
+        └── storage-project.yaml
+    
+
+* --- Applications: Databases --- *
+
+    infra-live/applications/postgresql/
+    ├── helm-release/
+    ├── backup/
+    ├── restore/
+    ├── pvc/
+    └── monitoring/
+    
+* --- Applications: Helm + Values 分離 --- *
+
+    applications/grafana
+    ├── helm/
+    ├── kustomize/
+    └── values/                     ⚠️ Environment Overlay
+
+    applications/grafana/values/    ⚠️ Promotion Flow ( 非 main / Git Tag Promotion )
+    ├── common.yaml  # 共用: image repo / ingress annotations / persistence
+    ├── test.yaml
+    ├── stage.yaml
+    └── prod.yaml
+```
+---
+```
+* --- 實施步驟 --- *
+
+    GitLab Repo
+        ↓
+    ArgoCD 接管
+        ↓
+    App-of-Apps 啟動
+        ↓
+    GitOps 自動同步
 
 
+| 階段     | 目標                  |
+| ------- | --------------------  |
+| Phase 1 | Bootstrap Cluster     |
+| Phase 2 | 安裝 ArgoCD            |
+| Phase 3 | 建立 AppProject        |
+| Phase 4 | 建立 Root App          |
+| Phase 5 | 接管 Observability     |
+| Phase 6 | 接管 Security          |
+| Phase 7 | 接管 Stateful Services |
 
+
+* --- DevOps Flow --- *
+    Push Code
+        ↓
+    GitLab CI
+        ↓
+    Build Image
+        ↓
+    Push Registry
+        ↓
+    Update values.yaml
+        ↓
+    ArgoCD Detect Drift
+        ↓
+    Deploy
+```
+---
+```
+# 1. 基礎治理元件
+    bootstrap/
+    ├── namespaces/
+    ├── ingress-nginx/
+    ├── cert-manager/
+    ├── sealed-secrets/
+    └── argocd/
+
+    # 建立 namespaces
+    kubectl apply -f bootstrap/namespaces/
+    
+    # 安裝 ingress-nginx
+    
+    # 安裝 cert-manager
+    
+    # 安裝 sealed-secrets
+    
+# 2. ArgoCD
+    # 安裝 ArgoCD
+    helm repo add argo https://argoproj.github.io/argo-helm
+    helm repo update
+    
+    # 啟動 ArgoCD
+    helm install argocd argo/argo-cd \
+      -n argocd \
+      --create-namespace
+
+# 3.
+# 4.
+# 5.
+# 6.
+# 7.
 ```
 
 </ul>

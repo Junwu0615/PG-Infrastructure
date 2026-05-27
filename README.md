@@ -355,7 +355,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 |--:|:--|:--:|:--:|
 | **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | * |
 | **Jenkins** | `Continuous Delivery` | X | X |
-| **ArgoCD** | `Continuous Delivery` | X | [8080](http://argo-cd.k8s.local:8080) |
+| **ArgoCD** | `Continuous Delivery`<br>`Deployment Controller` | X | [8080](http://argo-cd.k8s.local:8080) |
 | **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | [8080](http://docker-registry.k8s.local:8080) |
 | **Docker Registry UI** | for `Docker Registry` | X | X |
 | **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | △ |
