@@ -1,16 +1,16 @@
 MAIN_NAME = pg-cluster
 
 COMPOSE_DIR = ./docker-compose.yaml
-AIRFLOW_DIR = ./docker/airflow/docker-compose.yaml
-MONITORING_DIR = ./docker/monitoring/docker-compose.yaml
-POSTGRESQL_DIR = ./docker/postgresql/docker-compose.yaml
-PORTAINER_DIR = ./docker/portainer/docker-compose.yaml
-REGISTRY_DIR = ./docker/registry/docker-compose.yaml
-GITLAB_DIR = ./docker/gitlab/docker-compose.yaml
+#AIRFLOW_DIR = ./docker/airflow/docker-compose.yaml
+#MONITORING_DIR = ./docker/monitoring/docker-compose.yaml
+#POSTGRESQL_DIR = ./docker/postgresql/docker-compose.yaml
+#PORTAINER_DIR = ./docker/portainer/docker-compose.yaml
+#REGISTRY_DIR = ./docker/registry/docker-compose.yaml
+#GITLAB_DIR = ./docker/gitlab/docker-compose.yaml
 #JENKINS_DIR = ./docker/jenkins/docker-compose.yaml
-MQTT_DIR = ./docker/iot-platform/mqtt-compose.yaml
-KAFKA_DIR = ./docker/iot-platform/kafka-compose.yaml
-ELK_DIR = ./docker/elk/docker-compose.yaml
+#MQTT_DIR = ./docker/iot-platform/mqtt-compose.yaml
+#KAFKA_DIR = ./docker/iot-platform/kafka-compose.yaml
+#ELK_DIR = ./docker/elk/docker-compose.yaml
 
 AIRFLOW_CONTENT = airflow-webserver airflow-scheduler airflow-worker airflow-triggerer redis postgres
 MONITORING_CONTENT = grafana prometheus node_exporter postgres_exporter promtail loki
@@ -23,13 +23,14 @@ MQTT_CONTENT = mqtt
 KAFKA_CONTENT = kafka kafka-connect kafka-ui schema-registry
 ELK_CONTENT = elasticsearch logstash kibana
 
-TERRAFORM_DIR = ./terraform
-ANSIBLE_DIR = ./ansible
+TERRAFORM_PATH = ./terraform
+ANSIBLE_PATH = ./ansible
 AIRFLOW_PATH = ./docker/airflow
-IoT_DIR = ./docker/iot-platform
+#IoT_PATH = ./docker/iot-platform
 
 LOCAL_PATH = 127.0.0.1
 OUTSIDE_PATH = 192.168.0.15
+
 KAFKA_CONN_ALL_JSON := $(wildcard ./docker/iot-platform/config/connectors/source/*.json ./docker/iot-platform/config/connectors/sink/*.json)
 TOPIC_FILTER := __consumer_offsets|docker-connect-configs|docker-connect-offsets|docker-connect-status
 SCHEMA_FILTER := template
@@ -63,7 +64,7 @@ init: dev-mode
 	@echo "[1.2] 修正 Airflow 目錄權限, 讓目錄及其子目錄歸屬給 UID 50000 + 確保權限足夠 (rwxr-xr-x)"
 	@make prod-mode
 	@echo "[1.3] 執行 Airflow 資料庫初始化 ..."
-	docker compose -f $(AIRFLOW_DIR) up airflow-init
+	docker compose -f $(COMPOSE_DIR) up airflow-init
 
 	@echo "[2] 建立 iot-platform 網路"
 	docker network inspect pg-cluster_iot_network >/dev/null 2>&1 || \
@@ -99,7 +100,7 @@ fix-sock:
 
 db-wait:
 	@echo "1. 正在啟動資料庫 ..."
-	docker compose -f $(POSTGRESQL_DIR) up -d common-db --no-recreate
+	docker compose -f $(COMPOSE_DIR) up -d common-db --no-recreate
 	@echo "2. 等待資料庫就緒 ..."
 	sleep 10
 
@@ -165,12 +166,12 @@ airflow: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(AIRFLOW_DIR) up -d $(AIRFLOW_CONTENT); \
+		docker compose -f $(COMPOSE_DIR) up -d $(AIRFLOW_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(AIRFLOW_DIR) down $(AIRFLOW_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(COMPOSE_DIR) down $(AIRFLOW_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(AIRFLOW_DIR) restart $(AIRFLOW_CONTENT); \
+	   docker compose -f $(COMPOSE_DIR) restart $(AIRFLOW_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -184,12 +185,12 @@ monitoring: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(MONITORING_DIR) up -d $(MONITORING_CONTENT); \
+		docker compose -f $(COMPOSE_DIR) up -d $(MONITORING_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(MONITORING_DIR) down $(MONITORING_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(COMPOSE_DIR) down $(MONITORING_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(MONITORING_DIR) restart $(MONITORING_CONTENT); \
+	   docker compose -f $(COMPOSE_DIR) restart $(MONITORING_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -203,12 +204,12 @@ postgresql: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(POSTGRESQL_DIR) up -d $(POSTGRESQL_CONTENT); \
+		docker compose -f $(COMPOSE_DIR) up -d $(POSTGRESQL_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(POSTGRESQL_DIR) down $(POSTGRESQL_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(COMPOSE_DIR) down $(POSTGRESQL_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(POSTGRESQL_DIR) restart $(POSTGRESQL_CONTENT); \
+	   docker compose -f $(COMPOSE_DIR) restart $(POSTGRESQL_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -222,12 +223,12 @@ portainer: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(PORTAINER_DIR) up -d $(PORTAINER_CONTENT); \
+		docker compose -f $(COMPOSE_DIR) up -d $(PORTAINER_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(PORTAINER_DIR) down $(PORTAINER_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(COMPOSE_DIR) down $(PORTAINER_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(PORTAINER_DIR) restart $(PORTAINER_CONTENT); \
+	   docker compose -f $(COMPOSE_DIR) restart $(PORTAINER_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -241,12 +242,12 @@ registry: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(REGISTRY_DIR) up -d $(REGISTRY_CONTENT); \
+		docker compose -f $(COMPOSE_DIR) up -d $(REGISTRY_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(REGISTRY_DIR) down $(REGISTRY_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(COMPOSE_DIR) down $(REGISTRY_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(REGISTRY_DIR) restart $(REGISTRY_CONTENT); \
+	   docker compose -f $(COMPOSE_DIR) restart $(REGISTRY_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -260,12 +261,12 @@ gitlab: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(GITLAB_DIR) up -d $(GITLAB_CONTENT); \
+		docker compose -f $(COMPOSE_DIR) up -d $(GITLAB_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(GITLAB_DIR) down $(GITLAB_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(COMPOSE_DIR) down $(GITLAB_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(GITLAB_DIR) restart $(GITLAB_CONTENT); \
+	   docker compose -f $(COMPOSE_DIR) restart $(GITLAB_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -279,12 +280,12 @@ gitlab: fix-sock
 #		exit 1; \
 #	fi
 #	@if [ "$(action)" = "up" ]; then \
-#		docker compose -f $(JENKINS_DIR) up -d $(JENKINS_CONTENT); \
+#		docker compose -f $(COMPOSE_DIR) up -d $(JENKINS_CONTENT); \
 #	elif [ "$(action)" = "down" ]; then \
 #	  	echo "正在停止服務... 參數: $(volume)"; \
-#		docker compose -f $(JENKINS_DIR) down $(JENKINS_CONTENT) --remove-orphans $(volume); \
+#		docker compose -f $(COMPOSE_DIR) down $(JENKINS_CONTENT) --remove-orphans $(volume); \
 #	elif [ "$(action)" = "restart" ]; then \
-#	   docker compose -f $(JENKINS_DIR) restart $(JENKINS_CONTENT); \
+#	   docker compose -f $(COMPOSE_DIR) restart $(JENKINS_CONTENT); \
 #	else \
 #		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 #		exit 1; \
@@ -298,12 +299,12 @@ mqtt: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(MQTT_DIR) up -d $(MQTT_CONTENT); \
+		docker compose -f $(COMPOSE_DIR) up -d $(MQTT_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(MQTT_DIR) down $(MQTT_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(COMPOSE_DIR) down $(MQTT_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(MQTT_DIR) restart $(MQTT_CONTENT); \
+	   docker compose -f $(COMPOSE_DIR) restart $(MQTT_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -317,12 +318,12 @@ kafka: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(KAFKA_DIR) up -d $(KAFKA_CONTENT); \
+		docker compose -f $(COMPOSE_DIR) up -d $(KAFKA_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(KAFKA_DIR) down $(KAFKA_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(COMPOSE_DIR) down $(KAFKA_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(KAFKA_DIR) restart $(KAFKA_CONTENT); \
+	   docker compose -f $(COMPOSE_DIR) restart $(KAFKA_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -336,12 +337,12 @@ elk: fix-sock
 		exit 1; \
 	fi
 	@if [ "$(action)" = "up" ]; then \
-		docker compose -f $(ELK_DIR) up -d $(ELK_CONTENT); \
+		docker compose -f $(COMPOSE_DIR) up -d $(ELK_CONTENT); \
 	elif [ "$(action)" = "down" ]; then \
 	  	echo "正在停止服務... 參數: $(volume)"; \
-		docker compose -f $(ELK_DIR) down $(ELK_CONTENT) --remove-orphans $(volume); \
+		docker compose -f $(COMPOSE_DIR) down $(ELK_CONTENT) --remove-orphans $(volume); \
 	elif [ "$(action)" = "restart" ]; then \
-	   docker compose -f $(ELK_DIR) restart $(ELK_CONTENT); \
+	   docker compose -f $(COMPOSE_DIR) restart $(ELK_CONTENT); \
 	else \
 		echo "Error: 不支援的動作 '$(action)'，僅限 [up/down/restart]"; \
 		exit 1; \
@@ -375,31 +376,31 @@ rm:
 
 setup:
 	@echo "* Initializing Infrastructure ..."
-	cd $(TERRAFORM_DIR) && terraform init
+	cd $(TERRAFORM_PATH) && terraform init
 	ansible-galaxy collection install community.docker
 
 infra:
 	@echo "* Terraform: Deploying Infrastructure ..."
-	cd $(TERRAFORM_DIR) && terraform apply -auto-approve
+	cd $(TERRAFORM_PATH) && terraform apply -auto-approve
 
 config:
 	@echo "* Ansible: Applying Configurations ..."
-	cd $(ANSIBLE_DIR) && ansible-playbook -i inventory.ini playbook.yml
+	cd $(ANSIBLE_PATH) && ansible-playbook -i inventory.ini playbook.yml
 
 reload:
 	@echo "* Ansible: Applying Configurations ..."
-	cd $(ANSIBLE_DIR) && ansible-playbook -i inventory.ini playbook.yml --tags reload
+	cd $(ANSIBLE_PATH) && ansible-playbook -i inventory.ini playbook.yml --tags reload
 
 all: infra config
 	@echo "* 依賴 Terraform + Ansible 服務全部啟動 ..."
 
 destroy:
 	@echo "* Terraform: Destroy Infrastructure ..."
-	cd $(TERRAFORM_DIR) && terraform destroy -auto-approve
+	cd $(TERRAFORM_PATH) && terraform destroy -auto-approve
 
 graph:
 	@echo "* 顯示 Terraform 如何理清模組間依賴關係 ..."
-	cd $(TERRAFORM_DIR) && terraform graph
+	cd $(TERRAFORM_PATH) && terraform graph
 
 kafka-connect-create:
 	@echo "* 根據指定路徑將 Kafka Connection 進行創建設定 ..."

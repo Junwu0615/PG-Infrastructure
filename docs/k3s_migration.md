@@ -84,7 +84,12 @@ Helm:
 
 <br>
 
-### *C.　摸索 ...*
+### *C.　遷移過程*
+
+<details>
+<summary><b><i>　c.1.　摸索 ( gitlab / postgresql ) </i></b></summary>
+<ul>
+
 ```
 # 持續觀察
 kubectl get pods -n infra-data -w
@@ -262,7 +267,7 @@ helm upgrade gitlab-infra gitlab/gitlab \
     # 確認是否確實收到請求
     kubectl logs -n kube-system -l app.kubernetes.io/name=traefik -f
 
-# 5. 啟動 airflow
+# [X] 5. 啟動 airflow
 
 
 # 砍上述一系列依賴設置
@@ -294,5 +299,37 @@ kubectl delete secret gitlab-postgres-pass -n infra-tools --ignore-not-found
 kubectl delete clusterrolebinding traefik-kube-system --ignore-not-found
 kubectl delete clusterrole traefik-kube-system --ignore-not-found
 ```
+
+</ul>
+</details>
+
+
+<details open>
+<summary><b><i>　c.2.　混合架構 ( 避免 OOM ) </i></b></summary>
+<ul>
+
+```
+# 開啟 Docker Compose
+cd infra/docker-compose
+make gitlab action=up
+make postgresql action=up
+#make registry action=up
+#make airflow action=up
+make portainer action=up
+make monitoring action=up
+make mqtt action=up
+make kafka action=up
+make elk action=up
+
+
+
+# 開啟 k3s 集群
+
+
+
+```
+
+</ul>
+</details>
 
 <br><br><br>
