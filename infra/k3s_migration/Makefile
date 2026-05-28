@@ -12,7 +12,10 @@ init-gitops
 
 
 init-gitops:
-	@echo "* 一鍵部署基礎設置 ( GitOps )"
+	@echo "* 一鍵部署基礎設置 ( GitOps Bootstrap Cluster )"
+	cd ./infra-live/bootstrap/ && \
+	chmod +x cluster/scripts/bootstrap-cluster.sh && \
+	./cluster/scripts/bootstrap-cluster.sh
 
 save:
 	@echo "* 導出映像檔至 $(TAR_FILE)"

@@ -478,6 +478,8 @@ Layer 2 — Node Bootstrap ( Ansible )
 ```
 ---
 ```
+make init-gitops
+
 # 1. 手動初始化 bootstrap
 chmod +x bootstrap-cluster.sh
 ./bootstrap-cluster.sh

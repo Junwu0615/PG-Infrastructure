@@ -66,8 +66,6 @@ helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
 echo ""
 echo "[8/10] Install ArgoCD..."
 
-kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-
 helm upgrade --install argocd argo/argo-cd \
   --namespace argocd \
   -f "${BASE_DIR}/argocd/values.yaml"
