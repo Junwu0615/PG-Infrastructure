@@ -5,8 +5,8 @@ metadata:
   name: argocd-server
   namespace: argocd
 
-#  annotations:
-#    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
 
 spec:
   ingressClassName: nginx
