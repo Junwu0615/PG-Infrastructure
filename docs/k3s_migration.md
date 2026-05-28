@@ -60,7 +60,7 @@ kubectl get pods -n infra-monitor -w
 kubectl get pods -n infra-tools -w
 kubectl get pods -n dev-apps -w
 ```
----
+
 ```
 * --- 新增官方 Helm 倉庫 --- *
 
@@ -76,7 +76,7 @@ helm repo add minio https://charts.min.io/
 # 結尾更新
 helm repo update
 ```
----
+
 ```
 * --- 建立命名空間 --- *
 
@@ -85,7 +85,7 @@ kubectl create namespace infra-monitor    # => Prometheus, Grafana, ELK
 kubectl create namespace infra-tools      # => GitLab, Portainer, Vault
 kubectl create namespace dev-apps         # => 自定義業務服務: cp, inst 
 ```
----
+
 ```
 * --- 常見操作 --- *
 
@@ -136,7 +136,7 @@ kubectl describe pod -n infra-tools -l app=migrations
 kubectl describe pod -n infra-tools -l app=webservice
 kubectl describe pod -n infra-data -l app.kubernetes.io/name=postgresql
 ```
----
+
 ```
 * --- 手動過渡期: 基礎設施基底 ( gitlab + postgresql + airflow ) --- *
 
@@ -240,7 +240,7 @@ helm upgrade gitlab-infra gitlab/gitlab \
 # [X] 5. 啟動 airflow
 => ⚠️ 遇到 OOMKilled => 折衷改為 Docker Compose
 ```
----
+
 ```
 * --- 砍上述一系列依賴設置 --- *
 
@@ -281,6 +281,8 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 <summary><b><i>　c.2.　混合架構 ( 避免 OOM ) </i></b></summary>
 <ul>
 
+<br>
+
 <details>
 <summary><b><i>　I.　啟動服務 </i></b></summary>
 <ul>
@@ -310,7 +312,6 @@ cd infra/docker-compose
 </ul>
 </details>
 
----
 
 <details>
 <summary><b><i>　II.　結構樹說明 </i></b></summary>
@@ -451,7 +452,6 @@ cd infra/docker-compose
 </ul>
 </details>
 
----
 
 <details>
 <summary><b><i>　III.　實施階段 </i></b></summary>
@@ -476,7 +476,6 @@ Layer 2 — Node Bootstrap ( Ansible )
 </ul>
 </details>
 
----
 
 <details>
 <summary><b><i>　IV.　DevOps Flow 實施步驟 </i></b></summary>
@@ -505,7 +504,6 @@ Grafana Running
 </ul>
 </details>
 
----
 
 <details>
 <summary><b><i>　V.　重新校正 ingress-nginx 位置 </i></b></summary>
@@ -553,7 +551,6 @@ http://argo-cd.k8s.local:8080/
 </ul>
 </details>
 
----
 
 <details>
 <summary><b><i>　VI.　建立 Applications / Observability </i></b></summary>
