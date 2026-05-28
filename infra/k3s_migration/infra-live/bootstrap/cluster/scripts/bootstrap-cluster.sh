@@ -67,6 +67,7 @@ echo ""
 echo "[8/10] Install ArgoCD..."
 
 kubectl apply -f "${BASE_DIR}/argocd/namespace.yaml"
+kubectl apply -f "${BASE_DIR}/argocd/ingress.yaml"
 
 helm upgrade --install argocd argo/argo-cd \
   --namespace argocd \

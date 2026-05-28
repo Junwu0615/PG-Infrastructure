@@ -481,6 +481,36 @@ Layer 2 — Node Bootstrap ( Ansible )
 ```
 ---
 ```
+⚠️ 重新校正 ingress-nginx 位置
+    Browser
+        ↓
+    Windows <localhost:8080>
+        ↓
+    WSL2 <localhost:8080>
+        ↓ PortProxy
+    socat
+        ↓
+    ingress-nginx <10.88.0.20:30547>
+        ↓
+    Ingress Rule
+        ↓
+    pod-server
+    
+    1. 確認映射位置
+    pc@DESKTOP-PC:~/git_project/PG-Infrastructure/infra/k3s_migration$ kubectl get svc -n ingress-nginx
+    NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP                        PORT(S)                      AGE
+    ingress-nginx-controller             LoadBalancer   10.43.95.35    10.88.0.20,10.88.0.21,10.88.0.22   80:30547/TCP,443:32451/TCP   17m
+    ingress-nginx-controller-admission   ClusterIP      10.43.166.76   <none>                             443/TCP                      17m
+    ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>                             10254/TCP                    17m
+    
+    2. 設定 socat ( 參考 k3s.md )
+
+    3. 測試
+    curl http://10.88.0.20:30547
+    curl http://10.88.0.20:32451
+    tracert http://argo-cd.k8s.local:8080/
+
+
 # 建立 ... applications/observability/visualization/grafana/
 ```
 
