@@ -157,57 +157,6 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     ├── gcp
     ├── k3d
     ├── k3s
-    │   ├── Makefile
-    │   ├── app
-    │   │   ├── app.py
-    │   │   └── dockerfile
-    │   │       └── Dockerfile.app
-    │   ├── bootstrap
-    │   │   ├── ansible
-    │   │   │   ├── ansible.cfg
-    │   │   │   ├── group_vars
-    │   │   │   │   └── all.yml
-    │   │   │   └── playbooks
-    │   │   │       ├── deploy_k3s.yml
-    │   │   │       ├── gateway.yml
-    │   │   │       ├── init_nodes.yml
-    │   │   │       ├── power_manage.yml
-    │   │   │       └── site.yml
-    │   │   ├── archive
-    │   │   └── terraform
-    │   │       ├── cloud_init.cfg
-    │   │       ├── gateway_cloud_init.cfg
-    │   │       ├── inventory.tftpl
-    │   │       ├── main.tf
-    │   │       ├── outputs.tf
-    │   │       ├── terraform.tfvars
-    │   │       └── variables.tf
-    │   ├── helm
-    │   │   └── app-stack
-    │   │       ├── Chart.yaml
-    │   │       ├── templates
-    │   │       │   ├── app
-    │   │       │   │   └── app-deploy.yaml
-    │   │       │   ├── configmap.yaml
-    │   │       │   ├── db-pvc.yaml
-    │   │       │   ├── ingress.yaml
-    │   │       │   ├── portainer
-    │   │       │   │   ├── portainer-deploy.yaml
-    │   │       │   │   └── portainer-service.yaml
-    │   │       │   ├── postgres
-    │   │       │   │   ├── db-deploy.yaml
-    │   │       │   │   └── db-service.yaml
-    │   │       │   └── secret.yaml
-    │   │       ├── values-dev.yaml
-    │   │       ├── values-prod.yaml
-    │   │       └── values.yaml
-    │   ├── ingress_settings
-    │   │   ├── config.yaml
-    │   │   ├── k8s-http-proxy.service
-    │   │   └── k8s-https-proxy.service
-    │   ├── scripts
-    │   │   └── vm-power.sh
-    │   └── win_hosts
     ├── k3s_migration
     │   ├── Makefile
     │   ├── archive

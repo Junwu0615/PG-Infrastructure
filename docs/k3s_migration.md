@@ -2,6 +2,7 @@
 
 ### *A.　結構說明*
 ```
+Null
 ```
 
 <br>
@@ -9,13 +10,13 @@
 ### *B.　Makefile Command*
 ```
 Terraform:
-    ✅ 1. 初始化 terraform 配置
+    # 初始化 terraform 配置
     make init
     
-    ✅ 2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
+    # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/test.tfvars
     
-    ✅ 3. 手動初始化 bootstrap
+    # 手動初始化 bootstrap
     make init-gitops
     
     # 拆除 VM 環境
@@ -280,23 +281,41 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 <summary><b><i>　c.2.　混合架構 ( 避免 OOM ) </i></b></summary>
 <ul>
 
+<details>
+<summary><b><i>　I.　啟動服務 </i></b></summary>
+<ul>
+
 ```
 # 啟動 Docker Compose
 cd infra/docker-compose
-make gitlab action=up
-#make postgresql action=up
-#make registry action=up
-#make airflow action=up
-make portainer action=up
-#make monitoring action=up
-make mqtt action=up
-make kafka action=up
-make elk action=up
-
+    make gitlab action=up
+    make portainer action=up
+    make mqtt action=up
+    make kafka action=up
+    make elk action=up
 
 # 啟動 k3s 集群
+    ✅ 1. 初始化 terraform 配置
+    make init
+    
+    ✅ 2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
+    make apply VAR_FILE=./env_tfvars/test.tfvars
+    
+    ✅ 3. 手動初始化 bootstrap
+    make init-gitops
+    
+    4. 親合/反親合設定
 ```
+
+</ul>
+</details>
+
 ---
+
+<details>
+<summary><b><i>　II.　結構樹說明 </i></b></summary>
+<ul>
+
 ```
 * --- GitLab GitOps 專案結構樹 --- *
     GitLab ( SCM / CI Source )
@@ -428,7 +447,16 @@ make elk action=up
     ├── stage.yaml
     └── prod.yaml
 ```
+
+</ul>
+</details>
+
 ---
+
+<details>
+<summary><b><i>　III.　實施階段 </i></b></summary>
+<ul>
+
 ```
 Layer 1 — Infra Provisioning ( Terraform)
 
@@ -444,88 +472,99 @@ Layer 2 — Node Bootstrap ( Ansible )
 
 ⚠️ Layer 4 — GitOps Continuous Delivery ( ArgoCD )
 ```
+
+</ul>
+</details>
+
 ---
+
+<details>
+<summary><b><i>　IV.　DevOps Flow 實施步驟 </i></b></summary>
+<ul>
+
 ```
-* --- 實施步驟 --- *
-
-    GitLab Repo
-        ↓
-    ArgoCD 接管
-        ↓
-    App-of-Apps 啟動
-        ↓
-    GitOps 自動同步
-
-
-| 階段     | 目標                  |
-| ------- | --------------------  |
-| Phase 1 | Bootstrap Cluster     |
-| Phase 2 | 安裝 ArgoCD            |
-| Phase 3 | 建立 AppProject        |
-| Phase 4 | 建立 Root App          |
-| Phase 5 | 接管 Observability     |
-| Phase 6 | 接管 Security          |
-| Phase 7 | 接管 Stateful Services |
-
-
-* --- DevOps Flow --- *
-    Push Code
-        ↓
-    GitLab CI
-        ↓
-    Build Image
-        ↓
-    Push Registry
-        ↓
-    Update values.yaml
-        ↓
-    ArgoCD Detect Drift
-        ↓
-    Deploy
+Git Push
+  ↓
+GitLab CI
+  ↓
+Build Image
+  ↓
+Push Registry
+  ↓
+Update values.yaml
+  ↓
+ArgoCD Detect Drift
+  ↓
+Sync
+  ↓
+K3s Apply
+  ↓
+Grafana Running
 ```
+
+</ul>
+</details>
+
 ---
-```
-⚠️ 重新校正 ingress-nginx 位置
-    Browser
-        ↓
-    Windows <localhost:8080>
-        ↓
-    WSL2 <localhost:8080>
-        ↓ PortProxy
-    socat
-        ↓
-    ingress-nginx <10.88.0.20:30547>
-        ↓
-    Ingress Rule
-        ↓
-    pod-server
-    
-    1. 確認映射位置
-    pc@DESKTOP-PC:~/git_project/PG-Infrastructure/infra/k3s_migration$ kubectl get svc -n ingress-nginx
-    NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP                        PORT(S)                      AGE
-    ingress-nginx-controller             LoadBalancer   10.43.95.35    10.88.0.20,10.88.0.21,10.88.0.22   80:30547/TCP,443:32451/TCP   17m
-    ingress-nginx-controller-admission   ClusterIP      10.43.166.76   <none>                             443/TCP                      17m
-    ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>                             10254/TCP                    17m
-    
-    2. 設定 socat ( 參考 k3s.md )
-    
-    3. 測試
-    # 確保基本服務已可用
-    kubectl port-forward svc/argocd-server -n argocd 8081:80
-    
-    # WSL2 端
-    curl http://10.88.0.20:30547
-    curl http://10.88.0.20:32451
-    curl -H "Host: argo-cd.k8s.local" http://10.88.0.20:30547
-    
-    # WIN 端
-    ping argo-cd.k8s.local
-    Test-NetConnection argo-cd.k8s.local -Port 8080 
-    http://argo-cd.k8s.local:8080/
 
+<details>
+<summary><b><i>　V.　重新校正 ingress-nginx 位置 </i></b></summary>
+<ul>
 
-# 建立 ... applications/observability/visualization/grafana/
 ```
+Browser
+    ↓
+Windows <localhost:8080>
+    ↓
+WSL2 <localhost:8080>
+    ↓ PortProxy
+socat
+    ↓
+ingress-nginx <10.88.0.20:30547>
+    ↓
+Ingress Rule
+    ↓
+pod-server
+
+1. 確認映射位置
+pc@DESKTOP-PC:~/git_project/PG-Infrastructure/infra/k3s_migration$ kubectl get svc -n ingress-nginx
+NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP                        PORT(S)                      AGE
+ingress-nginx-controller             LoadBalancer   10.43.95.35    10.88.0.20,10.88.0.21,10.88.0.22   80:30547/TCP,443:32451/TCP   17m
+ingress-nginx-controller-admission   ClusterIP      10.43.166.76   <none>                             443/TCP                      17m
+ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>                             10254/TCP                    17m
+
+2. 設定 socat ( 參考 k3s.md )
+
+3. 測試
+# 確保基本服務已可用
+kubectl port-forward svc/argocd-server -n argocd 8081:80
+
+# WSL2 端
+curl http://10.88.0.20:30547
+curl http://10.88.0.20:32451
+curl -H "Host: argo-cd.k8s.local" http://10.88.0.20:30547
+
+# WIN 端
+ping argo-cd.k8s.local
+Test-NetConnection argo-cd.k8s.local -Port 8080 
+http://argo-cd.k8s.local:8080/
+```
+
+</ul>
+</details>
+
+---
+
+<details>
+<summary><b><i>　VI.　建立 Applications / Observability </i></b></summary>
+<ul>
+
+```
+
+```
+
+</ul>
+</details>
 
 </ul>
 </details>
