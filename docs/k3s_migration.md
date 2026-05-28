@@ -504,11 +504,20 @@ Layer 2 — Node Bootstrap ( Ansible )
     ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>                             10254/TCP                    17m
     
     2. 設定 socat ( 參考 k3s.md )
-
+    
     3. 測試
+    # 確保基本服務已可用
+    kubectl port-forward svc/argocd-server -n argocd 8081:80
+    
+    # WSL2 端
     curl http://10.88.0.20:30547
     curl http://10.88.0.20:32451
-    tracert http://argo-cd.k8s.local:8080/
+    curl -H "Host: argo-cd.k8s.local" http://10.88.0.20:30547
+    
+    # WIN 端
+    ping argo-cd.k8s.local
+    Test-NetConnection argo-cd.k8s.local -Port 8080 
+    http://argo-cd.k8s.local:8080/
 
 
 # 建立 ... applications/observability/visualization/grafana/

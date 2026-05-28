@@ -581,6 +581,9 @@ Helm:
                 # sudo systemctl daemon-reload
                 # sudo systemctl enable --now k8s-http-proxy
                 # sudo systemctl enable --now k8s-https-proxy
+                    * 重啟
+                    sudo systemctl restart k8s-http-proxy
+                    sudo systemctl restart k8s-https-proxy
                 
                 # 驗證 1 # 預期得到 404 Not Found
                 curl http://10.88.0.20:30161
@@ -592,9 +595,7 @@ Helm:
                 # 驗證 3
                 curl http://localhost
                 
-                * 重啟
-                sudo systemctl restart k8s-http-proxy
-                sudo systemctl restart k8s-https-proxy
+                * 檢視 ps aux | grep socat
                 
                 * 關閉 + 停止
                 sudo systemctl stop k8s-http-proxy
