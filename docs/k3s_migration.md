@@ -501,7 +501,7 @@ make elk action=up
 ```
 ---
 ```
-# 1. 基礎治理元件
+# 1. 基礎治理元件 | Bootstrap Layer ( 手動初始化 )
     bootstrap/
     ├── namespaces/
     ├── ingress-nginx/
@@ -518,8 +518,8 @@ make elk action=up
     
     # 安裝 sealed-secrets
     
-# 2. ArgoCD
-    # 安裝 ArgoCD
+# 2. 安裝 ArgoCD
+    # 新增 argo-helm 庫
     helm repo add argo https://argoproj.github.io/argo-helm
     helm repo update
     
@@ -528,7 +528,7 @@ make elk action=up
       -n argocd \
       --create-namespace
 
-# 3.
+# 3. 建立 AppProject | GitOps Layer ( 全自動 )
 # 4.
 # 5.
 # 6.

@@ -10,11 +10,34 @@ services:
       - '2222:22'
     env_file:
       - .env
-    environment: # 顯示正確的 SSH 複製連結 | 用 8090 監聽，而非預設 80
+
+    environment:
+      # gitlab_rails['gitlab_shell_ssh_port'] 顯示正確的 SSH 複製連結
+      # nginx['listen_port'] 用 8090 監聽，而非預設 80
+      # puma['worker_processes'] 預設是 CPU 核心數，減少可降低記憶體
+      # sidekiq['max_concurrency'] 降低 Sidekiq 並發數
+      # puma['max_threads'] 減少 Puma 的執行緒數 (預設通常為 5-16，降低可減少記憶體)
+      # postgresql['shared_buffers'] 調整 PostgreSQL 的共享記憶體 (Postgres 預設會搶佔大量記憶體)
+      # 關閉不必要的背景服務: false
       GITLAB_OMNIBUS_CONFIG: |
         gitlab_rails['gitlab_shell_ssh_port']=2222
         external_url 'http://${GITLAB_HOSTNAME}'
         nginx['listen_port']=8090
+        puma['worker_processes'] = 2
+        sidekiq['max_concurrency'] = 5
+        puma['max_threads'] = 4
+        postgresql['shared_buffers'] = "256MB"
+        postgresql['max_connections'] = 50
+        prometheus_monitoring['enable'] = false
+        gitlab_rails['gitlab_monitor_enabled'] = false
+        gitlab_rails['gitlab_exporter_enabled'] = false
+        gitlab_workhorse['prometheus_exporter_enabled'] = false
+        node_exporter['enable'] = false
+        gitlab_exporter['enable'] = false
+        alertmanager['enable'] = false
+        pgbouncer_exporter['enable'] = false
+        redis_exporter['enable'] = false
+
     volumes:
       - './data:/var/opt/gitlab'
       - './logs:/var/log/gitlab'
@@ -22,4 +45,12 @@ services:
     shm_size: '512mb'
     hostname: ${GITLAB_HOSTNAME}
     privileged: true
+
+    deploy:
+      resources:
+        limits:
+          memory: 8G  # 硬限制：容器最高可使用的 RAM，超過會被系統強制砍掉 (OOM)
+        reservations:
+          memory: 4G  # 軟限制：啟動時保證分配的 RAM
+
     restart: unless-stopped
