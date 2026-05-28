@@ -198,6 +198,9 @@ resource "null_resource" "wait_for_ssh" {
 
   provisioner "local-exec" {
     command = <<EOT
+    # 設定 k3s_net 網路「開機自動啟動」
+    virsh net-autostart k3s_net  || true
+
     for ip in \
     $(seq ${var.net_segment_start} $(( ${var.net_segment_start} + ${var.node_count} - 1 )) )
     do

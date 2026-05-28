@@ -2,47 +2,6 @@
 
 ### *A.　結構說明*
 ```
-k3s_migration/
-├── Makefile                     # 自動化入口
-│
-├── bootstrap/                   # 【第一層：純機器初始化】僅由運維手動執行
-│   ├── terraform/               # 建立 VM 與基礎網路
-│   │   └── ...
-│   └── ansible/                 # OS 設定與 k3s 叢集安裝
-│       └── ...
-│
-└── gitops/                      # 【第二層：GitOps 核心】ArgoCD 唯一看管範圍
-    │
-    ├── argocd-bootstrap/        # ArgoCD 災難復原與初始化入口（手動 kubectl apply -k 這裡）
-    │   ├── base/                # 安裝 ArgoCD 官方元件
-    │   └── root-apps/           # App-of-Apps 的根節點，負責載入 infrastructure 與 apps
-    │       ├── test-root.yaml   # 測試環境的「總開關」
-    │       ├── stage-root.yaml
-    │       └── prod-root.yaml
-    │
-    ├── infra/                   # 中間件與基礎設施（Airflow, GitLab, DB）
-    │   ├── base/                # 基礎宣告（定義專案、Namespace 等）
-    │   │   ├── apache-airflow/  # 這裡只放一個 K8s 原生的 HelmRelease 或 Argo Application 宣告
-    │   │   ├── argo-cd/
-    │   │   └── postgresql/
-    │   └── environments/        # 環境變數覆寫（環境的邊界在這裡收斂！）
-    │       ├── test/
-    │       │   ├── kustomization.yaml # 組合 base 的服務，並注入 test 的 values
-    │       │   ├── airflow-values.yaml
-    │       │   └── postgres-values.yaml
-    │       ├── stage/
-    │       └── prod/
-    │
-    └── applications/                          # 自定義研業務服務（ cp, inst ）
-        ├── base/
-        │   ├── inst/                  # 手刻的 K8s Deployment/Service YAML
-        │   └── cp/
-        └── environments/
-            ├── test/
-            │   ├── kustomization.yaml
-            │   └── patches/           # 測試環境的副本數（replicas）、Ingress 域名修改
-            ├── stage/
-            └── prod/
 ```
 
 <br>
@@ -351,11 +310,13 @@ make elk action=up
     infra-live/
     │
     ├── bootstrap/ # 叢集初始化必備元件
-    │   ├── argocd/
-    │   ├── namespaces/
-    │   ├── cert-manager/
-    │   ├── ingress-nginx/
-    │   └── sealed-secrets/
+    │   └── cluster/
+    │       ├── argocd/
+    │       ├── namespaces/
+    │       ├── cert-manager/
+    │       ├── ingress-nginx/
+    │       ├── sealed-secrets/
+    │       └── scripts/
     │
     ├── environments/       ⚠️ Promotion Layer
     │   └── homelab/
@@ -409,7 +370,7 @@ make elk action=up
     │
     └── README
     
-    infra-live/bootstrap/
+    infra-live/bootstrap/cluster
     └── namespaces/
         ├── monitoring.yaml
         ├── logging.yaml
@@ -462,6 +423,22 @@ make elk action=up
 ```
 ---
 ```
+Layer 1 — Infra Provisioning ( Terraform)
+
+Layer 2 — Node Bootstrap ( Ansible )
+
+⚠️ Layer 3 — Cluster Bootstrap ( bootstrap/ )
+    ✔ apply namespaces
+    ✔ helm install ingress-nginx
+    ✔ helm install cert-manager
+    ✔ helm install sealed-secrets
+    ✔ helm install argocd
+    ✔ apply root-app.yaml
+
+⚠️ Layer 4 — GitOps Continuous Delivery ( ArgoCD )
+```
+---
+```
 * --- 實施步驟 --- *
 
     GitLab Repo
@@ -501,38 +478,25 @@ make elk action=up
 ```
 ---
 ```
-# 1. 基礎治理元件 | Bootstrap Layer ( 手動初始化 )
-    bootstrap/
-    ├── namespaces/
-    ├── ingress-nginx/
-    ├── cert-manager/
-    ├── sealed-secrets/
-    └── argocd/
+# 1. 手動初始化 bootstrap
+chmod +x bootstrap-cluster.sh
+./bootstrap-cluster.sh
+    
+# 2. kubectl get pods -A
+預期輸出
+argocd
+cert-manager
+ingress-nginx
+sealed-secrets
 
-    # 建立 namespaces
-    kubectl apply -f bootstrap/namespaces/
-    
-    # 安裝 ingress-nginx
-    
-    # 安裝 cert-manager
-    
-    # 安裝 sealed-secrets
-    
-# 2. 安裝 ArgoCD
-    # 新增 argo-helm 庫
-    helm repo add argo https://argoproj.github.io/argo-helm
-    helm repo update
-    
-    # 啟動 ArgoCD
-    helm install argocd argo/argo-cd \
-      -n argocd \
-      --create-namespace
+# 3. 取得 ArgoCD 密碼
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d
+  
+# 4. 取得 ArgoCD LoadBalancer IP
+kubectl get svc -n argocd
 
-# 3. 建立 AppProject | GitOps Layer ( 全自動 )
-# 4.
-# 5.
-# 6.
-# 7.
+# 5. 建立 ... applications/observability/visualization/grafana/
 ```
 
 </ul>
