@@ -9,15 +9,18 @@
 ### *B.　Makefile Command*
 ```
 Terraform:
-    # 初始化 terraform 配置
+    ✅ 1. 初始化 terraform 配置
     make init
     
-    # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
+    ✅ 2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/test.tfvars
+    
+    ✅ 3. 手動初始化 bootstrap
+    make init-gitops
     
     # 拆除 VM 環境
     make destroy
-
+    
 Ansible:
     # 檢視狀態 ( pods + nodes )
     make status
@@ -478,27 +481,7 @@ Layer 2 — Node Bootstrap ( Ansible )
 ```
 ---
 ```
-make init-gitops
-
-# 1. 手動初始化 bootstrap
-chmod +x bootstrap-cluster.sh
-./bootstrap-cluster.sh
-    
-# 2. kubectl get pods -A
-預期輸出
-argocd
-cert-manager
-ingress-nginx
-sealed-secrets
-
-# 3. 取得 ArgoCD 密碼
-kubectl -n argocd get secret argocd-initial-admin-secret \
-  -o jsonpath="{.data.password}" | base64 -d
-  
-# 4. 取得 ArgoCD LoadBalancer IP
-kubectl get svc -n argocd
-
-# 5. 建立 ... applications/observability/visualization/grafana/
+# 建立 ... applications/observability/visualization/grafana/
 ```
 
 </ul>

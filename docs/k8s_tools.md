@@ -41,6 +41,10 @@ kubectl version --client
 kubectl get pods
 # ⭐ 顯示標籤 ( 虛擬化簡稱 查找方便 )
 kubectl get pods --show-labels
+
+# 無視指定域名 全部顯示
+kubectl get pods -A
+
 # ⭐ 常駐觀察
 kubectl get pods -w
 
@@ -58,6 +62,9 @@ kubectl get svc
 
 # 確認 ConfigMap 狀態
 kubectl get cm
+
+# 確認 namespaces
+kubectl get namespaces
 
 # ⭐ [ 組合技 ] 確認所有組件狀態
 kubectl get pods,pvc,svc,ingress,cm,nodes

@@ -66,6 +66,8 @@ helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets \
 echo ""
 echo "[8/10] Install ArgoCD..."
 
+kubectl apply -f "${BASE_DIR}/argocd/namespace.yaml"
+
 helm upgrade --install argocd argo/argo-cd \
   --namespace argocd \
   -f "${BASE_DIR}/argocd/values.yaml"

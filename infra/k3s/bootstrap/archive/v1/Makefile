@@ -15,8 +15,7 @@ status cluster_up init_nodes deploy_k3s
 status:
 	@echo "* 檢查 k8s 狀態"
 	kubectl get nodes -o wide
-	#kubectl get pods -A
-	kubectl get pods -o wide
+	kubectl get pods -A -o wide
 
 cluster_up:
 	@echo "* 啟動所有 VM ( 透過呼叫 Windows 宿主機指令 )"

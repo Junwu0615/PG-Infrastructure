@@ -94,7 +94,7 @@ terraform-list:
 status:
 	@echo "* 檢查 k8s 狀態"
 	kubectl get nodes -o wide
-	kubectl get pods -o wide
+	kubectl get pods -A -o wide
 
 test-clean:
 	# 1. 停止 systemd 服務 (如果存在)

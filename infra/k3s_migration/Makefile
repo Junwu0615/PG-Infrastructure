@@ -132,7 +132,7 @@ terraform-list:
 status:
 	@echo "* 檢查 k8s 狀態"
 	kubectl get nodes -o wide
-	kubectl get pods -o wide
+	kubectl get pods -A -o wide
 
 vm-power:
 	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"

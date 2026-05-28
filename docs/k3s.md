@@ -595,6 +595,12 @@ Helm:
                 * 重啟
                 sudo systemctl restart k8s-http-proxy
                 sudo systemctl restart k8s-https-proxy
+                
+                * 關閉 + 停止
+                sudo systemctl stop k8s-http-proxy
+                sudo systemctl stop k8s-https-proxy
+                sudo systemctl disable k8s-http-proxy
+                sudo systemctl disable k8s-https-proxy
             
         # STEP 4 Windows → WSL2
             # 先不用 80 改用 8080; 查詢目前是否有被占用; 若無直接往下; 若有進行排除或擇別的port
