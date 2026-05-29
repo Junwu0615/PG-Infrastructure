@@ -1,5 +1,11 @@
-env:
-  GF_SERVER_ROOT_URL: http://grafana-stage.k8s.local
+adminPassword: stage-password
+
+replicas: 1
+
+ingress:
+  hosts:
+    - grafana-stage.k8s.local
 
 persistence:
+  enabled: true
   size: 5Gi

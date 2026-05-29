@@ -6,6 +6,14 @@ adminPassword: admin123
 service:
   type: ClusterIP
 
+ingress:
+  enabled: true
+  ingressClassName: nginx
+
+grafana.ini:
+  server:
+    root_url: http://grafana.k8s.local
+
 persistence:
   enabled: true
   size: 5Gi
@@ -18,6 +26,3 @@ resources:
   limits:
     cpu: 500m
     memory: 512Mi
-
-ingress:
-  enabled: false

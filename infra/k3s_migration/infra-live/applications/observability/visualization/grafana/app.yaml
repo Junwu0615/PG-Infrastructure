@@ -8,20 +8,34 @@ metadata:
 spec:
   project: observability
 
+  # 依賴自訂變數
   source:
-    repoURL: https://grafana.github.io/helm-charts
-    chart: grafana
-    targetRevision: 9.3.0
+    repoURL: http://192.168.0.15:8090/pg/infra-live.git
+    targetRevision: main
+    path: applications/observability/visualization/grafana
 
-#    helm:
-#      valueFiles:
-#        - values/common.yaml
-#        - values/test.yaml
     helm:
-      values: |
-        adminPassword: admin123
-        service:
-          type: ClusterIP
+      valueFiles:
+        - values/common.yaml
+        - values/test.yaml
+
+  # 不依賴自訂變數
+#  source:
+#    repoURL: https://grafana.github.io/helm-charts
+#    chart: grafana
+#    targetRevision: 9.3.0
+#
+#    helm:
+#      values: |
+#        adminPassword: admin123
+#        service:
+#          type: ClusterIP
+#
+#        ingress:
+#          enabled: true
+#          ingressClassName: nginx
+#          hosts:
+#            - grafana.k8s.local
 
   destination:
     server: https://kubernetes.default.svc

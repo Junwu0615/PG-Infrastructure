@@ -1,5 +1,20 @@
-env:
-  GF_SERVER_ROOT_URL: https://grafana.example.com
+adminPassword: prod-password
+
+replicas: 2
+
+ingress:
+  hosts:
+    - grafana-prod.k8s.local
 
 persistence:
+  enabled: true
   size: 20Gi
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+  limits:
+    cpu: 1
+    memory: 1Gi

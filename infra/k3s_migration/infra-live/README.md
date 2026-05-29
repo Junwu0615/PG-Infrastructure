@@ -608,7 +608,8 @@ Applications
     Extra Kustomize Resources
 
 ------
-⚠️ Git Repo = Cluster Desired State
+⚠️ Git Repo = Desired State
+⚠️ ArgoCD = Reconciliation Engine
 
 直接 push 整個 infra-live tree
     git init
@@ -645,6 +646,20 @@ security            Unknown       Unknown
     # 檢查 repo 是否已註冊
     kubectl get secrets -n argocd
     
+    # 強制刷快取問題
+    kubectl annotate application grafana \
+        -n argocd \
+        argocd.argoproj.io/refresh=hard --overwrite
+    
+    # 確認是否新增 ingress: kubectl get ingress -A
+    NAMESPACE   NAME            CLASS   HOSTS               ADDRESS                            PORTS   AGE
+    argocd      argocd-server   nginx   argo-cd.k8s.local   10.88.0.20,10.88.0.21,10.88.0.22   80      25h
+    grafana     grafana         nginx   grafana.k8s.local   10.88.0.20,10.88.0.21,10.88.0.22   80      29s
+     
+    # 測試是否連通
+    curl -v -H "Host: grafana.k8s.local" http://10.88.0.20:30547
+    curl -v -H "Host: argo-cd.k8s.local" http://10.88.0.20:30547
+    
     * 移除初始點 ( 移除 homelab-root  )
     kubectl delete application homelab-root -n argocd
     
@@ -656,6 +671,15 @@ security            Unknown       Unknown
     platform            Unknown       Unknown
     security            Unknown       Unknown
     
+------
+⚠️ Helm Wrapper Chart ( Helm-first GitOps )
+   # 依賴 Helm 依賴包 不全部自己維護
+
+    ArgoCD
+        ↓
+    Helm Chart
+        ↓
+    values/values.yaml
 ```
 
 </ul>

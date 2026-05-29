@@ -1,5 +1,10 @@
-env:
-  GF_SERVER_ROOT_URL: http://grafana.k8s.local
+adminPassword: test-password
+
+replicas: 1
+
+ingress:
+  hosts:
+    - grafana.k8s.local
 
 persistence:
-  size: 2Gi
+  enabled: false
