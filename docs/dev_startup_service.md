@@ -293,235 +293,235 @@
 <br>
 
 ### *7.　Gitlab*
-```
-# 管理員 初始帳密
-  # [ACC]
-  >> root
-  
-  # [PWD] docker exec pg-cluster-gitlab-1 cat /etc/gitlab/initial_root_password
-  >> eZxoOr7lTxSzI1SDLYiowVi70QsfIPitLYx3TM7Kl8c=
-
-
-# Secrets
-  docker exec pg-cluster-gitlab-1 cat /etc/gitlab/gitlab-secrets.json
-
-
-# 測試
-  [USER 1]
-  pc_wu
-  8Nr~y\n8QQ:!&SU'
-  
-  [USER 2]
-  jun_wu
-  r2p8(G&(nJETwM]N
-
-
-# Runner 工具檢查
-  # 啟用 gitlab-runner 的開機自啟服務
-  sudo systemctl enable gitlab-runner
-  
-  # 手動立即啟動
-  sudo systemctl start gitlab-runner
-  
-  # 檢查目前服務狀態是否為 active
-  sudo systemctl status gitlab-runner
-
-
-# Runner 註冊維護
-  # 查詢已註冊清單
-  sudo gitlab-runner list
-  
-  # 註冊 Runner
-  sudo gitlab-runner register
-    # 1. 輸入 GitLab 伺服器 URL: http://127.0.0.1:8090/ (根據你的 GitLab 伺服器地址進行修改)
-    # 2. 輸入註冊 Token (在 GitLab 專案的 Settings > CI/CD > Runners settings 中找到)
-    # 3. 輸入描述: wsl2-local-runner
-    # 4. 輸入標籤: docker,wsl2
-    # 5. maintenance note: docker
-    # 6. 執行器類型: docker
-    # 7. Docker 映像: docker:24.0.5
+  ```
+  # 管理員 初始帳密
+    # [ACC]
+    >> root
     
-    # Repo CI Settings ( 綠燈旁邊的編輯鈕裡面 )
-    [O] Indicates whether this runner can pick jobs without tags
-  
-  # 刪除 Runner
-    # 指定網址與 Token 刪除
-    sudo gitlab-runner unregister --url http://YOUR_GITLAB_URL --token YOUR_RUNNER_TOKEN
-    
-    # 指定名稱刪除
-    sudo gitlab-runner unregister --name "wsl2-local-runner"
-    
-    # 一鍵清空所有本地 Runner
-    sudo gitlab-runner unregister --all-runners
-    
-    # 設定檔全部都註冊在此檔中 清空即清除
-    sudo cat /etc/gitlab-runner/config.toml
-    sudo rm /etc/gitlab-runner/config.toml
-    sudo touch /etc/gitlab-runner/config.toml
-  
-  # [除錯] 驗證指定 runner
-  sudo gitlab-runner verify
-  
-  # 事物完成 => 生效
-  sudo systemctl restart gitlab-runner
+    # [PWD] docker exec pg-cluster-gitlab-1 cat /etc/gitlab/initial_root_password
+    >> eZxoOr7lTxSzI1SDLYiowVi70QsfIPitLYx3TM7Kl8c=
   
   
-# [Window TCP 轉發防火牆到 WSL2]
-  # 開啟防火牆設置內外 TCP
+  # Secrets
+    docker exec pg-cluster-gitlab-1 cat /etc/gitlab/gitlab-secrets.json
   
-  # [powershell 管理員] 
-  # 8090 腳本
-    # 1. 自動取得目前 WSL2 的內部 IP
-    $wsl_ip = (wsl ip addr show eth0 | Select-String -Pattern 'inet\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' | ForEach-Object { $_.Matches.Groups[1].Value })
-    
-    Write-Host "偵測到目前的 WSL2 IP 為: $wsl_ip"
-    
-    # 2. 刪除舊的 8090 轉發規則（避免衝突）
-    netsh interface portproxy delete v4tov4 listenport=8090 listenaddress=192.168.0.15
-    
-    # 3. 建立新的轉發規則，把 Windows 的 8090 轉給 WSL2
-    netsh interface portproxy add v4tov4 listenport=8090 listenaddress=192.168.0.15 connectport=8090 connectaddress=$wsl_ip
-    
-    # 4. 強制允許防火牆通過 8090 Port
-    New-NetFirewallRule -DisplayName "GitLab WSL2 8090" -Direction Inbound -LocalPort 8090 -Protocol TCP -Action Allow
-    
-    Write-Host "設定完成！請再次嘗試連線 http://192.168.0.15:8090"
-    
-    # 測試連線
-    Test-NetConnection -ComputerName 192.168.0.15 -Port 8090
-    
-  # 5100 腳本
-    # 1. 自動取得目前 WSL2 的內部 IP
-    $wsl_ip = (wsl ip addr show eth0 | Select-String -Pattern 'inet\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' | ForEach-Object { $_.Matches.Groups[1].Value })
-    
-    Write-Host "偵測到目前的 WSL2 IP 為: $wsl_ip"
-    
-    # 2. 刪除舊的 5100 轉發規則（避免衝突）
-    netsh interface portproxy delete v4tov4 listenport=5100 listenaddress=192.168.0.15
-    
-    # 3. 建立新的轉發規則，把 Windows 的 5100 轉給 WSL2
-    netsh interface portproxy add v4tov4 listenport=5100 listenaddress=192.168.0.15 connectport=5100 connectaddress=$wsl_ip
-    
-    # 4. 強制允許防火牆通過 5100 Port
-    New-NetFirewallRule -DisplayName "GitLab WSL2 5100" -Direction Inbound -LocalPort 5100 -Protocol TCP -Action Allow
-    
-    Write-Host "設定完成！請再次嘗試連線 http://192.168.0.15:5100"
   
-    # 測試連線
-    Test-NetConnection -ComputerName 192.168.0.15 -Port 5100
+  # 測試
+    [USER 1]
+    pc_wu
+    8Nr~y\n8QQ:!&SU'
+    
+    [USER 2]
+    jun_wu
+    r2p8(G&(nJETwM]N
   
-
-# CI Build ( Docker-in-Docker )
-  # 編輯 config.toml
-  sudo nano /etc/gitlab-runner/config.toml
   
-  # 參考設定 (gitlab-runner/config.toml)
+  # Runner 工具檢查
+    # 啟用 gitlab-runner 的開機自啟服務
+    sudo systemctl enable gitlab-runner
+    
+    # 手動立即啟動
+    sudo systemctl start gitlab-runner
+    
+    # 檢查目前服務狀態是否為 active
+    sudo systemctl status gitlab-runner
   
-  # 重啟
-  sudo systemctl restart gitlab-runner
-```
+  
+  # Runner 註冊維護
+    # 查詢已註冊清單
+    sudo gitlab-runner list
+    
+    # 註冊 Runner
+    sudo gitlab-runner register
+      # 1. 輸入 GitLab 伺服器 URL: http://127.0.0.1:8090/ (根據你的 GitLab 伺服器地址進行修改)
+      # 2. 輸入註冊 Token (在 GitLab 專案的 Settings > CI/CD > Runners settings 中找到)
+      # 3. 輸入描述: wsl2-local-runner
+      # 4. 輸入標籤: docker,wsl2
+      # 5. maintenance note: docker
+      # 6. 執行器類型: docker
+      # 7. Docker 映像: docker:24.0.5
+      
+      # Repo CI Settings ( 綠燈旁邊的編輯鈕裡面 )
+      [O] Indicates whether this runner can pick jobs without tags
+    
+    # 刪除 Runner
+      # 指定網址與 Token 刪除
+      sudo gitlab-runner unregister --url http://YOUR_GITLAB_URL --token YOUR_RUNNER_TOKEN
+      
+      # 指定名稱刪除
+      sudo gitlab-runner unregister --name "wsl2-local-runner"
+      
+      # 一鍵清空所有本地 Runner
+      sudo gitlab-runner unregister --all-runners
+      
+      # 設定檔全部都註冊在此檔中 清空即清除
+      sudo cat /etc/gitlab-runner/config.toml
+      sudo rm /etc/gitlab-runner/config.toml
+      sudo touch /etc/gitlab-runner/config.toml
+    
+    # [除錯] 驗證指定 runner
+    sudo gitlab-runner verify
+    
+    # 事物完成 => 生效
+    sudo systemctl restart gitlab-runner
+    
+    
+  # [Window TCP 轉發防火牆到 WSL2]
+    # 開啟防火牆設置內外 TCP
+    
+    # [powershell 管理員] 
+    # 8090 腳本
+      # 1. 自動取得目前 WSL2 的內部 IP
+      $wsl_ip = (wsl ip addr show eth0 | Select-String -Pattern 'inet\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' | ForEach-Object { $_.Matches.Groups[1].Value })
+      
+      Write-Host "偵測到目前的 WSL2 IP 為: $wsl_ip"
+      
+      # 2. 刪除舊的 8090 轉發規則（避免衝突）
+      netsh interface portproxy delete v4tov4 listenport=8090 listenaddress=192.168.0.15
+      
+      # 3. 建立新的轉發規則，把 Windows 的 8090 轉給 WSL2
+      netsh interface portproxy add v4tov4 listenport=8090 listenaddress=192.168.0.15 connectport=8090 connectaddress=$wsl_ip
+      
+      # 4. 強制允許防火牆通過 8090 Port
+      New-NetFirewallRule -DisplayName "GitLab WSL2 8090" -Direction Inbound -LocalPort 8090 -Protocol TCP -Action Allow
+      
+      Write-Host "設定完成！請再次嘗試連線 http://192.168.0.15:8090"
+      
+      # 測試連線
+      Test-NetConnection -ComputerName 192.168.0.15 -Port 8090
+      
+    # 5100 腳本
+      # 1. 自動取得目前 WSL2 的內部 IP
+      $wsl_ip = (wsl ip addr show eth0 | Select-String -Pattern 'inet\s+(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' | ForEach-Object { $_.Matches.Groups[1].Value })
+      
+      Write-Host "偵測到目前的 WSL2 IP 為: $wsl_ip"
+      
+      # 2. 刪除舊的 5100 轉發規則（避免衝突）
+      netsh interface portproxy delete v4tov4 listenport=5100 listenaddress=192.168.0.15
+      
+      # 3. 建立新的轉發規則，把 Windows 的 5100 轉給 WSL2
+      netsh interface portproxy add v4tov4 listenport=5100 listenaddress=192.168.0.15 connectport=5100 connectaddress=$wsl_ip
+      
+      # 4. 強制允許防火牆通過 5100 Port
+      New-NetFirewallRule -DisplayName "GitLab WSL2 5100" -Direction Inbound -LocalPort 5100 -Protocol TCP -Action Allow
+      
+      Write-Host "設定完成！請再次嘗試連線 http://192.168.0.15:5100"
+    
+      # 測試連線
+      Test-NetConnection -ComputerName 192.168.0.15 -Port 5100
+    
+  
+  # CI Build ( Docker-in-Docker )
+    # 編輯 config.toml
+    sudo nano /etc/gitlab-runner/config.toml
+    
+    # 參考設定 (gitlab-runner/config.toml)
+    
+    # 重啟
+    sudo systemctl restart gitlab-runner
+  ```
 
 <br>
 
 ### *8.　Docker Registry*
-```
-# 推本地映像檔到庫
-
-  # 指令本地映像檔(含標籤) => 映射到庫的設定
-  docker tag pg-python-cp:v1 127.0.0.1:5100/pg-python-cp:v1
+  ```
+  # 推本地映像檔到庫
   
-  # 推庫
-  docker push 127.0.0.1:5100/pg-python-cp:v1
+    # 指令本地映像檔(含標籤) => 映射到庫的設定
+    docker tag pg-python-cp:v1 127.0.0.1:5100/pg-python-cp:v1
+    
+    # 推庫
+    docker push 127.0.0.1:5100/pg-python-cp:v1
+    
+  # 實用查詢
+    # 已建立映像庫
+    http://127.0.0.1:5100/v2/_catalog
+    
+    # 指定映像庫 對應版本清單
+    http://127.0.0.1:5100/v2/pg-python-cp/tags/list
+    http://127.0.0.1:5100/v2/pg-python-inst/tags/list
+    http://127.0.0.1:5100/v2/airflow-dags/tags/list
   
-# 實用查詢
-  # 已建立映像庫
-  http://127.0.0.1:5100/v2/_catalog
-  
-  # 指定映像庫 對應版本清單
-  http://127.0.0.1:5100/v2/pg-python-cp/tags/list
-  http://127.0.0.1:5100/v2/pg-python-inst/tags/list
-  http://127.0.0.1:5100/v2/airflow-dags/tags/list
-
-# 工具: skopeo
-  # 安裝
-  sudo apt-get update
-  sudo apt-get install -y skopeo
-  
-  # 查詢
-  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1
-  
-  # [過濾] 創建時間 + 硬體架構
-  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '{Created, Architecture, RepoTags}'
-  
-  # [過濾] 比對 Digest => airflow-dags:latest vs. airflow-dags:cad1040a
-  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/airflow-dags:latest | jq '.Digest'
-  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/airflow-dags:cad1040a | jq '.Digest'
-  
-  # [過濾] 計算映像檔下載所需的總傳輸大小
-  skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '[.LayersData[].Size] | add / 1024 / 1024 | "Total Size: \(.) MB"'
-```
+  # 工具: skopeo
+    # 安裝
+    sudo apt-get update
+    sudo apt-get install -y skopeo
+    
+    # 查詢
+    skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1
+    
+    # [過濾] 創建時間 + 硬體架構
+    skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '{Created, Architecture, RepoTags}'
+    
+    # [過濾] 比對 Digest => airflow-dags:latest vs. airflow-dags:cad1040a
+    skopeo inspect --tls-verify=false docker://127.0.0.1:5100/airflow-dags:latest | jq '.Digest'
+    skopeo inspect --tls-verify=false docker://127.0.0.1:5100/airflow-dags:cad1040a | jq '.Digest'
+    
+    # [過濾] 計算映像檔下載所需的總傳輸大小
+    skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '[.LayersData[].Size] | add / 1024 / 1024 | "Total Size: \(.) MB"'
+  ```
 
 <br>
 
 ### *9.　Portainer*
-```
-admin
-012345678910
-
-# k8s connection
-  # 集群中安裝
-  kubectl apply -f https://downloads.portainer.io/ce2-21/portainer-agent-k8s-lb.yaml
+  ```
+  admin
+  012345678910
   
-  # 確認服務是否起來
-  kubectl get pods -n portainer -o wide
-  
-  # 確認位置
-  kubectl get svc -n portainer
-  NAME                       TYPE           CLUSTER-IP    EXTERNAL-IP                        PORT(S)          AGE
-  portainer-agent            LoadBalancer   10.43.59.37   10.88.0.20,10.88.0.21,10.88.0.22   9001:31928/TCP   42m
-  portainer-agent-headless   ClusterIP      None          <none>                             <none>           42m
-
-  # 建立轉接設定 ( k3s/ingress_settings/portainer-agent-proxy.service )
-  sudo nano /etc/systemd/system/portainer-agent-proxy.service
-  sudo cat /etc/systemd/system/portainer-agent-proxy.service
-  
-    # 重啟設定
-    sudo systemctl daemon-reload
-    sudo systemctl enable --now portainer-agent-proxy
-    sudo systemctl restart portainer-agent-proxy
-    sudo systemctl status portainer-agent-proxy
-    sudo systemctl stop portainer-agent-proxy    
+  # k8s connection
+    # 集群中安裝
+    kubectl apply -f https://downloads.portainer.io/ce2-21/portainer-agent-k8s-lb.yaml
     
-    # 測試
-    curl http://10.88.0.20:31928
-  
-  # 建立 ingress
-  kubectl apply -f k3s_migration/archive/test/portainer-ingress.yaml
+    # 確認服務是否起來
+    kubectl get pods -n portainer -o wide
     
-    # 測試連線
-    # WSL2
-      curl -v -H "Host: portainer.k8s.local" http://10.88.0.20:31928
-      curl -v -H "Host: portainer.k8s.local" https://10.88.0.20:31928
-      curl -k -v https://10.88.0.20:31928
-    # Win
-      curl -Verbose -SkipCertificateCheck https://127.0.0.1:9001
-      Test-NetConnection portainer.k8s.local -Port 9001 
+    # 確認位置
+    kubectl get svc -n portainer
+    NAME                       TYPE           CLUSTER-IP    EXTERNAL-IP                        PORT(S)          AGE
+    portainer-agent            LoadBalancer   10.43.59.37   10.88.0.20,10.88.0.21,10.88.0.22   9001:31928/TCP   42m
+    portainer-agent-headless   ClusterIP      None          <none>                             <none>           42m
   
-  # 基本如下
-  Name: pg-k3s-master
-  [X] Environment address: portainer.k8s.local:9001
-  [O] Environment address: host.docker.internal:9001
-```
-![PNG](../assets/portainer.png)
+    # 建立轉接設定 ( k3s/ingress_settings/portainer-agent-proxy.service )
+    sudo nano /etc/systemd/system/portainer-agent-proxy.service
+    sudo cat /etc/systemd/system/portainer-agent-proxy.service
+    
+      # 重啟設定
+      sudo systemctl daemon-reload
+      sudo systemctl enable --now portainer-agent-proxy
+      sudo systemctl restart portainer-agent-proxy
+      sudo systemctl status portainer-agent-proxy
+      sudo systemctl stop portainer-agent-proxy    
+      
+      # 測試
+      curl http://10.88.0.20:31928
+    
+    # 建立 ingress
+    kubectl apply -f k3s_migration/archive/test/portainer-ingress.yaml
+      
+      # 測試連線
+      # WSL2
+        curl -v -H "Host: portainer.k8s.local" http://10.88.0.20:31928
+        curl -v -H "Host: portainer.k8s.local" https://10.88.0.20:31928
+        curl -k -v https://10.88.0.20:31928
+      # Win
+        curl -Verbose -SkipCertificateCheck https://127.0.0.1:9001
+        Test-NetConnection portainer.k8s.local -Port 9001 
+    
+    # 基本如下
+    Name: pg-k3s-master
+    [X] Environment address: portainer.k8s.local:9001
+    [O] Environment address: host.docker.internal:9001
+  ```
+  ![PNG](../assets/portainer.png)
 
 <br>
 
 ### *10.　ArgoCD*
-```
-admin
-# 初始密碼用 bootstrap-cluster.sh 檢視
-v3dkI7VPVRd1kkNq
-```
+  ```
+  admin
+  # 初始密碼用 bootstrap-cluster.sh 檢視
+  v3dkI7VPVRd1kkNq
+  ```
 
 <br>
 
