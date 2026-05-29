@@ -327,6 +327,14 @@ cd infra/docker-compose
     ├── docker-services/      # Compose Stateful Services
     ├── platform-docs/        # 文件
     └── README
+    
+    infra-live/
+    ├── applications/
+    ├── argocd/
+    ├── bootstrap/
+    ├── environments/
+    ├── policies/
+    └── templates/
 
 
 * --- K3s 部署結構樹 ( GitOps 與其對齊 ) --- *
@@ -599,7 +607,25 @@ Applications
     
 ------
 
+# Hybrid Pattern ( Application 內包 Helm )
+
+    Application
+        ↓
+    Helm Chart
+        ↓
+    Extra Kustomize Resources
+
+------
+⚠️ Git Repo = Cluster Desired State
+
+直接 push 整個 infra-live tree
+
+
 # Applications/Observability
+    # 用 git 推 infra 至 gitlab 來觸法 gitops 更新後續驅動
+    git add .
+    git commit -m "feat: add grafana app"
+    git push
 ```
 
 </ul>

@@ -9,9 +9,14 @@ spec:
   project: observability
 
   source:
-    repoURL: <YOUR_GITLAB_REPO>
-    targetRevision: main
-    path: applications/observability/visualization/grafana
+    repoURL: https://grafana.github.io/helm-charts
+    chart: grafana
+    targetRevision: 9.3.0
+
+    helm:
+      valueFiles:
+        - values/common.yaml
+        - values/test.yaml
 
   destination:
     server: https://kubernetes.default.svc

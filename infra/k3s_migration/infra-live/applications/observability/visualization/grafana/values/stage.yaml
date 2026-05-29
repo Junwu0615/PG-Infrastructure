@@ -1,0 +1,5 @@
+env:
+  GF_SERVER_ROOT_URL: http://grafana-stage.k8s.local
+
+persistence:
+  size: 5Gi

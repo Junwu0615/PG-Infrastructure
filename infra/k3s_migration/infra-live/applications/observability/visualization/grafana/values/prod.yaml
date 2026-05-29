@@ -1,0 +1,5 @@
+env:
+  GF_SERVER_ROOT_URL: https://grafana.example.com
+
+persistence:
+  size: 20Gi
