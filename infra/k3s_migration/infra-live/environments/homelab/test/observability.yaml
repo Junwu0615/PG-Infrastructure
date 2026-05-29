@@ -2,20 +2,23 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 
 metadata:
-  name: grafana
+  name: observability
   namespace: argocd
 
 spec:
   project: observability
 
   source:
-    repoURL: <YOUR_GITLAB_REPO>
+    repoURL: http://192.168.0.15:8090/pg/infra-live.git
     targetRevision: main
-    path: applications/observability/visualization/grafana
+    path: applications/observability
+
+    directory:
+      recurse: true
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: grafana
+    namespace: observability
 
   syncPolicy:
     automated:

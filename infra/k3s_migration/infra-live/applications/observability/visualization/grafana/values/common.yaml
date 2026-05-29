@@ -1,0 +1,14 @@
+replicas: 1
+
+adminUser: admin
+adminPassword: admin123
+
+service:
+  type: ClusterIP
+
+persistence:
+  enabled: true
+  size: 5Gi
+
+ingress:
+  enabled: false

@@ -556,12 +556,50 @@ ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>       
 
 
 <details>
-<summary><b><i>　VI.　建立 Applications / Observability </i></b></summary>
+<summary><b><i>　VI.　建立 Applications </i></b></summary>
 <ul>
 
 ```
+# 將已定義的應用類部署
+kubectl apply -f infra-live/argocd/projects/
 
+# root-app.yaml 不同層級用途差異
+    # [初始一次] 讓 ArgoCD 開始接管 GitOps
+    bootstrap/cluster/argocd/root-app.yaml
+    
+    # [日常 GitOps 的 root]
+    environments/homelab/test/root-app.yaml
+    environments/homelab/stage/root-app.yaml
+    environments/homelab/prod/root-app.yaml
+    
+# test/root-app.yaml 管理
+    - observability.yaml
+    - platform.yaml
+    - security.yaml
+    - pg-apps.yaml
+    
+    
+Bootstrap Root App
+    ↓
+Environment Root App
+    ↓
+Layer Apps
+    ├── observability
+    ├── platform
+    ├── security
+    └── pg-apps
+    ↓
+Applications
+    ├── grafana
+    ├── prometheus
+    ├── loki
+    ├── registry
+    ├── ...
+    └── vault
+    
+------
 
+# Applications/Observability
 ```
 
 </ul>

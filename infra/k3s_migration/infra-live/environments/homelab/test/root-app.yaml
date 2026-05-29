@@ -2,20 +2,23 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 
 metadata:
-  name: grafana
+  name: homelab-test-root
   namespace: argocd
 
 spec:
-  project: observability
+  project: default
 
   source:
-    repoURL: <YOUR_GITLAB_REPO>
+    repoURL: http://192.168.0.15:8090/pg/infra-live.git
     targetRevision: main
-    path: applications/observability/visualization/grafana
+    path: environments/homelab/test
+
+    directory:
+      recurse: true
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: grafana
+    namespace: argocd
 
   syncPolicy:
     automated:
