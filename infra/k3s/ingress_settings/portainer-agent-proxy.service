@@ -1,0 +1,10 @@
+[Unit]
+Description=K8s Portainer Agent gRPC Proxy
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/socat TCP-LISTEN:9001,fork TCP:10.88.0.20:31928
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

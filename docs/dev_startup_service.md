@@ -463,7 +463,60 @@
 
 <br>
 
-### *9.　ArgoCD*
+### *9.　Portainer*
+```
+admin
+012345678910
+
+# k8s connection
+  # 集群中安裝
+  kubectl apply -f https://downloads.portainer.io/ce2-21/portainer-agent-k8s-lb.yaml
+  
+  # 確認服務是否起來
+  kubectl get pods -n portainer -o wide
+  
+  # 確認位置
+  kubectl get svc -n portainer
+  NAME                       TYPE           CLUSTER-IP    EXTERNAL-IP                        PORT(S)          AGE
+  portainer-agent            LoadBalancer   10.43.59.37   10.88.0.20,10.88.0.21,10.88.0.22   9001:31928/TCP   42m
+  portainer-agent-headless   ClusterIP      None          <none>                             <none>           42m
+
+  # 建立轉接設定 ( k3s/ingress_settings/portainer-agent-proxy.service )
+  sudo nano /etc/systemd/system/portainer-agent-proxy.service
+  sudo cat /etc/systemd/system/portainer-agent-proxy.service
+  
+    # 重啟設定
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now portainer-agent-proxy
+    sudo systemctl restart portainer-agent-proxy
+    sudo systemctl status portainer-agent-proxy
+    sudo systemctl stop portainer-agent-proxy    
+    
+    # 測試
+    curl http://10.88.0.20:31928
+  
+  # 建立 ingress
+  kubectl apply -f k3s_migration/archive/test/portainer-ingress.yaml
+    
+    # 測試連線
+    # WSL2
+      curl -v -H "Host: portainer.k8s.local" http://10.88.0.20:31928
+      curl -v -H "Host: portainer.k8s.local" https://10.88.0.20:31928
+      curl -k -v https://10.88.0.20:31928
+    # Win
+      curl -Verbose -SkipCertificateCheck https://127.0.0.1:9001
+      Test-NetConnection portainer.k8s.local -Port 9001 
+  
+  # 基本如下
+  Name: pg-k3s-master
+  [X] Environment address: portainer.k8s.local:9001
+  [O] Environment address: host.docker.internal:9001
+```
+![PNG](../assets/portainer.png)
+
+<br>
+
+### *10.　ArgoCD*
 ```
 admin
 # 初始密碼用 bootstrap-cluster.sh 檢視
@@ -472,7 +525,7 @@ v3dkI7VPVRd1kkNq
 
 <br>
 
-### *10.　Monitoring*
+### *11.　Monitoring*
 - #### *a.　Grafana 設定*
   ```
   # Login Grafana Web UI
