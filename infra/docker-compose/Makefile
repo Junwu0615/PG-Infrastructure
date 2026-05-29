@@ -396,7 +396,7 @@ all: infra config
 
 destroy:
 	@echo "* Terraform: Destroy Infrastructure ..."
-	cd $(TERRAFORM_PATH) && terraform destroy -auto-approve
+	cd $(TERRAFORM_PATH) && terraform destroy
 
 graph:
 	@echo "* 顯示 Terraform 如何理清模組間依賴關係 ..."

@@ -120,7 +120,7 @@ apply:
 destroy:
 	@echo "* 拆除 VM 環境"
 	cd $(TERRAFORM_PATH) && \
-	terraform destroy -auto-approve
+	terraform destroy
 	@echo "✅  <make destroy> done."
 
 terraform-list:

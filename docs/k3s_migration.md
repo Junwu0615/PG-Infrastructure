@@ -524,8 +524,7 @@ Ingress Rule
     ↓
 pod-server
 
-1. 確認映射位置
-pc@DESKTOP-PC:~/git_project/PG-Infrastructure/infra/k3s_migration$ kubectl get svc -n ingress-nginx
+1. 確認映射位置: kubectl get svc -n ingress-nginx
 NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP                        PORT(S)                      AGE
 ingress-nginx-controller             LoadBalancer   10.43.95.35    10.88.0.20,10.88.0.21,10.88.0.22   80:30547/TCP,443:32451/TCP   17m
 ingress-nginx-controller-admission   ClusterIP      10.43.166.76   <none>                             443/TCP                      17m
@@ -534,18 +533,18 @@ ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>       
 2. 設定 socat ( 參考 k3s.md )
 
 3. 測試
-# 確保基本服務已可用
-kubectl port-forward svc/argocd-server -n argocd 8081:80
-
-# WSL2 端
-curl http://10.88.0.20:30547
-curl http://10.88.0.20:32451
-curl -H "Host: argo-cd.k8s.local" http://10.88.0.20:30547
-
-# WIN 端
-ping argo-cd.k8s.local
-Test-NetConnection argo-cd.k8s.local -Port 8080 
-http://argo-cd.k8s.local:8080/
+    # 確保基本服務已可用
+    kubectl port-forward svc/argocd-server -n argocd 8081:80
+    
+    # WSL2 端
+    curl http://10.88.0.20:30547
+    curl http://10.88.0.20:32451
+    curl -H "Host: argo-cd.k8s.local" http://10.88.0.20:30547
+    
+    # WIN 端
+    ping argo-cd.k8s.local
+    Test-NetConnection argo-cd.k8s.local -Port 8080 
+    http://argo-cd.k8s.local:8080/
 ```
 
 </ul>

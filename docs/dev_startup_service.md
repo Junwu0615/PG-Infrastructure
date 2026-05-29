@@ -275,13 +275,8 @@
   
   # 塞到 .env
   ```
-
-- #### *c.　背景啟動*
-  ```
-  docker-compose up -d
-  ```
   
-- #### *d.　使用細節*
+- #### *c.　使用細節*
   ```
   # 查看 Logstash 的熱重啟狀態
   http://127.0.0.1:9600/_node/stats/pipelines?pretty
@@ -468,13 +463,17 @@
 
 <br>
 
-### *9.　Monitoring*
-- #### *a.　背景啟動*
-  ```
-  docker-compose up -d
-  ```
-  
-- #### *b.　Grafana 設定*
+### *9.　ArgoCD*
+```
+admin
+# 初始密碼用 bootstrap-cluster.sh 檢視
+v3dkI7VPVRd1kkNq
+```
+
+<br>
+
+### *10.　Monitoring*
+- #### *a.　Grafana 設定*
   ```
   # Login Grafana Web UI
     - acc: admin
@@ -517,7 +516,7 @@
 - ![PNG](../assets/grafana_2.PNG)
 - ![PNG](../assets/grafana_3.PNG)
 
-- #### *c.　壓測觀察重點*
+- #### *b.　壓測觀察重點*
   ```
   TPS           穩定上升
   WAL rate      線性上升
@@ -526,7 +525,7 @@
   Checkpoint    平穩
   ```
 
-- #### *d.　監控位置*
+- #### *c.　監控位置*
   - #### *⭐ 1.　TPS: 每秒 Commit + Rollback 數*
   - ![PNG](../assets/grafana_01.PNG)
     ```

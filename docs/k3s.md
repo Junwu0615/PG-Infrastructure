@@ -437,7 +437,7 @@ terraform init --upgrade
 terraform apply -auto-approve
 
 # 拆環境
-terraform destroy -auto-approve
+terraform destroy
 
 ------
 ssh debian@$(terraform output -raw master_ip)
