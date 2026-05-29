@@ -369,7 +369,7 @@ cd infra/docker-compose
     │   │
     │   ├── platform/
     │   │   ├── registry/
-    │   │   └── argocd/     ⚠️ Deployment Controller
+    │   │   └── [X] argocd/     ⚠️ Deployment Controller
     │   │
     │   ├── security/
     │   │   └── vault/

@@ -13,9 +13,6 @@ spec:
     targetRevision: main
     path: applications/security
 
-#    directory:
-#      recurse: true
-
   destination:
     server: https://kubernetes.default.svc
     namespace: security
