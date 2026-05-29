@@ -11,6 +11,8 @@ logs
 *.terraform.lock.hcl
 *.terraform.tfstate.lock.info
 .terraform
+*Chart.lock
+*charts
 
 #infra/docker-compose/_tmp_dags/
 #infra/docker-compose/opt/

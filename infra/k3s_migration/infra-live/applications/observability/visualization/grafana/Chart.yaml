@@ -1,5 +1,7 @@
 apiVersion: v2
 name: grafana-wrapper
+description: A Helm Chart for Grafana GitOps
+type: application
 version: 0.1.0
 
 dependencies:

@@ -1,10 +1,12 @@
-adminPassword: test-password
+grafana:
+  replicas: 1
+  adminPassword: test-password
 
-replicas: 1
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.k8s.local
 
-ingress:
-  hosts:
-    - grafana.k8s.local
-
-persistence:
-  enabled: false
+  persistence:
+    enabled: false

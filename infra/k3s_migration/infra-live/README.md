@@ -438,9 +438,11 @@ cd infra/docker-compose
 * --- Applications: Helm + Values 分離 --- *
 
     applications/grafana
-    ├── helm/
-    ├── kustomize/
-    └── values/                     ⚠️ Environment Overlay
+    ├── charts/    # Helm Wrapper Chart ( Helm-first GitOps )
+    ├── values/                     ⚠️ Environment Overlay
+    ├── app.yaml   # ArgoCD Application 定義
+    ├── Chart.lock # 初始化 Chart 依賴包後自動生成
+    └── Chart.yaml # Helm Chart 定義 ( 包含依賴包定義 )
 
     applications/grafana/values/    ⚠️ Promotion Flow ( 非 main / Git Tag Promotion )
     ├── common.yaml  # 共用: image repo / ingress annotations / persistence
@@ -589,13 +591,11 @@ Layer Apps
     ├── security
     └── pg-apps
     ↓
-Applications
+Applications (observability)
     ├── grafana
     ├── prometheus
-    ├── loki
-    ├── registry
     ├── ...
-    └── vault
+    └── loki
     
 ------
 
@@ -680,6 +680,11 @@ security            Unknown       Unknown
     Helm Chart
         ↓
     values/values.yaml
+    
+
+在 App 根目錄執行 初始化 Chart 依賴包 ( ./charts )    
+# 待 make 腳本
+helm dependency build
 ```
 
 </ul>

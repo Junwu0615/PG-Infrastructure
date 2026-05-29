@@ -1,11 +1,13 @@
-adminPassword: stage-password
+grafana:
+  replicas: 1
+  adminPassword: stage-password
 
-replicas: 1
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana-stage.k8s.local
 
-ingress:
-  hosts:
-    - grafana-stage.k8s.local
-
-persistence:
-  enabled: true
-  size: 5Gi
+  persistence:
+    enabled: true
+    size: 5Gi

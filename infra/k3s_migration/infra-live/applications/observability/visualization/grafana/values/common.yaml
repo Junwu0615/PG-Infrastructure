@@ -1,28 +1,30 @@
-replicas: 1
+grafana:
+  replicas: 1
+  adminUser: admin
+  adminPassword: admin123
 
-adminUser: admin
-adminPassword: admin123
+  service:
+    type: ClusterIP
 
-service:
-  type: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.k8s.local
 
-ingress:
-  enabled: true
-  ingressClassName: nginx
+  #grafana.ini:
+  #  server:
+  #    root_url: http://grafana.k8s.local
 
-grafana.ini:
-  server:
-    root_url: http://grafana.k8s.local
+  persistence:
+    enabled: true
+    size: 5Gi
 
-persistence:
-  enabled: true
-  size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
 
-resources:
-  requests:
-    cpu: 100m
-    memory: 256Mi
-
-  limits:
-    cpu: 500m
-    memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
