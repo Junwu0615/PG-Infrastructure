@@ -498,7 +498,7 @@ Sync
   ↓
 K3s Apply
   ↓
-Grafana Running
+Pod Service Running
 ```
 
 </ul>
@@ -510,19 +510,23 @@ Grafana Running
 <ul>
 
 ```
-Browser
+ Browser <localhost:8080>
     ↓
-Windows <localhost:8080>
+    
+ Windows
+    ↓  PortProxy <TRANSFER 8080:80>
+    
+  WSL2
+    ↓  socat <LISTEN:80> <TRANSFER 80:30547>
+    
+ingress-nginx <10.88.0.20:30547> 
     ↓
-WSL2 <localhost:8080>
-    ↓ PortProxy
-socat
-    ↓
-ingress-nginx <10.88.0.20:30547>
-    ↓
+    
 Ingress Rule
     ↓
+    
 pod-server
+
 
 1. 確認映射位置: kubectl get svc -n ingress-nginx
 NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP                        PORT(S)                      AGE
@@ -556,6 +560,7 @@ ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>       
 <ul>
 
 ```
+
 
 ```
 

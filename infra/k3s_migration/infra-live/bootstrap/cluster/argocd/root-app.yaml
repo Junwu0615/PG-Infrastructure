@@ -9,7 +9,7 @@ spec:
   project: default
 
   source:
-    repoURL: https://gitlab.example.com/infra-live.git
+    repoURL: http://192.168.0.15:8090/pg/infra-live.git
     targetRevision: main
     path: environments/homelab/test
 

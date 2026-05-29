@@ -155,11 +155,11 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │   └── variables.tf
     │   └── wsl2
     ├── gcp
-    ├── k3d
-    ├── k3s
+    ├── k3d ( `omission` )
+    ├── k3s ( `omission` )
     ├── k3s_migration
     │   ├── Makefile
-    │   ├── archive
+    │   ├── archive ( `omission` )
     │   ├── bootstrap
     │   │   ├── ansible
     │   │   │   ├── ansible.cfg
@@ -257,7 +257,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │   └── vm-power.sh
     │   └── win_hosts
     ├── kubeadm
-    └── minikube
+    └── minikube ( `omission` )
 ```
 
 </ul>
