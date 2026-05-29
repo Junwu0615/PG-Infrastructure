@@ -318,23 +318,15 @@ cd infra/docker-compose
 <ul>
 
 ```
-* --- GitLab GitOps 專案結構樹 --- *
-    GitLab ( SCM / CI Source )
-    │
-    ├── infra-live/           # ⚠️ GitOps 部署來源 ( ArgoCD Watch ) # Source of Truth
-    ├── infra-modules/        # 可重用 K8S/Terraform Module
-    ├── app-manifests/        # 業務服務 YAML/Helm Values
-    ├── docker-services/      # Compose Stateful Services
-    ├── platform-docs/        # 文件
-    └── README
-    
+* --- GitLab 專案結構樹 ( Repo 即是 infra-live 內容 ) --- *
     infra-live/
     ├── applications/
     ├── argocd/
     ├── bootstrap/
     ├── environments/
     ├── policies/
-    └── templates/
+    ├── templates/
+    └── README
 
 
 * --- K3s 部署結構樹 ( GitOps 與其對齊 ) --- *
@@ -629,6 +621,41 @@ Applications
     git add .
     git commit -m "feat: add grafana app"
     git push
+    
+    
+⚠️ 確認 argocd 狀態: kubectl get applications -n argocd -w
+NAME                SYNC STATUS   HEALTH STATUS
+grafana             Unknown       Healthy
+homelab-root        Synced        Healthy
+homelab-test-root   OutOfSync     Healthy
+observability       Synced        Healthy
+pg-apps             Unknown       Unknown
+platform            Unknown       Unknown
+security            Unknown       Unknown
+
+    # 檢視 argocd 細節 (homelab-root)
+    kubectl describe application homelab-root -n argocd
+    kubectl describe application homelab-test-root -n argocd
+    kubectl describe application observability -n argocd
+    kubectl describe application grafana -n argocd
+    
+    # 懶人更新
+    make init-gitops
+    
+    # 檢查 repo 是否已註冊
+    kubectl get secrets -n argocd
+    
+    * 移除初始點 ( 移除 homelab-root  )
+    kubectl delete application homelab-root -n argocd
+    
+    NAME                SYNC STATUS   HEALTH STATUS
+    grafana             Unknown       Healthy
+    homelab-test-root   OutOfSync     Healthy
+    observability       Synced        Healthy
+    pg-apps             Unknown       Unknown
+    platform            Unknown       Unknown
+    security            Unknown       Unknown
+    
 ```
 
 </ul>

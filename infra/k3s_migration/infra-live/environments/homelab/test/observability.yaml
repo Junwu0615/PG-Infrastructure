@@ -12,9 +12,10 @@ spec:
     repoURL: http://192.168.0.15:8090/pg/infra-live.git
     targetRevision: main
     path: applications/observability
+#    path: applications/observability/visualization/grafana
 
-    directory:
-      recurse: true
+#    directory:
+#      recurse: true
 
   destination:
     server: https://kubernetes.default.svc

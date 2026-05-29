@@ -13,8 +13,8 @@ spec:
     targetRevision: main
     path: applications/pg-apps
 
-    directory:
-      recurse: true
+#    directory:
+#      recurse: true
 
   destination:
     server: https://kubernetes.default.svc

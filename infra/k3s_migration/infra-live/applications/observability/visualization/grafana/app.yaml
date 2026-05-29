@@ -13,10 +13,15 @@ spec:
     chart: grafana
     targetRevision: 9.3.0
 
+#    helm:
+#      valueFiles:
+#        - values/common.yaml
+#        - values/test.yaml
     helm:
-      valueFiles:
-        - values/common.yaml
-        - values/test.yaml
+      values: |
+        adminPassword: admin123
+        service:
+          type: ClusterIP
 
   destination:
     server: https://kubernetes.default.svc
