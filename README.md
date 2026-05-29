@@ -363,7 +363,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 - #### *c.6.　[MiniKube](./docs/minikube.md)*
 - #### *c.7.　[K3s in Docker ( K3d )](./docs/k3d.md)*
 - #### *c.8.　[Lightweight Kubernetes ( K3s )](./docs/k3s.md)*
-- #### *c.9.　[K3s Migration](./docs/k3s_migration.md)*
+- #### *c.9.　[K3s Migration](./infra/k3s_migration/infra-live/README.md)*
 - #### *c.10.　[Kubeadm](./docs/kubeadm.md)*
 - #### *c.11.　[GCP](./docs/gcp.md)*
 

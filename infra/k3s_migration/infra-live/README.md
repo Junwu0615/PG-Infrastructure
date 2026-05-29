@@ -619,6 +619,9 @@ Applications
 ⚠️ Git Repo = Cluster Desired State
 
 直接 push 整個 infra-live tree
+    git init
+    git remote add origin \
+    http://192.168.0.15:8090/pg/infra-live.git
 
 
 # Applications/Observability
