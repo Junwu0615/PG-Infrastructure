@@ -5,10 +5,14 @@ TERRAFORM_PATH=./bootstrap/terraform
 ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 
+CHART_DIRS := \
+    ./infra-live/applications/observability/visualization/grafana \
+    ./infra-live/applications/observability/metrics/prometheus
+
 .PHONY: rollback deploy clean build \
 status init apply destroy terraform-list label-nodes vm-format vm-power \
 load-images save \
-init-gitops
+init-gitops init-chart-build $(CHART_DIRS)
 
 
 init-gitops:
@@ -16,6 +20,24 @@ init-gitops:
 	cd ./infra-live/bootstrap/ && \
 	chmod +x cluster/scripts/bootstrap-cluster.sh && \
 	./cluster/scripts/bootstrap-cluster.sh
+
+init-chart-build: $(CHART_DIRS)
+	@echo "✅  <init-chart-build> done."
+
+$(CHART_DIRS):
+	@echo "* 動態遍歷建置 Helm (Chat.yaml) 依賴 ▶ $@"
+	@\
+	# 冪等性核心邏輯 1： 解析 Chart.yaml 裡定義的 repository url 與 name \
+	REPO_URL=$$(yq eval '.dependencies[0].repository' $@/Chart.yaml 2>/dev/null); \
+	REPO_NAME=$$(yq eval '.dependencies[0].name' $@/Chart.yaml 2>/dev/null); \
+	\
+	if [ -n "$$REPO_URL" ] && [ "$$REPO_URL" != "null" ]; then \
+		echo "* 檢查 Helm Repository: $$REPO_NAME ($$REPO_URL)"; \
+		# 冪等性核心邏輯 2： 使用 helm repo add 強制覆蓋 \
+		helm repo add $$REPO_NAME $$REPO_URL --force-update > /dev/null 2>&1; \
+	fi; \
+	\
+	helm dependency build $@ || { echo "❌ $@ failed ..."; exit 1; }
 
 save:
 	@echo "* 導出映像檔至 $(TAR_FILE)"

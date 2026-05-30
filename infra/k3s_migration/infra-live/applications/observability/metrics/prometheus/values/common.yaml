@@ -25,13 +25,13 @@ prometheus:
       enabled: true
       size: 2Gi
 
-  kubeStateMetrics:
+  kube-state-metrics:
     enabled: true
 
-  nodeExporter:
+  prometheus-node-exporter:
     enabled: true
 
-  pushgateway:
+  prometheus-pushgateway:
     enabled: false
 
   serviceAccounts:

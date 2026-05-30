@@ -13,6 +13,8 @@ logs
 .terraform
 *Chart.lock
 *charts
+*values-reference.yaml
+*output.yaml
 
 #infra/docker-compose/_tmp_dags/
 #infra/docker-compose/opt/

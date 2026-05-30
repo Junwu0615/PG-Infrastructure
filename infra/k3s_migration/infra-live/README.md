@@ -682,9 +682,24 @@ security            Unknown       Unknown
     values/values.yaml
     
 
-在 App 根目錄執行 初始化 Chart 依賴包 ( ./charts )    
-# 待 make 腳本
-helm dependency build
+初始化 Chart 依賴包 ( ./charts )    
+    # 手動 ( 在 App 根目錄執行  )
+    helm dependency build
+    
+    # makefile
+        # 全建置
+        make init-chart-build
+        
+        # 單一建置
+        make ./infra-live/applications/observability/visualization/grafana
+        
+    * 檢視內部參數方式 (prometheus-27.39.0.tgz)
+    helm show values charts/prometheus-27.39.0.tgz > values-reference.yaml
+    
+    * helm 渲染 ( 渲染後的 output.yaml 可用來檢視實際部署內容 )
+    helm template . \
+      -f values/common.yaml \
+      -f values/test.yaml > output.yaml
 ```
 
 </ul>
