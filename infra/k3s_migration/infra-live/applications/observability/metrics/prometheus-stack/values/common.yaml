@@ -84,3 +84,6 @@ kube-prometheus-stack:
 
   prometheus-pushgateway:
     enabled: false
+
+  crds:
+    enabled: true

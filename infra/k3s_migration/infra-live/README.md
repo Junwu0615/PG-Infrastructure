@@ -707,6 +707,23 @@ security            Unknown       Unknown
     helm template . \
       -f values/common.yaml \
       -f values/test.yaml > output.yaml
+      
+    * 不帶參數
+    helm template . > output.yaml
+    
+    * 找關鍵字
+    [1] cat output.yaml | grep "image: "
+    [2] grep "image: " output.yaml
+      
+------
+⚠️ 刪除孤兒做法 當 argocd 已消失名單 但 pod 還在 ... ( prometheus )
+1. 先檢查 kubectl get application -n argocd
+
+⚠️ 2. 查所有相關服務 因為前置設定已綁 -n prometheus
+kubectl get all -n prometheus
+
+⚠️ 3. 直接砍域名
+kubectl delete namespace prometheus
 ```
 
 </ul>

@@ -1,0 +1,10 @@
+__pycache__
+.idea
+.ipynb_checkpoints
+.venv
+venv
+logs
+
+
+*values-reference.yaml
+*output.yaml
