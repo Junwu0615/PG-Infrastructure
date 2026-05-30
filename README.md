@@ -37,6 +37,7 @@ X = 已棄用
 | **Grafana** | O | O | - | - | - | O | - | - |
 | **Loki** | O | - | - | - | - | O | - | - |
 | **Promtail** | O | - | - | - | - | O | - | - |
+| **Tempo** | X | - | - | - | - | O | - | - |
 | **Elasticsearch** | O | - | - | - | - | * | - | - |
 | **Logstash** | O | - | - | - | - | * | - | - |
 | **Kibana** | O | - | - | - | - | * | - | - |
@@ -320,6 +321,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 | **Grafana** | Dashboard | [3000](http://127.0.0.1:3000) | [8080](http://grafana.k8s.local:8080) |
 | **Loki** | `Manage Log` | [3100](http://127.0.0.1:3100) | [8080](http://loki.k8s.local:8080) |
 | **Promtail** | for `Loki` | - | - |
+| **Tempo** | `K8s Services` Analyze<br>the call topology and latency | - | - |
 | **Elasticsearch** | `Manage Log` Distributed Search Engine | [9200](http://127.0.0.1:9200) | * |
 | **Logstash** | `Manage Log` Log Processing Pipeline | [9600](http://127.0.0.1:9600) | * |
 | **Kibana** | `Manage Log` Log Exploration UI | [5601](http://127.0.0.1:5601) | * |

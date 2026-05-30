@@ -3,9 +3,8 @@ kind: Kustomization
 
 resources:
   - visualization/grafana/app.yaml
-#  - tracing/tempo/app.yaml
-#  - metrics/exporters/postgres-exporter/app.yaml
-#  - metrics/exporters/node-exporter/app.yaml
-#  - metrics/prometheus/app.yaml
+  - metrics/prometheus/app.yaml
 #  - logging/loki/app.yaml
 #  - logging/promtail/app.yaml
+#  - tracing/tempo/app.yaml
+#  - metrics/exporters/postgres-exporter/app.yaml

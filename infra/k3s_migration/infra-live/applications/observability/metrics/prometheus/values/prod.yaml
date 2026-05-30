@@ -1,0 +1,19 @@
+prometheus:
+  replicaCount: 2
+
+  server:
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+
+      hosts:
+        - prometheus.k8s.local
+
+    persistentVolume:
+      enabled: true
+      size: 50Gi
+
+  alertmanager:
+    persistentVolume:
+      enabled: true
+      size: 10Gi

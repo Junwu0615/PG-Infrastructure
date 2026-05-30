@@ -1,0 +1,13 @@
+prometheus:
+  replicaCount: 1
+
+  server:
+    ingress:
+      enabled: false
+
+    persistentVolume:
+      enabled: false
+
+  alertmanager:
+    persistentVolume:
+      enabled: false
