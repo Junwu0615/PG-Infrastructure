@@ -12,6 +12,49 @@ curl -sS https://webinstall.dev/k9s | bash
 #### *>>　使用方式*
 
 ```
+# 可以搭配工具看記憶體損耗
+    # MEM (含 Cache)
+    htop
+    
+    # 首選 ( 拆更細 )
+    free -h
+    
+        ⭐ 動態更新 ( 每 2 秒更新一次 )
+        watch -d -n 2 free -hw
+    
+    # 前 10 名行程損耗
+    ps aux --sort=-%mem | head -n 11
+    
+    # 手動釋放記憶體
+    sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches
+    
+                   total        used        free      shared  buff/cache   available
+    Mem:            31Gi        15Gi       7.4Gi        57Mi       8.4Gi        15Gi
+    
+    pc@DESKTOP-PC:~$ sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches
+
+                   total        used        free      shared  buff/cache   available
+    Mem:            31Gi        15Gi        14Gi        57Mi       1.1Gi        15Gi
+
+# 替換集群方式
+    * 啟動時餵路徑
+    # k9s --kubeconfig ~/.kube/config-k3s
+    
+    * 軟連結
+    # 確認底下文件
+    ls ~/.kube
+    # 備份原有的預設 config
+    mv ~/.kube/config ~/.kube/config.bak
+    # 建立軟連結
+    ln -s ~/.kube/config-k3s ~/.kube/config
+
+------
+# 按 0： 切換到「所有命名空間」
+# 輸入:
+    pod
+    node
+
+------
 : ：輸入命令（ 例如 :pod 看 Pod, :node 看節點 ）
 / ：過濾關鍵字
 d ：Describe（ 查看詳細描述 ）
@@ -37,15 +80,26 @@ kubectl version --client
 ```
 #### *>>　使用方式*
 ```
+# 檢視 kubectl 目前生效的最終設定
+kubectl config view
+
+# 檢查目前 kubectl 的連線環境狀態
+kubectl cluster-info
+
+# 檢查環境變數有沒有確實生效
+echo $KUBECONFIG
+
+---
+
 # 確認已被定義的容器 ( 含不需連線 + 需連線 + ... ) 名稱
 kubectl get pods
-# ⭐ 顯示標籤 ( 虛擬化簡稱 查找方便 )
+⭐ 顯示標籤 ( 虛擬化簡稱 查找方便 )
 kubectl get pods --show-labels
 
 # 無視指定域名 全部顯示
 kubectl get pods -A
 
-# ⭐ 常駐觀察
+⭐ 常駐觀察
 kubectl get pods -w
 
 # 確認 pvc ( 儲存 ) 狀態
@@ -57,7 +111,7 @@ kubectl get nodes
 # 檢查已被定義的服務 ( 被連線使用 ) 狀態
 kubectl get svc
 
-    # ⭐ 測試 DNS 解析 ( 容器內使用 )
+    ⭐ 測試 DNS 解析 ( 容器內使用 )
     nslookup postgres-service
 
 # 確認 ConfigMap 狀態
@@ -66,20 +120,20 @@ kubectl get cm
 # 確認 namespaces
 kubectl get namespaces
 
-# ⭐ [ 組合技 ] 確認所有組件狀態
+⭐ [ 組合技 ] 確認所有組件狀態
 kubectl get pods,pvc,svc,ingress,cm,nodes
 
-# ⭐ 確認 log ( 可用虛擬化名稱 )
+⭐ 確認 log ( 可用虛擬化名稱 )
 kubectl logs -f -l app=python-app --tail=5
 
-# ⭐ [ 僅開發 ] 將 k8s 服務映射到外部 方便外部系統開發 ; 命令列狀態會常駐，除非退出
+⭐ [ 僅開發 ] 將 k8s 服務映射到外部 方便外部系統開發 ; 命令列狀態會常駐，除非退出
 kubectl port-forward svc/postgres-service 5432:5432
     # 內部一律採用 postgres-service 來解偶位置不同問題 ; 因為 k8s 的 IP 會浮動 => 高可用性
 
-# ⭐ 進入 pod 內部
+⭐ 進入 pod 內部
     kubectl exec -it pod/python-app-fd66fdf4c-s4kxv -- bash
     
-    # ⭐ 進階用法: ☄️ 可虛擬化簡稱
+    ⭐ 進階用法: ☄️ 可虛擬化簡稱
     kubectl exec -it $(kubectl get pods -l app=python-app -o name) -- bash
     kubectl exec -it $(kubectl get pods -l app=postgres -o name) -- bash
 
@@ -104,12 +158,12 @@ kubectl port-forward svc/postgres-service 5432:5432
 # 檢查 Service 關聯到的端點 ( Endpoints )
 kubectl get endpoints postgres-service
 
-# ⭐⭐⭐ [ 病歷表 ] 檢查具體噴錯原因
+⭐⭐⭐ [ 病歷表 ] 檢查具體噴錯原因
 kubectl describe pod portainer-59cf9d8764-mg54l
     # 虛擬化名稱
     kubectl describe pod -l app=portainer
 
-# ⭐ 刪除目前的 Pod ( Deployment 自動開一個新的並重新拉取 )
+⭐ 刪除目前的 Pod ( Deployment 自動開一個新的並重新拉取 )
 kubectl delete pod portainer-59cf9d8764-86m7h
     # 虛擬化名稱
     kubectl delete pod -l app=portainer
@@ -121,7 +175,7 @@ kubectl delete pod portainer-59cf9d8764-86m7h
     ⭐ # 特定標籤 ( service )
     kubectl get nodes -L service-type
     
-# ⭐ 刪除異常節點 ( 幽靈 )
+⭐ 刪除異常節點 ( 幽靈 )
 kubectl delete node <node name>
 
 # ⚠️ 簡化指令
@@ -161,7 +215,7 @@ which helm
 #### *>>　使用方式*
 ```
 # 部署方式 ( 啟動/更新/移除 )
-    # ⭐ [1] 啟動/更新 Helm 部署 ( DEV 設置 ) + 外部傳入設定: image tags
+    ⭐ [1] 啟動/更新 Helm 部署 ( DEV 設置 ) + 外部傳入設定: image tags
     helm upgrade --install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml --set image.tag=v1
     
     # [2.1] 先解除安裝
@@ -170,10 +224,10 @@ which helm
     # [2.2] 再重新安裝
     helm install my-dev-release ./helm/app-stack -f ./helm/app-stack/values-dev.yaml
     
-# ⭐ 查看目前的 release 列表與版本次數 ( REVISION )
+⭐ 查看目前的 release 列表與版本次數 ( REVISION )
 helm list
 
-    # ⭐ 查看該 release 的詳細歷史紀錄
+    ⭐ 查看該 release 的詳細歷史紀錄
     helm history my-dev-release
 
 # 一次性刪除該 Release 下所有的 Service, Deployment, ConfigMap, Ingress
@@ -246,7 +300,7 @@ k3d --version
     # * 檢視設定
     sudo virsh net-info k3s_net
     
-    # ⭐ 檢視 dhcp 分配狀態是否如預期
+    ⭐ 檢視 dhcp 分配狀態是否如預期
     virsh net-dhcp-leases k3s_net
     
     # * 刪除舊定義 (k3s_net)

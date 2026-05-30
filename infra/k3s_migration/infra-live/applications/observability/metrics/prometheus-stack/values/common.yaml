@@ -80,7 +80,7 @@ kube-prometheus-stack:
 
       limits:
         cpu: 500m
-        memory: 512Mi
+        memory: 256Mi
 
   prometheus-pushgateway:
     enabled: false
