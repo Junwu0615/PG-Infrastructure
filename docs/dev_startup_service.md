@@ -1,6 +1,9 @@
 ## *DEV Startup Service*
 
-### *1.　PostgreSQL*
+<details>
+<summary><b><i>　1.　PostgreSQL </i></b></summary>
+<ul>
+
 - #### *a.　背景啟動*
   ```
   docker-compose build --no-cache
@@ -39,9 +42,16 @@
   SELECT * FROM pg_wait_sampling_current;
   ```
 
+</ul>
+</details>
+
 <br>
 
-### *~~2.　Setting Account to Airflow in PostgreSQL~~*
+
+<details>
+<summary><b><i>　X　2.　Setting Account to Airflow in PostgreSQL </i></b></summary>
+<ul>
+
 - #### *a.　進入 PostgreSQL container*
   ```
   # -U : 使用已存在的使用者
@@ -67,9 +77,16 @@
   docker exec -it pg-cluster-dev-db-1 psql -U airflow -d airflow
   ```
 
+</ul>
+</details>
+
 <br>
 
-### *3.　Airflow*
+
+<details>
+<summary><b><i>　3.　Airflow </i></b></summary>
+<ul>
+
 - #### *a.　創建目錄 + 給予指定資料夾權限 + 初始化*
   ```
   mkdir config; mkdir dags; mkdir logs; mkdir plugins;
@@ -136,9 +153,16 @@
   直接找到出口
   ```
 
+</ul>
+</details>
+
 <br>
 
-### *~~4.　PoWA~~*
+
+<details>
+<summary><b><i>　X　4.　PoWA </i></b></summary>
+<ul>
+
 - #### *a.　背景啟動*
   ```
   docker-compose up -d --build powa-postgres powa-web
@@ -182,9 +206,15 @@
   server   : powa-db
   ```
   
+</ul>
+</details>
+
 <br>
 
-### *5.　IOT Platform*
+<details>
+<summary><b><i>　5.　IOT Platform </i></b></summary>
+<ul>
+
 - #### *a.　啟動*
   ```
   # 設定 MQTT 密碼 # 建立一個 admin 的帳號，並基於密碼生成 Hash
@@ -244,10 +274,16 @@
   # 8. 刪除 Connector
   curl -X DELETE http://127.0.0.1:8083/connectors/mqtt-cp-mach-order
   ```
+  
+</ul>
+</details>
 
 <br>
 
-### *6.　ELK*
+<details>
+<summary><b><i>　6.　ELK </i></b></summary>
+<ul>
+
 - #### *a.　settings*
   ```
   # vm.max_map_count => Linux 核心（Kernel）的參數，用來限制一個進程可以擁有的虛擬記憶體區域（VMA）的最大數量
@@ -290,9 +326,15 @@
   docker logs -f pg-cluster-logstash-1
   ```
   
+</ul>
+</details>
+
 <br>
 
-### *7.　Gitlab*
+<details>
+<summary><b><i>　7.　Gitlab </i></b></summary>
+<ul>
+
 - #### *a.　使用細節*
   ```
   # 管理員 初始帳密
@@ -422,9 +464,15 @@
     sudo systemctl restart gitlab-runner
   ```
 
+</ul>
+</details>
+
 <br>
 
-### *8.　Docker Registry*
+<details>
+<summary><b><i>　8.　Docker Registry </i></b></summary>
+<ul>
+
 - #### *a.　使用細節*
   ```
   # 推本地映像檔到庫
@@ -463,9 +511,15 @@
     skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '[.LayersData[].Size] | add / 1024 / 1024 | "Total Size: \(.) MB"'
   ```
 
+</ul>
+</details>
+
 <br>
 
-### *9.　Portainer*
+<details>
+<summary><b><i>　9.　Portainer </i></b></summary>
+<ul>
+
 - #### *a.　使用細節*
   ```
   admin
@@ -493,7 +547,7 @@
       sudo systemctl enable --now portainer-agent-proxy
       sudo systemctl restart portainer-agent-proxy
       sudo systemctl status portainer-agent-proxy
-      sudo systemctl stop portainer-agent-proxy    
+      * sudo systemctl stop portainer-agent-proxy    
       
       # 測試
       curl http://10.88.0.20:31928
@@ -502,13 +556,14 @@
     kubectl apply -f k3s_migration/archive/test/portainer-ingress.yaml
       
       # 測試連線
-      # WSL2
-        curl -v -H "Host: portainer.k8s.local" http://10.88.0.20:31928
-        curl -v -H "Host: portainer.k8s.local" https://10.88.0.20:31928
-        curl -k -v https://10.88.0.20:31928
-      # Win
-        curl -Verbose -SkipCertificateCheck https://127.0.0.1:9001
-        Test-NetConnection portainer.k8s.local -Port 9001 
+        # WSL2
+          [X] curl -v -H "Host: portainer.k8s.local" http://10.88.0.20:31928
+          [O] curl -v -H "Host: portainer.k8s.local" https://10.88.0.20:31928
+          curl -k -v https://10.88.0.20:31928
+    
+        # [X] Win: 它直接透過 host.docker.internal 索取資源 無須再從外部進入
+          curl -Verbose -SkipCertificateCheck https://127.0.0.1:9001
+          Test-NetConnection portainer.k8s.local -Port 9001 
     
     # 基本如下
     Name: pg-k3s-master
@@ -517,9 +572,15 @@
   ```
   ![PNG](../assets/portainer.png)
 
+</ul>
+</details>
+
 <br>
 
-### *10.　ArgoCD*
+<details>
+<summary><b><i>　10.　ArgoCD </i></b></summary>
+<ul>
+
 - #### *a.　使用細節*
   ```
   admin
@@ -527,9 +588,15 @@
   v3dkI7VPVRd1kkNq
   ```
 
+</ul>
+</details>
+
 <br>
 
-### *11.　Monitoring*
+<details>
+<summary><b><i>　11.　Monitoring </i></b></summary>
+<ul>
+
 - #### *a.　Grafana 設定*
   ```
   # Login Grafana Web UI
@@ -583,7 +650,7 @@
   ```
 
 - #### *c.　監控位置*
-  - #### *⭐ 1.　TPS: 每秒 Commit + Rollback 數*
+  - #### *⭐ c.1.　TPS: 每秒 Commit + Rollback 數*
   - ![PNG](../assets/grafana_01.PNG)
     ```
     -- Equivalent SQL ⬇️ 
@@ -603,7 +670,7 @@
       - Network Saturation => Transaction waiting for Network
       - Checkpoint => Checkpoint Frequency too High
     ```
-  - #### *⭐ 2.　WAL Rate*
+  - #### *⭐ c.2.　WAL Rate*
     ```
     -- Equivalent SQL ⬇️ 
     None
@@ -616,7 +683,7 @@
      - Numerous UPDATEs
      - Checkpoint ( WAL Rate Spike )
     ```
-  - #### *3.　IO Saturation*
+  - #### *c.3.　IO Saturation*
     ```
     -- Equivalent SQL ⬇️ 
     None
@@ -626,7 +693,7 @@
     預期 : None
     非預期 : IO Full => TPS 突然下降
     ```
-  - #### *⭐ 4.　Lock Contention*
+  - #### *⭐ c.4.　Lock Contention*
   - ![PNG](../assets/grafana_04.PNG)
     ```
     -- Equivalent SQL ⬇️ 
@@ -642,7 +709,7 @@
         - DDL Lock => Schema Change
         - OLAP Query => AccessShareLock
     ```
-  - #### *5.　Connections*
+  - #### *c.5.　Connections*
   - ![PNG](../assets/grafana_05.PNG)
     ```
     -- Equivalent SQL ⬇️ 
@@ -657,7 +724,7 @@
         - Connection Storm => Sudden Surge in Connection Attempts
         - Pool Misconfiguration => Connection Pooling Exploded
     ```
-  - #### *⭐ 6.　Cache Hit Ratio*
+  - #### *⭐ c.6.　Cache Hit Ratio*
   - ![PNG](../assets/grafana_06.PNG)
     ```
     -- Equivalent SQL ⬇️ 
@@ -670,7 +737,7 @@
       - shared_buffers 不夠 ??? 
       - dataset > RAM ???
     ```
-  - #### *⭐ 7.　WAL Flush / Checkpoint*
+  - #### *⭐ c.7.　WAL Flush / Checkpoint*
   - ![PNG](../assets/grafana_07.PNG)
     ```
     -- Equivalent SQL ⬇️ 
@@ -683,9 +750,12 @@
       - checkpoints_req => WAL segment filled up => max_wal_size too small
     ```
     
-  - #### *8.　...*
+  - #### *c.8.　...*
     ```
     http://127.0.0.1:9187/metrics
     ```
+
+</ul>
+</details>
 
 <br><br><br>

@@ -182,13 +182,6 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
     │   │       ├── terraform.tfstate
     │   │       ├── terraform.tfstate.backup
     │   │       └── variables.tf
-    │   ├── gitlab-tree
-    │   │   ├── README
-    │   │   ├── app-manifests
-    │   │   ├── docker-services
-    │   │   ├── infra-live
-    │   │   ├── infra-modules
-    │   │   └── platform-docs
     │   ├── infra-live
     │   │   ├── applications
     │   │   │   ├── databases
