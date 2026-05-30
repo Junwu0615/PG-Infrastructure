@@ -1,4 +1,5 @@
 apiVersion: v2
+# 自訂名稱，與 Helm Chart 官方名稱無關，但建議與目標應用相關，以便識別
 name: prometheus-stack-wrapper
 description: A Helm Chart for Prometheus GitOps
 type: application
@@ -6,6 +7,7 @@ version: 0.1.0
 
 dependencies:
   # values 第一層 Key 必須與此 name 一致，才能正確套用 values 設定
-  - name: prometheus-stack
+  # 必須是官方 Chart 名稱，不能是自訂名稱
+  - name: kube-prometheus-stack
     version: 78.5.0
     repository: https://prometheus-community.github.io/helm-charts

@@ -686,12 +686,19 @@ security            Unknown       Unknown
     # 手動 ( 在 App 根目錄執行  )
     helm dependency build
     
+        # 強制覆蓋
+        $$REPO_NAME ( from Chart.yaml )
+        $$REPO_URL ( from Chart.yaml )
+        helm repo add $$REPO_NAME $$REPO_URL --force-update
+        helm repo add  kube-prometheus-stack https://prometheus-community.github.io/helm-charts --force-update
+    
     # makefile
         # 全建置
         make init-chart-build
         
         # 單一建置
         make ./infra-live/applications/observability/visualization/grafana
+        make ./infra-live/applications/observability/metrics/prometheus-stack
         
     * 檢視內部參數方式 (prometheus-27.39.0.tgz)
     helm show values charts/prometheus-27.39.0.tgz > values-reference.yaml

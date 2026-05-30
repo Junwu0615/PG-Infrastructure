@@ -5,9 +5,15 @@ TERRAFORM_PATH=./bootstrap/terraform
 ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 
-CHART_DIRS := \
+ALL_CHART_DIRS := \
     ./infra-live/applications/observability/visualization/grafana \
-    ./infra-live/applications/observability/metrics/prometheus
+    ./infra-live/applications/observability/metrics/prometheus \
+    ./infra-live/applications/observability/metrics/prometheus-stack
+
+FILTER_CHART_DIRS := \
+	./infra-live/applications/observability/metrics/prometheus \
+
+CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
 .PHONY: rollback deploy clean build \
 status init apply destroy terraform-list label-nodes vm-format vm-power \
