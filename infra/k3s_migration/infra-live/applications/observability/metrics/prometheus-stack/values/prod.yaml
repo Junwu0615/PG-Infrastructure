@@ -1,0 +1,27 @@
+prometheus-stack:
+  prometheus:
+    ingress:
+      enabled: false
+
+    prometheusSpec:
+      replicas: 2
+      retention: 30d
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            resources:
+              requests:
+                storage: 100Gi
+
+  alertmanager:
+    enabled: true
+    alertmanagerSpec:
+      replicas: 2
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi

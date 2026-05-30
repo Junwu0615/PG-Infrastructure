@@ -1,0 +1,11 @@
+prometheus-stack:
+  prometheus:
+    ingress:
+      enabled: true
+
+    prometheusSpec:
+      replicas: 1
+      retention: 7d
+
+  alertmanager:
+    enabled: true

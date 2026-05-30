@@ -1,0 +1,86 @@
+prometheus-stack:
+  prometheus:
+    service:
+      type: ClusterIP
+
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - prometheus.k8s.local
+
+    prometheusSpec:
+      replicas: 1
+      retention: 15d
+
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 5Gi
+
+  alertmanager:
+    enabled: true
+    alertmanagerSpec:
+      replicas: 1
+
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 250m
+          memory: 256Mi
+
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 2Gi
+
+  defaultRules:
+    create: true
+
+  grafana:
+    enabled: false
+
+  kubeStateMetrics:
+    enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+
+      limits:
+        cpu: 250m
+        memory: 256Mi
+
+  nodeExporter:
+    enabled: true
+
+  prometheusOperator:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  prometheus-pushgateway:
+    enabled: false

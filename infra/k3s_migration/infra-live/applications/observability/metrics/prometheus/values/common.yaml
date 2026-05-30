@@ -2,6 +2,9 @@ prometheus:
   replicaCount: 1
 
   server:
+    service:
+      type: ClusterIP
+
     ingress:
       enabled: false
 

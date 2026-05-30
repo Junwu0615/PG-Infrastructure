@@ -3,7 +3,8 @@ kind: Kustomization
 
 resources:
   - visualization/grafana/app.yaml
-  - metrics/prometheus/app.yaml
+#  - metrics/prometheus/app.yaml
+  - metrics/prometheus-stack/app.yaml
 #  - logging/loki/app.yaml
 #  - logging/promtail/app.yaml
 #  - tracing/tempo/app.yaml
