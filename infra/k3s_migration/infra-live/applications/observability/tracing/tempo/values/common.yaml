@@ -1,4 +1,3 @@
-# values/common.yaml
 tempo-distributed:
   # 關閉多租戶嚴格認證，但在微服務架構下內部依然走單一租戶 (fake) 邏輯
   multitenancy:
@@ -29,7 +28,6 @@ tempo-distributed:
             grpc:
               endpoint: 0.0.0.0:14250
 
-
-global:
-  image:
-    tag: "2.4.1"
+  global:
+    image:
+      tag: "2.4.1"

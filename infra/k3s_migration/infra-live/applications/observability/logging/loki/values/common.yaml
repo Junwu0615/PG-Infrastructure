@@ -1,52 +1,65 @@
 loki:
-  service:
-    type: ClusterIP
+  global:
+    image:
+      tag: "2.9.11"
 
-  ingress:
-    enabled: true
-    ingressClassName: nginx
-    hosts:
-      - loki.k8s.local
+  deploymentMode: SingleBinary
 
-  gateway:
-    enabled: false
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
 
-  auth_enabled: false
-  
-  commonConfig:
-    path_prefix: /var/loki
-    replication_factor: 1
+  loki:
+    service:
+      type: ClusterIP
 
-  storage_config:
-    filesystem:
-      directory: /var/loki/chunks
-    local:
-      directory: /var/loki/chunks
-    
-    schema_config:
-      configs:
-        - from: "2020-10-24"
-          store: boltdb-shipper
-          object_store: filesystem
-          schema: v11
-          index:
-            prefix: index_
-            period: 24h
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - loki.k8s.local
 
+    gateway:
+      enabled: false
 
-singleBinary:
-  replicas: 1
+    auth_enabled: false
+    structuredConfig:
+      auth_enabled: false
+      server:
+        http_listen_port: 3100
+        grpc_listen_port: 9095
+      common:
+        path_prefix: /var/loki
+        replication_factor: 1
+        storage:
+          filesystem:
+            chunks_directory: /var/loki/chunks
+            rules_directory: /var/loki/rules
+      schema_config:
+        configs:
+          - from: "2024-01-01"
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: index_
+              period: 24h
 
-  resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
+  # 關閉微服務組件
+  read:
+    replicas: 0
 
-    limits:
-      cpu: 200m
-      memory: 512Mi
+  write:
+    replicas: 0
 
-
-global:
-  image:
-    tag: "2.9.11"
+  backend:
+    replicas: 0

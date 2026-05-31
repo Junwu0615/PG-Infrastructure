@@ -19,6 +19,6 @@ promtail:
     enabled: true
 
 
-global:
-  image:
-    tag: "2.9.11"
+  global:
+    image:
+      tag: "2.9.11"

@@ -10,6 +10,9 @@ kube-prometheus-stack:
         - prometheus.k8s.local
 
     prometheusSpec:
+      # 因應 trackTimestampsStaleness 不同步問題
+      serviceMonitorSelectorNilUsesHelmValues: false
+
       image:
         registry: quay.io
         repository: prometheus/prometheus
