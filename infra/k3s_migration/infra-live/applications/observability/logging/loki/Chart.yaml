@@ -9,5 +9,5 @@ dependencies:
   # values 第一層 Key 必須與此 name 一致，才能正確套用 values 設定
   # 必須是官方 Chart 名稱，不能是自訂名稱
   - name: loki
-    version: 6.35.1
+    version: 5.47.2
     repository: https://grafana.github.io/helm-charts

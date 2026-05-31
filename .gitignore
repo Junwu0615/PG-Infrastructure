@@ -11,8 +11,11 @@ logs
 *.terraform.lock.hcl
 *.terraform.tfstate.lock.info
 .terraform
+
 *Chart.lock
 *charts
+
+*official-values.yaml
 *values-reference.yaml
 *output.yaml
 

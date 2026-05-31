@@ -1,20 +1,28 @@
 loki:
-  singleBinary:
-    replicas: 1
-
-  deploymentMode: SingleBinary
-
   auth_enabled: false
-
+  
   commonConfig:
+    path_prefix: /var/loki
     replication_factor: 1
 
-  storage:
-    type: filesystem
+  storage_config:
+    filesystem:
+      directory: /var/loki/chunks
+    local:
+      directory: /var/loki/chunks
+    
+    schema_config:
+      configs:
+        - from: "2020-10-24"
+          store: boltdb-shipper
+          object_store: filesystem
+          schema: v11
+          index:
+            prefix: index_
+            period: 24h
 
-  persistence:
-    enabled: true
-    size: 10Gi
+singleBinary:
+  replicas: 1
 
   resources:
     requests:
@@ -22,12 +30,10 @@ loki:
       memory: 256Mi
 
     limits:
-      cpu: 500m
+      cpu: 200m
       memory: 512Mi
 
-  monitoring:
-    dashboards:
-      enabled: true
-
-    serviceMonitor:
-      enabled: true
+# 預設時區與基礎全域設定
+global:
+  image:
+    tag: "2.9.11" # 對應 Helm 5.47.2 的穩定 Loki 鏡像版本

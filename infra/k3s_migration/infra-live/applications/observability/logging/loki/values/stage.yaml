@@ -1,3 +1,19 @@
-loki:
+singleBinary:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
   persistence:
-    size: 10Gi
+    enabled: true
+    size: 50Gi
+    # storageClass: "standard" 
+
+loki:
+  limits_config:
+    ingestion_rate_mb: 10
+    ingestion_burst_size_mb: 20
+    retention_period: 168h # 預發環境保留 7 天日誌

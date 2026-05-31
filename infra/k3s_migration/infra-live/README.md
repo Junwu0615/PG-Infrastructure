@@ -699,22 +699,44 @@ security            Unknown       Unknown
         # 單一建置
         make ./infra-live/applications/observability/visualization/grafana
         make ./infra-live/applications/observability/metrics/prometheus-stack
-        
-    * 檢視內部參數方式 (prometheus-27.39.0.tgz)
-    helm show values charts/prometheus-27.39.0.tgz > values-reference.yaml
+        make ./infra-live/applications/observability/logging/loki
+
+
+DEBUG
+* 輸出 values 範例 ( grafana/loki --version 6.35.1 )
+helm show values grafana/loki --version 6.35.1 > official-values.yaml
     
-    * helm 渲染 ( 渲染後的 output.yaml 可用來檢視實際部署內容 )
-    helm template . \
-      -f values/common.yaml \
-      -f values/test.yaml > output.yaml
-      
-    * 不帶參數
-    helm template . > output.yaml
+* 檢視內部參數方式 (prometheus-27.39.0.tgz)
+helm show values charts/prometheus-27.39.0.tgz > values-reference.yaml
+
+* [ 部分應用渲染需要帶 values 驗證 否則直接報錯 ] helm 渲染 ( 渲染後的 output.yaml 可用來檢視實際部署內容 )
+helm template . \
+  -f values/common.yaml \
+  -f values/test.yaml > output.yaml
+  
+* 不帶參數
+helm template . > output.yaml
+
+* 找關鍵字
+[1] cat output.yaml | grep "image: "
+[2] grep "image: " output.yaml
+
+* 確認 Chart 是否真的載入到 dependency
+helm dependency list .
+
+* yq 排查內容方式
+yq '.loki.storage.bucketNames' values/common.yaml
+
+* 疊加 values 作法 ( 官方範本 + 自定義 )
+helm template . -f official-values.yaml -f values/common.yaml --debug
+
+# 改用 helm template 直接對子 Chart 進行操作
+    1. 解壓子 Chart（如果它還是 .tgz 壓縮檔）
+    tar -zxvf charts/loki-6.35.1.tgz -C charts/
     
-    * 找關鍵字
-    [1] cat output.yaml | grep "image: "
-    [2] grep "image: " output.yaml
-      
+    2. 直接指定子 Chart 目錄，並帶入你原本的 values
+    helm template charts/loki -f values/common.yaml
+    
 ------
 ⚠️ 刪除孤兒做法 當 argocd 已消失名單 但 pod 還在 ... ( prometheus )
 1. 先檢查 kubectl get application -n argocd
@@ -724,6 +746,18 @@ kubectl get all -n prometheus
 
 ⚠️ 3. 直接砍域名
 kubectl delete namespace prometheus
+
+------
+Chart 版本號查詢 ( grafana/loki )
+
+dependencies:
+  # values 第一層 Key 必須與此 name 一致，才能正確套用 values 設定
+  # 必須是官方 Chart 名稱，不能是自訂名稱
+  - name: loki
+    ⚠️ version: 6.35.1
+    
+helm repo list
+helm search repo grafana/loki --versions | head -30
 ```
 
 </ul>

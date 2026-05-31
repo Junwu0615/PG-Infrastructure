@@ -1,12 +1,33 @@
-loki:
-  persistence:
-    size: 20Gi
-
+singleBinary:
   resources:
     requests:
-      cpu: 500m
-      memory: 1Gi
-
-    limits:
       cpu: 2000m
-      memory: 2Gi
+      memory: 4Gi
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+
+  # 生產環境強烈建議使用高效能的分散式區塊儲存（如 Longhorn 或雲端 SSD）
+  persistence:
+    enabled: true
+    size: 200Gi
+    # storageClass: "premium-rwo"
+
+  # 為了提高生產環境的查詢效能，開啟快取與平行查詢
+  extraArgs:
+    - "-querier.max-concurrent=8"
+
+loki:
+  limits_config:
+    ingestion_rate_mb: 25
+    ingestion_burst_size_mb: 50
+    
+    # 生產環境嚴格管理：保留 30 天日誌，超過自動刪除防止爆碟
+    retention_period: 720h 
+    max_entries_limit_per_query: 5000
+
+  # 開啟 Loki 內建的日誌刪除器（配合 retention_period 生效）
+  compactor:
+    retention_enabled: true
+    retention_delete_delay: 2h
+    retention_delete_worker_count: 15

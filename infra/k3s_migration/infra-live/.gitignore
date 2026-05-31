@@ -5,6 +5,6 @@ __pycache__
 venv
 logs
 
-
+*official-values.yaml
 *values-reference.yaml
 *output.yaml
