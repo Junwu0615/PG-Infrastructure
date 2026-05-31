@@ -1,7 +1,7 @@
 kube-prometheus-stack:
   prometheus:
-    service:
-      type: ClusterIP
+#    service:
+#      type: ClusterIP
 
     ingress:
       enabled: true

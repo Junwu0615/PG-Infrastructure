@@ -2,12 +2,12 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 
 metadata:
-  # 要與 svc 命名完全吻合 才能配對 addr
-  name: tempo-query-frontend
-
+  name: tempo
   namespace: tempo
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # 關鍵：告訴 Argo CD 如果發現舊的同名資源（比如 Chart 殘留的），請直接替換掉它
+    argocd.argoproj.io/sync-options: Replace=true
 
 spec:
   ingressClassName: "nginx"

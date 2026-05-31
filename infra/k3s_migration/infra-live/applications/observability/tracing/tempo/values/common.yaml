@@ -35,9 +35,9 @@ tempo-distributed:
       limits: { cpu: 200m, memory: 512Mi }
 
   # --- Ingress 設定 (Query Frontend) ---
-#  queryFrontend:
-#    enabled: true
-#    ingress:
+  queryFrontend:
+    ingress:
+      enabled: false
 #      enabled: true
 #      ingressClassName: "nginx"
 #      annotations:

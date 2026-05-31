@@ -7,8 +7,8 @@ grafana:
     image:
       tag: "10.4.1"
 
-  service:
-    type: ClusterIP
+#  service:
+#    type: ClusterIP
 
   ingress:
     enabled: true
