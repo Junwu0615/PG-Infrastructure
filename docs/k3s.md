@@ -275,7 +275,7 @@ ansible-playbook -i ./ansible/inventory.ini ansible/playbooks/deploy_k3s.yml
 # ✅ 確認整體節點是否都歸對
 kubectl get nodes -o wide
 
-pc@DESKTOP-PC:~$ kubectl get nodes -o wide
+$ kubectl get nodes -o wide
 NAME      STATUS   ROLES           AGE   VERSION        INTERNAL-IP    EXTERNAL-IP   OS-IMAGE                       KERNEL-VERSION        CONTAINER-RUNTIME
 master    Ready    control-plane   53m   v1.35.4+k3s1   192.168.0.17   <none>        Debian GNU/Linux 13 (trixie)   6.12.86+deb13-amd64   containerd://2.2.3-k3s1
 worker1   Ready    <none>          50m   v1.35.4+k3s1   192.168.0.18   <none>        Debian GNU/Linux 13 (trixie)   6.12.86+deb13-amd64   containerd://2.2.3-k3s1
@@ -309,7 +309,7 @@ make deploy ver=v5
     sudo k3s ctr images import ~/my-python-app.tar
     
 # ✅ 確認整體節點分配狀態 | APP 分別丟向 2 個節點 | SERVICE 固定 Worker3
-pc@DESKTOP-PC:~$ kubectl get -w pods -o wide
+$ kubectl get -w pods -o wide
 NAME                           READY   STATUS    RESTARTS   AGE   IP          NODE      NOMINATED NODE   READINESS GATES
 portainer-564755cdd-hd8fq      1/1     Running   0          10m   10.42.1.5   worker3   <none>           <none>
 postgres-db-64b54dd94b-n5hzk   1/1     Running   0          10m   10.42.1.4   worker3   <none>           <none>
@@ -563,11 +563,11 @@ Helm:
                 sudo apt update
                 sudo apt install socat -y
                     # 確認安裝狀態
-                    pc@DESKTOP-PC:~$ which socat
+                    $ which socat
                     /usr/bin/socat
                                 
                     # WSL2 監聽查詢 ( 預期如下 )
-                    pc@DESKTOP-PC:~$ sudo ss -ltnp | grep :80
+                    $ sudo ss -ltnp | grep :80
                     LISTEN 0      5                   *:80               *:*    users:(("socat",pid=202306,fd=5))
                 
                 # 建立檔案
@@ -608,7 +608,7 @@ Helm:
             netstat -ano | findstr :8080
         
             # ip addr show eth0 ( 查詢得到: 172.28.113.34 )
-            pc@DESKTOP-PC:~$ ip addr show eth0
+            $ ip addr show eth0
             2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
                 link/ether 00:15:5d:92:5b:06 brd ff:ff:ff:ff:ff:ff
                 inet 172.28.113.34/20 brd 172.28.127.255 scope global eth0
@@ -678,7 +678,7 @@ Helm:
     2. 強制砍節點
     3. 候補即替上 ( 替補上的 pod 非同個節點 )
     
-    pc@DESKTOP-PC:~$ kubectl get pods -w -o wide
+    $ kubectl get pods -w -o wide
     NAME                           READY   STATUS    RESTARTS   AGE   IP          NODE         NOMINATED NODE   READINESS GATES
     portainer-564755cdd-rrd79      1/1     Running   0          47m   10.42.3.3   k3s-node-3   <none>           <none>
     postgres-db-64b54dd94b-8k2lq   1/1     Running   0          47m   10.42.4.3   k3s-node-4   <none>           <none>

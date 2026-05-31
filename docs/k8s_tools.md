@@ -31,7 +31,7 @@ curl -sS https://webinstall.dev/k9s | bash
                    total        used        free      shared  buff/cache   available
     Mem:            31Gi        15Gi       7.4Gi        57Mi       8.4Gi        15Gi
     
-    pc@DESKTOP-PC:~$ sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches
+    $ sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches
 
                    total        used        free      shared  buff/cache   available
     Mem:            31Gi        15Gi        14Gi        57Mi       1.1Gi        15Gi

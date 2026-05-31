@@ -8,7 +8,9 @@ ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 ALL_CHART_DIRS := \
     ./infra-live/applications/observability/visualization/grafana \
     ./infra-live/applications/observability/metrics/prometheus \
-    ./infra-live/applications/observability/metrics/prometheus-stack
+    ./infra-live/applications/observability/metrics/prometheus-stack \
+    ./infra-live/applications/observability/logging/loki \
+    ./infra-live/applications/observability/logging/promtail \
 
 FILTER_CHART_DIRS := \
 	./infra-live/applications/observability/metrics/prometheus \
