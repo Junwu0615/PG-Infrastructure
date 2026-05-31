@@ -37,30 +37,33 @@ helm-chart-build: $(CHART_DIRS)
 $(CHART_DIRS):
 	@echo "* [Vendor Mode] 動態遍歷建置 Helm (Chart.yaml) 依賴 ▶ $@"
 	@\
-	# 冪等性核心邏輯 1：解析並更新 Repository \
+	# ⚡ 冪等性核心邏輯 1：解析並更新 Repository（相容多依賴宣告） \
 	LENGTH=$$(yq eval '.dependencies | length' $@/Chart.yaml 2>/dev/null); \
 	if [ -n "$$LENGTH" ] && [ "$$LENGTH" -gt 0 ]; then \
 	    for i in $$(seq 0 $$(($$LENGTH - 1))); do \
 	        REPO_URL=$$(yq eval ".dependencies[$$i].repository" $@/Chart.yaml 2>/dev/null); \
 	        REPO_NAME=$$(yq eval ".dependencies[$$i].name" $@/Chart.yaml 2>/dev/null); \
 	        if [ -n "$$REPO_URL" ] && [ "$$REPO_URL" != "null" ] && [[ "$$REPO_URL" == http* ]]; then \
+	            echo "* 檢查與更新倉庫: $$REPO_NAME ($$REPO_URL)"; \
 	            helm repo add $$REPO_NAME $$REPO_URL --force-update > /dev/null 2>&1; \
 	        fi; \
 	    done; \
 	fi; \
 	\
-	# 冪等性核心邏輯 2：下載依賴到 charts/ 目錄 \
-	helm dependency build $@ || { echo "❌ $@ 依賴建置失敗 ..."; exit 1; }; \
+	# ⚡ 冪等性核心邏輯 2：下載依賴到 charts/ 目錄 \
+	helm dependency build $@ || { echo "❌ $@ 依賴下載失敗 ..."; exit 1; }; \
 	\
-	# 冪等性核心邏輯 3：解包 .tgz 並清理，只保留原始碼目錄 (Vendor 封裝) \
-	echo "* 正在執行依賴目錄 Vendor 化處理 (解包並清理)..."; \
-	for tgz in $@/charts/*.tgz; do \
-	    if [ -f "$$tgz" ]; then \
-	        tar -xzf "$$tgz" -C $@/charts/ && rm "$$tgz"; \
-	    fi; \
-	done; \
+	# ⚡ 冪等性核心邏輯 3：解包 .tgz 並清理，將 .tgz 轉換為純原始碼目錄，實踐 Git 追蹤的 Vendor 模式 \
+	if [ -d "$@/charts" ]; then \
+	    echo "* 正在執行依賴目錄 Vendor 化處理 (解包並清理)..."; \
+	    for tgz in $@/charts/*.tgz; do \
+	        if [ -f "$$tgz" ]; then \
+	            tar -xzf "$$tgz" -C $@/charts/ && rm -f "$$tgz"; \
+	        fi; \
+	    done; \
+	fi; \
 	\
-	# 整合邏輯：同步 CRD (使用 Server-Side Apply) \
+	# ⚡ 整合邏輯：安全無塵抽離 CRD，並透過 Server-Side Apply 無痛灌入叢集 \
 	echo "* 正在從依賴中提取並過濾所有 CRD..."; \
 	CRD_FILE=$$(mktemp /tmp/all-crds-XXXXXX.yaml); \
 	trap 'rm -f $$CRD_FILE' EXIT; \
@@ -68,10 +71,10 @@ $(CHART_DIRS):
 	helm template $@ --include-crds | yq eval 'select(.kind == "CustomResourceDefinition")' - > $$CRD_FILE; \
 	\
 	if [ -s "$$CRD_FILE" ]; then \
-	    echo "* 偵測到 CRD 物件，進行 Server-Side Apply 同步..."; \
+	    echo "* 偵測到 CRD 物件，進行 Server-Side Apply 安全同步..."; \
 	    kubectl apply -f $$CRD_FILE --server-side --force-conflicts; \
 	else \
-	    echo "* ℹ️ 未偵測到 CRD，跳過。"; \
+	    echo "* ℹ️ 該 Chart 無包含任何 CustomResourceDefinition，跳過"; \
 	fi
 
 save:

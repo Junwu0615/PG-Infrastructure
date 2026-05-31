@@ -30,3 +30,12 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+      jsonPointers:
+        # 1. 忽略所有版本內的 description (使用正則的概念，直接忽略該屬性)
+        - /spec/versions
+        # 2. 忽略註解版本號
+        - /metadata/annotations/controller-gen.kubebuilder.io/version

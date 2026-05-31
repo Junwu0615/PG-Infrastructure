@@ -8,4 +8,4 @@ resources:
 #  - metrics/exporters/postgres-exporter/app.yaml
   - logging/loki/app.yaml
   - logging/promtail/app.yaml
-#  - tracing/tempo/app.yaml
+  - tracing/tempo/app.yaml
