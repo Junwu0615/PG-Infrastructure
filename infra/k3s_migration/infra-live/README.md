@@ -694,7 +694,7 @@ security            Unknown       Unknown
     
     # makefile
         # 全建置
-        make init-chart-build
+        make helm-chart-build
         
         # 單一建置
         make ./infra-live/applications/observability/visualization/grafana

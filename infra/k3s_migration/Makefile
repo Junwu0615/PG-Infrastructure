@@ -18,10 +18,11 @@ FILTER_CHART_DIRS := \
 
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
+SHELL := /bin/bash
 .PHONY: rollback deploy clean build \
 status init apply destroy terraform-list label-nodes vm-format vm-power \
 load-images save \
-init-gitops init-chart-build $(CHART_DIRS)
+init-gitops helm-chart-build $(CHART_DIRS)
 
 
 init-gitops:
@@ -30,23 +31,62 @@ init-gitops:
 	chmod +x cluster/scripts/bootstrap-cluster.sh && \
 	./cluster/scripts/bootstrap-cluster.sh
 
-init-chart-build: $(CHART_DIRS)
-	@echo "✅  <init-chart-build> done."
+helm-chart-build: $(CHART_DIRS)
+	@echo "✅  <helm-chart-build> done."
+
+#$(CHART_DIRS):
+#	@echo "* [Vendor Mode] 動態遍歷建置 Helm (Chat.yaml) 依賴 ▶ $@"
+#	@\
+#	# 冪等性核心邏輯 1： 解析 Chart.yaml 裡定義的 repository url 與 name \
+#	REPO_URL=$$(yq eval '.dependencies[0].repository' $@/Chart.yaml 2>/dev/null); \
+#	REPO_NAME=$$(yq eval '.dependencies[0].name' $@/Chart.yaml 2>/dev/null); \
+#	\
+#	if [ -n "$$REPO_URL" ] && [ "$$REPO_URL" != "null" ]; then \
+#		echo "* 檢查 Helm Repository: $$REPO_NAME ($$REPO_URL)"; \
+#		# 冪等性核心邏輯 2： 使用 helm repo add 強制覆蓋 \
+#		helm repo add $$REPO_NAME $$REPO_URL --force-update > /dev/null 2>&1; \
+#	fi; \
+#	\
+#	helm dependency build $@ || { echo "❌ $@ failed ..."; exit 1; }; \
+#	\
+#	# 整合邏輯： 在依賴建置完成後，立即同步該目錄下的 CRD \
+#	echo "* 正在從依賴中同步 CRD 到叢集..."; \
+#	helm template $@ --include-crds | yq eval 'select(.kind == "CustomResourceDefinition")' - > all-crds.yaml; \
+#	kubectl apply -f all-crds.yaml; \
+#	rm all-crds.yaml
 
 $(CHART_DIRS):
-	@echo "* 動態遍歷建置 Helm (Chat.yaml) 依賴 ▶ $@"
+	@echo "* [Vendor Mode] 動態遍歷建置 Helm (Chart.yaml) 依賴 ▶ $@"
 	@\
-	# 冪等性核心邏輯 1： 解析 Chart.yaml 裡定義的 repository url 與 name \
-	REPO_URL=$$(yq eval '.dependencies[0].repository' $@/Chart.yaml 2>/dev/null); \
-	REPO_NAME=$$(yq eval '.dependencies[0].name' $@/Chart.yaml 2>/dev/null); \
-	\
-	if [ -n "$$REPO_URL" ] && [ "$$REPO_URL" != "null" ]; then \
-		echo "* 檢查 Helm Repository: $$REPO_NAME ($$REPO_URL)"; \
-		# 冪等性核心邏輯 2： 使用 helm repo add 強制覆蓋 \
-		helm repo add $$REPO_NAME $$REPO_URL --force-update > /dev/null 2>&1; \
+	# 冪等性核心邏輯 1：動態遍歷 Chart.yaml 裡的所有 dependencies \
+	LENGTH=$$(yq eval '.dependencies | length' $@/Chart.yaml 2>/dev/null); \
+	if [ -n "$$LENGTH" ] && [ "$$LENGTH" -gt 0 ]; then \
+	    for i in $$(seq 0 $$(($$LENGTH - 1))); do \
+	        REPO_URL=$$(yq eval ".dependencies[$$i].repository" $@/Chart.yaml 2>/dev/null); \
+	        REPO_NAME=$$(yq eval ".dependencies[$$i].name" $@/Chart.yaml 2>/dev/null); \
+	        if [ -n "$$REPO_URL" ] && [ "$$REPO_URL" != "null" ] && [[ "$$REPO_URL" == http* ]]; then \
+	            echo "* 檢查並更新 Helm Repository: $$REPO_NAME ($$REPO_URL)"; \
+	            helm repo add $$REPO_NAME $$REPO_URL --force-update > /dev/null 2>&1; \
+	        fi; \
+	    done; \
 	fi; \
 	\
-	helm dependency build $@ || { echo "❌ $@ failed ..."; exit 1; }
+	# 冪等性核心邏輯 2：下載 tarball 至 charts/ 目錄實現真正的本地化 Vendor 封裝 \
+	helm dependency build $@ || { echo "❌ $@ 依賴建置失敗 ..."; exit 1; }; \
+	\
+	# 整合邏輯：安全、無塵地同步大體積 CRD \
+	echo "* 正在從依賴中提取並過濾所有 CRD..."; \
+	CRD_FILE=$$(mktemp /tmp/all-crds-XXXXXX.yaml); \
+	trap 'rm -f $$CRD_FILE' EXIT; \
+	\
+	helm template $@ --include-crds | yq eval 'select(.kind == "CustomResourceDefinition")' - > $$CRD_FILE; \
+	\
+	if [ -s "$$CRD_FILE" ]; then \
+	    echo "* 偵測到 CRD 物件，正在以伺服器端模式（Server-Side Apply）安全同步至叢集..."; \
+	    kubectl apply -f $$CRD_FILE --server-side --force-conflicts; \
+	else \
+	    echo "* ℹ️ 該 Chart 無包含任何 CustomResourceDefinition，跳過 CRD 套用。"; \
+	fi
 
 save:
 	@echo "* 導出映像檔至 $(TAR_FILE)"

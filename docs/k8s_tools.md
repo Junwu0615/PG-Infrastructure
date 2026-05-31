@@ -119,6 +119,9 @@ kubectl get pvc
 # 確認 節點 狀態
 kubectl get nodes
 
+# 確認 crd 狀態 ( 藍圖被註冊進 K8s 系統 )
+kubectl get crd
+
 # 檢查已被定義的服務 ( 被連線使用 ) 狀態
 kubectl get svc
 

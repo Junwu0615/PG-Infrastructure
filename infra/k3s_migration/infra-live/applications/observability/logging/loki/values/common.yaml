@@ -40,10 +40,13 @@ loki:
       common:
         path_prefix: /var/loki
         replication_factor: 1
-        storage:
-          filesystem:
-            chunks_directory: /var/loki/chunks
-            rules_directory: /var/loki/rules
+
+        # 移除 common 下的 storage 定義，讓它透過 schema_config 指定
+#        storage:
+#          filesystem:
+#            chunks_directory: /var/loki/chunks
+#            rules_directory: /var/loki/rules
+
       schema_config:
         configs:
           - from: "2024-01-01"
@@ -53,6 +56,11 @@ loki:
             index:
               prefix: index_
               period: 24h
+
+       # 新增此區塊來明確定義儲存路徑
+      storage_config:
+        filesystem:
+          directory: /var/loki/chunks
 
   # 關閉微服務組件
   read:
