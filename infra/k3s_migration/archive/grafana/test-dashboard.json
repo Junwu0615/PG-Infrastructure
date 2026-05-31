@@ -17,12 +17,70 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 1,
   "links": [],
-  "liveNow": false,
   "panels": [
     {
-      "collapsed": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "mbytes"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 8,
         "w": 24,
@@ -30,12 +88,20 @@
         "y": 0
       },
       "id": 1,
-      "title": "1. Prometheus 驗證：K3s 叢集 Pod 記憶體使用總量 (MB)",
-      "type": "timeseries",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
       },
+      "pluginVersion": "12.1.0",
       "targets": [
         {
           "datasource": {
@@ -49,18 +115,18 @@
           "refId": "A"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "smooth"
-          },
-          "unit": "mbytes"
-        }
-      }
+      "title": "1. Prometheus 驗證：K3s 叢集 Pod 記憶體使用總量 (MB)",
+      "type": "timeseries"
     },
     {
-      "collapsed": false,
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "gridPos": {
         "h": 8,
         "w": 24,
@@ -68,12 +134,18 @@
         "y": 8
       },
       "id": 2,
-      "title": "2. Loki 驗證：K3s 全叢集即時日誌串流 (Logs Stream)",
-      "type": "logs",
-      "datasource": {
-        "type": "loki",
-        "uid": "Loki"
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
       },
+      "pluginVersion": "12.1.0",
       "targets": [
         {
           "datasource": {
@@ -84,14 +156,18 @@
           "refId": "A"
         }
       ],
-      "options": {
-        "showLabels": true,
-        "wrapLogMessage": true,
-        "enableLogDetails": true
-      }
+      "title": "2. Loki 驗證：K3s 全叢集即時日誌串流 (Logs Stream)",
+      "type": "logs"
     },
     {
-      "collapsed": false,
+      "datasource": {
+        "type": "tempo",
+        "uid": "Tempo"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "gridPos": {
         "h": 8,
         "w": 24,
@@ -99,12 +175,13 @@
         "y": 16
       },
       "id": 3,
-      "title": "3. Tempo 驗證：最新流入的鏈路追蹤紀錄 (Traces)",
-      "type": "nodeGraph",
-      "datasource": {
-        "type": "tempo",
-        "uid": "Tempo"
+      "options": {
+        "edges": {},
+        "layoutAlgorithm": "layered",
+        "nodes": {},
+        "zoomMode": "cooperative"
       },
+      "pluginVersion": "12.1.0",
       "targets": [
         {
           "datasource": {
@@ -114,15 +191,22 @@
           "queryType": "search",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "3. Tempo 驗證：最新流入的鏈路追蹤紀錄 (Traces)",
+      "type": "nodeGraph"
     }
   ],
+  "preload": false,
   "refresh": "5s",
-  "schemaVersion": 38,
-  "style": "dark",
-  "tags": ["verification"],
+  "schemaVersion": 41,
+  "tags": [
+    "verification"
+  ],
+  "templating": {
+    "list": []
+  },
   "time": {
-    "from": "now-15m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {
@@ -134,5 +218,6 @@
   },
   "timezone": "",
   "title": "PG k3s 可觀測性大三元即時驗證面板",
-  "version": 1
+  "uid": "78a7a560-84a4-49de-8e07-b4655a4ebf89",
+  "version": 2
 }

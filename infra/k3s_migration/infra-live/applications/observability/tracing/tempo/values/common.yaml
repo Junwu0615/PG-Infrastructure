@@ -1,10 +1,13 @@
 tempo-distributed:
+  # --- 全域設定 ---
   global:
     image:
-      tag: "2.4.1"
+#      tag: "2.4.1"
+      tag: "2.5.0"
 
-  # 關閉多租戶嚴格認證，但在微服務架構下內部依然走單一租戶 (fake) 邏輯
+  # --- 基礎儲存與多租戶 ---
   multitenancy:
+    # 關閉多租戶嚴格認證，但在微服務架構下內部依然走單一租戶 (fake) 邏輯
     enabled: false
 
   storage:
@@ -14,7 +17,7 @@ tempo-distributed:
         path: /var/tempo/traces
       blocklist_poll_interval: 5m
 
-  # 接收器（Ingester）配置：開啟你專案（Go/Python）最常用的 OTLP 與 Jaeger 協定
+  # --- 接收器設定 ---
   distributor:
     config:
       receivers:
@@ -26,15 +29,30 @@ tempo-distributed:
           protocols:
             thrift_http: { endpoint: 0.0.0.0:14268 }
             grpc: { endpoint: 0.0.0.0:14250 }
-#        otlp:
-#          protocols:
-#            grpc:
-#              endpoint: 0.0.0.0:4317
-#            http:
-#              endpoint: 0.0.0.0:4318
-#        jaeger:
-#          protocols:
-#            thrift_http:
-#              endpoint: 0.0.0.0:14268
-#            grpc:
-#              endpoint: 0.0.0.0:14250
+
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 200m, memory: 512Mi }
+
+  # --- Ingress 設定 (Query Frontend) ---
+#  queryFrontend:
+#    enabled: true
+#    ingress:
+#      enabled: true
+#      ingressClassName: "nginx"
+#      annotations:
+#        # 若有使用 cert-manager 可啟用自動證書
+#        # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#        nginx.ingress.kubernetes.io/ssl-redirect: "false"
+#      hosts:
+#        - host: tempo.k8s.local
+#          paths:
+#            - path: /
+#              pathType: Prefix
+#      tls: []
+
+  # 防止單一 Pod 佔用過多 CPU/Memory 導致 Node 崩潰
+  ingester:
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 1Gi }

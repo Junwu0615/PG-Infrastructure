@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 
 metadata:
-  name: gitlab-ingress
+  name: gitlab
   namespace: infra-tools
 #  annotations:
 #    kubernetes.io/ingress.class: traefik
