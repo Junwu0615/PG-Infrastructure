@@ -19,6 +19,16 @@ tempo-distributed:
 
   # --- 接收器設定 ---
   distributor:
+    service:
+      enabled: true
+      ports:
+        - name: otlp-http
+          port: 4318
+          targetPort: 4318
+        - name: jaeger-http
+          port: 14268
+          targetPort: 14268
+
     config:
       receivers:
         otlp:
@@ -37,19 +47,19 @@ tempo-distributed:
   # --- Ingress 設定 (Query Frontend) ---
   queryFrontend:
     ingress:
-      enabled: false
-#      enabled: true
-#      ingressClassName: "nginx"
-#      annotations:
-#        # 若有使用 cert-manager 可啟用自動證書
-#        # cert-manager.io/cluster-issuer: "letsencrypt-prod"
-#        nginx.ingress.kubernetes.io/ssl-redirect: "false"
-#      hosts:
-#        - host: tempo.k8s.local
-#          paths:
-#            - path: /
-#              pathType: Prefix
-#      tls: []
+#      enabled: false
+      enabled: true
+      ingressClassName: "nginx"
+      annotations:
+        # 若有使用 cert-manager 可啟用自動證書
+        # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      hosts:
+        - host: tempo.k8s.local
+          paths:
+            - path: /
+              pathType: Prefix
+      tls: []
 
   # 防止單一 Pod 佔用過多 CPU/Memory 導致 Node 崩潰
   ingester:
