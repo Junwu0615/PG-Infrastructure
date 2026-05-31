@@ -21,7 +21,18 @@ curl -sS https://webinstall.dev/k9s | bash
     
         ⭐ 動態更新 ( 每 2 秒更新一次 )
         watch -d -n 2 free -hw
-    
+        
+        # 欄位意思
+        # total = used + free + buff/cache (總實體記憶體)
+        # shared (共用記憶體) = 有多個不同的應用程式（進程）共同存取、分享的同一塊實體記憶體空間
+        # buffers (緩衝區) = 用來存放「準備要寫入磁碟，或者剛從磁碟讀出來」的原始磁碟區塊（Raw Disk Blocks）中介資料
+        # swap (交換空間) = 當實體記憶體（RAM）真的完全不夠用時，Linux 拿來「充當臨時記憶體用的硬碟空間」
+        # available (可用記憶體) = 「當我的新應用程式（或 K8s Pod）突然啟動時，它實際上能從系統搶到多少記憶體？」
+        
+        # 核心觀念
+        # 1. total ≈ used + available (實體 RAM 內部的兩大陣營)
+        # 2. 當 available = 0 且 swap 用盡時 = 系統觸發 OOM 崩潰
+
     # 前 10 名行程損耗
     ps aux --sort=-%mem | head -n 11
     
