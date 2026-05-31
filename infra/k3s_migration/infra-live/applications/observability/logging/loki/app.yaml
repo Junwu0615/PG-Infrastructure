@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: loki
+  namespace: argocd
+
+spec:
+  project: observability
+
+  source:
+    repoURL: http://192.168.0.15:8090/pg/infra-live.git
+    targetRevision: main
+    path: applications/observability/logging/loki
+
+    helm:
+      valueFiles:
+        - values/common.yaml
+        - values/test.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: loki
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

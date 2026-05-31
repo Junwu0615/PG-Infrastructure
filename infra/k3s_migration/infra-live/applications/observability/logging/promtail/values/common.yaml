@@ -1,0 +1,19 @@
+promtail:
+  daemonset:
+    enabled: true
+
+  config:
+    clients:
+      - url: http://loki.loki.svc.cluster.local:3100/loki/api/v1/push
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  serviceMonitor:
+    enabled: true
