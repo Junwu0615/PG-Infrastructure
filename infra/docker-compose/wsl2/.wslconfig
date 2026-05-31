@@ -1,6 +1,6 @@
 [wsl2]
 memory=32GB
-swap=8GB
+swap=4GB
 processors=24
 
 networkingMode=NAT

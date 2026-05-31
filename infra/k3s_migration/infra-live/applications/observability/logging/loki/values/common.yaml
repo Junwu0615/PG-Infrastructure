@@ -46,7 +46,7 @@ singleBinary:
       cpu: 200m
       memory: 512Mi
 
-# 預設時區與基礎全域設定
+
 global:
   image:
-    tag: "2.9.11" # 對應 Helm 5.47.2 的穩定 Loki 鏡像版本
+    tag: "2.9.11"

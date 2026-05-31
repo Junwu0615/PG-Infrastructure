@@ -700,6 +700,7 @@ security            Unknown       Unknown
         make ./infra-live/applications/observability/visualization/grafana
         make ./infra-live/applications/observability/metrics/prometheus-stack
         make ./infra-live/applications/observability/logging/loki
+        make ./infra-live/applications/observability/tracing/tempo
 
 
 DEBUG

@@ -1,0 +1,35 @@
+# values/common.yaml
+tempo-distributed:
+  # 關閉多租戶嚴格認證，但在微服務架構下內部依然走單一租戶 (fake) 邏輯
+  multitenancy:
+    enabled: false
+
+  # 5.x/2.x 世代最穩定的本地純 File 儲存方案（不需要 S3/MinIO）
+  storage:
+    trace:
+      backend: local
+      local:
+        dir: /var/tempo/traces
+      blocklist_poll_interval: 5m
+
+  # 接收器（Ingester）配置：開啟你專案（Go/Python）最常用的 OTLP 與 Jaeger 協定
+  distributor:
+    config:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+        jaeger:
+          protocols:
+            thrift_http:
+              endpoint: 0.0.0.0:14268
+            grpc:
+              endpoint: 0.0.0.0:14250
+
+
+global:
+  image:
+    tag: "2.4.1"

@@ -11,6 +11,7 @@ ALL_CHART_DIRS := \
     ./infra-live/applications/observability/metrics/prometheus-stack \
     ./infra-live/applications/observability/logging/loki \
     ./infra-live/applications/observability/logging/promtail \
+    ./infra-live/applications/observability/tracing/tempo \
 
 FILTER_CHART_DIRS := \
 	./infra-live/applications/observability/metrics/prometheus \

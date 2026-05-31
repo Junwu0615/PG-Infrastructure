@@ -17,3 +17,8 @@ promtail:
 
   serviceMonitor:
     enabled: true
+
+
+global:
+  image:
+    tag: "2.9.11"

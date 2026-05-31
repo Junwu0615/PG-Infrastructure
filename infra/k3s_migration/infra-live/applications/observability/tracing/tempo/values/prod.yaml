@@ -1,0 +1,27 @@
+tempo-distributed:
+  ingester:
+    replicas: 2 # 生產環境開雙副本維持 Ingestion 高可用
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+
+  distributor:
+    replicas: 2
+  querier:
+    replicas: 2
+  queryFrontend:
+    replicas: 2
+
+  # 生產環境核心：控制 Trace 資料留存期 (Retention)
+  compactor:
+    config:
+      compaction:
+        block_retention: 48h # 只保留 2 天內的分布式追蹤，過期自動砍，極度省磁碟
+    persistence:
+      enabled: true
+      size: 100Gi
+      # storageClass: "premium-rwo"
