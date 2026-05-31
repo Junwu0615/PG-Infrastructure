@@ -1,4 +1,16 @@
 loki:
+  service:
+    type: ClusterIP
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - loki.k8s.local
+
+  gateway:
+    enabled: false
+
   auth_enabled: false
   
   commonConfig:
@@ -20,6 +32,7 @@ loki:
           index:
             prefix: index_
             period: 24h
+
 
 singleBinary:
   replicas: 1

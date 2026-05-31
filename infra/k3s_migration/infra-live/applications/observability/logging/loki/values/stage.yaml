@@ -1,4 +1,16 @@
+loki:
+  ingress:
+    enabled: false
+
+  limits_config:
+    ingestion_rate_mb: 10
+    ingestion_burst_size_mb: 20
+    retention_period: 168h # 預發環境保留 7 天日誌
+
+
 singleBinary:
+  replicas: 1
+
   resources:
     requests:
       cpu: 500m
@@ -10,10 +22,4 @@ singleBinary:
   persistence:
     enabled: true
     size: 50Gi
-    # storageClass: "standard" 
-
-loki:
-  limits_config:
-    ingestion_rate_mb: 10
-    ingestion_burst_size_mb: 20
-    retention_period: 168h # 預發環境保留 7 天日誌
+    # storageClass: "standard"

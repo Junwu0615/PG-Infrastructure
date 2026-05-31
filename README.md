@@ -319,7 +319,7 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 | **Node Exporter** | Host Resource Metrics | [9100](http://127.0.0.1:9100) | - |
 | **Prometheus** | Metrics Time-Series DB | [9090](http://127.0.0.1:9090) | [8080](http://prometheus.k8s.local:8080) |
 | **Grafana** | Dashboard | [3000](http://127.0.0.1:3000) | [8080](http://grafana.k8s.local:8080) |
-| **Loki** | `Manage Log` | [3100](http://127.0.0.1:3100) | [8080](http://loki.k8s.local:8080) |
+| **Loki** | `Manage Log` | [3100](http://127.0.0.1:3100/loki/api/v1/labels) | [8080](http://loki.k8s.local:8080/loki/api/v1/labels) |
 | **Promtail** | for `Loki` | - | - |
 | **Tempo** | `K8s Services` Analyze<br>the call topology and latency | - | - |
 | **Elasticsearch** | `Manage Log` Distributed Search Engine | [9200](http://127.0.0.1:9200) | * |

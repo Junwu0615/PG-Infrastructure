@@ -703,8 +703,8 @@ security            Unknown       Unknown
 
 
 DEBUG
-* 輸出 values 範例 ( grafana/loki --version 6.35.1 )
-helm show values grafana/loki --version 6.35.1 > official-values.yaml
+* 輸出 values 範例 ( grafana/loki --version 5.47.2 )
+helm show values grafana/loki --version 5.47.2 > official-values.yaml
     
 * 檢視內部參數方式 (prometheus-27.39.0.tgz)
 helm show values charts/prometheus-27.39.0.tgz > values-reference.yaml
@@ -732,7 +732,7 @@ helm template . -f official-values.yaml -f values/common.yaml --debug
 
 # 改用 helm template 直接對子 Chart 進行操作
     1. 解壓子 Chart（如果它還是 .tgz 壓縮檔）
-    tar -zxvf charts/loki-6.35.1.tgz -C charts/
+    tar -zxvf charts/loki-5.47.2.tgz -C charts/
     
     2. 直接指定子 Chart 目錄，並帶入你原本的 values
     helm template charts/loki -f values/common.yaml
@@ -754,7 +754,7 @@ dependencies:
   # values 第一層 Key 必須與此 name 一致，才能正確套用 values 設定
   # 必須是官方 Chart 名稱，不能是自訂名稱
   - name: loki
-    ⚠️ version: 6.35.1
+    ⚠️ version: 5.47.2
     
 helm repo list
 helm search repo grafana/loki --versions | head -30
