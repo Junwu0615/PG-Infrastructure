@@ -45,3 +45,9 @@ grafana:
           type: loki
           access: proxy
           url: http://loki-read.loki.svc.cluster.local:3100
+          # 明確指定內部讀取路徑的 API 根節點，繞過 Loki 5.x 讀取節點對根路徑的拒絕
+          jsonData:
+            httpHeaderName1: "X-Scope-OrgID"
+          secureJsonData:
+            # 預設無認證模式下的常規值
+            httpHeaderValue1: "fake"
