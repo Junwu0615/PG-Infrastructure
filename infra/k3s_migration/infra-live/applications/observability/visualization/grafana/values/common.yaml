@@ -3,6 +3,10 @@ grafana:
   adminUser: admin
   adminPassword: admin123
 
+  global:
+    image:
+      tag: "10.4.1"
+
   service:
     type: ClusterIP
 
@@ -44,7 +48,8 @@ grafana:
         - name: Loki
           type: loki
           access: proxy
-          url: http://loki-read.loki.svc.cluster.local:3100
+#          url: http://loki-read.loki.svc.cluster.local:3100
+          url: http://loki.loki.svc.cluster.local:3100
           # 明確指定內部讀取路徑的 API 根節點，繞過 Loki 5.x 讀取節點對根路徑的拒絕
           jsonData:
             httpHeaderName1: "X-Scope-OrgID"
@@ -63,8 +68,3 @@ grafana:
             timeout: 15
           secureJsonData:
             httpHeaderValue1: "fake"
-
-
-  global:
-    image:
-      tag: "10.4.1"
