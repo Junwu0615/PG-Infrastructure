@@ -16,7 +16,7 @@ X = 已棄用
 △ = 省作業時間 ( 部分與重型服務的 Docker Compose 綑綁 ) => 不遷移
 ``` 
 
-|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**K3s<br>Migration**|**Kubeadm**|**GCP**|
+|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**K3s<br>Migration**|**Kubeadm**|**GKE**|
 |--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | **PostgreSQL** | O | - | O | O | O | O | - | - |
 | **PgAdmin** | O | X | X | X | X | X | X | X |
@@ -53,7 +53,7 @@ X = 已棄用
 </details>
 
 <details>
-<summary><b><i>　a.2.　Project Tree </i></b></summary>
+<summary><b><i>　a.2.　Tree </i></b></summary>
 <ul>
 
 ```bash
@@ -350,16 +350,16 @@ tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
 <br>
 
 ### *C.　Notice*
-- #### *c.1.　[Dev Startup Service](./docs/dev_startup_service.md)*
-- #### *c.2.　[WSL2 Docker Engine](./docs/wsl2_docker_engine.md)*
-- #### *c.3.　[Terraform & Ansible](./docs/terraform_ansible.md)*
-- #### *c.4.　[Docker Compose + Terraform & Ansible](./docs/docker_compose.md)*
-- #### *c.5.　[K8s Tools](./docs/k8s_tools.md)*
-- #### *c.6.　[MiniKube](./docs/minikube.md)*
-- #### *c.7.　[K3s in Docker ( K3d )](./docs/k3d.md)*
-- #### *c.8.　[Lightweight Kubernetes ( K3s )](./docs/k3s.md)*
+- #### *c.1.　[Dev Services](./docs/Dev-Services.md)*
+- #### *c.2.　[WSL2 Docker Engine](./docs/WSL2-Docker-Engine.md)*
+- #### *c.3.　[Terraform & Ansible](./docs/Terraform-Ansible.md)*
+- #### *c.4.　[Docker Compose + Terraform & Ansible](./docs/Docker-Compose.md)*
+- #### *c.5.　[K8s Tools](./docs/K8s-tools.md)*
+- #### *c.6.　[MiniKube](./docs/Minikube.md)*
+- #### *c.7.　[K3s in Docker ( K3d )](./docs/K3d.md)*
+- #### *c.8.　[Lightweight Kubernetes ( K3s )](./docs/K3s.md)*
 - #### *c.9.　[K3s Migration](./infra/k3s_migration/infra-live/README.md)*
-- #### *c.10.　[Kubeadm](./docs/kubeadm.md)*
-- #### *c.11.　[GCP](./docs/gcp.md)*
+- #### *c.10.　[Kubeadm](./docs/Kubeadm.md)*
+- #### *c.11.　[Google Kubernetes Engine ( GKE )](./docs/GKE.md)*
 
 <br><br><br>

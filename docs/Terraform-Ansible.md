@@ -15,7 +15,7 @@ sudo snap install terraform --classic
 
 <br>
 
-### *~~[ Some Problem ] B.　接管既有服務~~*
+### *X　B.　接管既有服務*
 ```
 # 語法：terraform import <資源類型>.<資源名稱> <Docker容器ID或名稱>
 

@@ -1,8 +1,14 @@
 ## *K3d*
 
 
-### *A.　說明*
+### *A.　部署框架演進*
 ```
+# Evolution: MiniKube -> ✅ K3d -> K3s -> K3s Migration -> Kubeadm -> GKE
+
+# Summary: Null
+
+------
+
 # 開始叢集
 k3d cluster start mycluster
 

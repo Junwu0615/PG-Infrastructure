@@ -1,6 +1,6 @@
 # values.yaml
 # 應該要與 Docker-Registry ( 需先有服務 才有後續依賴 ) 結合才安全，都私有化
-# 私人映像檔版本管理透過未來在 [CI / CD] 方面確實落實 [自動堆疊 vN]
+# 私人映像檔版本管理透過未來在 [CI/CD] 方面確實落實 [自動堆疊 vN]
 
 replicaCount: 1
 

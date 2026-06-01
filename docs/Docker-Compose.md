@@ -1,10 +1,8 @@
 ## *Docker Compose*
 
 
-### *A.　Command Platform*
-
 <details>
-<summary><b><i>　a.1.　Docker Compose</i></b></summary>
+<summary><b><i>　Makefile </i></b></summary>
 <ul>
 
 ```bash
@@ -37,7 +35,7 @@ make gitlab
 
 
 <details>
-<summary><b><i>　a.2.　Docker ( Terraform + Ansible )  </i></b></summary>
+<summary><b><i>　Makefile ( Terraform & Ansible ) </i></b></summary>
 <ul>
 
 ```bash
@@ -58,7 +56,7 @@ make destroy
 
 
 <details open>
-<summary><b><i>　a.3.　Other </i></b></summary>
+<summary><b><i>　Other Commandline </i></b></summary>
 <ul>
 
 ```bash

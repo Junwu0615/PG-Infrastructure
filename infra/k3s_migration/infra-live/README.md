@@ -1,8 +1,10 @@
 ## *K3s Migration*
 
-### *A.　結構說明*
+### *A.　部署框架演進*
 ```
-Null
+# Evolution: MiniKube -> K3d -> K3s -> ✅ K3s Migration -> Kubeadm -> GKE
+
+# Summary: Null
 ```
 
 <br>
@@ -766,5 +768,10 @@ helm search repo grafana/loki --versions | head -30
 
 </ul>
 </details>
+
+<br>
+
+### *D.　量化測試*
+- [K8s - 基礎設施高可用性測試](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/HA.md)
 
 <br><br><br>

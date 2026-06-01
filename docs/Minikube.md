@@ -1,8 +1,14 @@
 ## *MiniKube*
 
 
-### *A.　說明*
+### *A.　部署框架演進*
 ```
+# Evolution: ✅ MiniKube -> K3d -> K3s -> K3s Migration -> Kubeadm -> GKE
+
+# Summary: Null
+
+------
+
 k8s-manifests : 原始部署方式
 helm : 進階抽象部署方式 => ⚠️ 優先體驗
 

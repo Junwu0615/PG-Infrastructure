@@ -1,8 +1,14 @@
 ## *K3s*
 
 
-### *A.　說明*
+### *A.　部署框架演進*
 ```
+# Evolution: MiniKube -> K3d -> ✅ K3s -> K3s Migration -> Kubeadm -> GKE
+
+# Summary: Null
+
+------
+
 當從 MiniKube 進化到 K3s + VM 時，生命週期的管理對象會改變：
     - Terraform 階段：負責機器的「生與死」（ 建立 VM 或銷毀 VM ）
     - Ansible 階段：負責機器的「初始化」（ 安裝 K3s、設定 Ingress ）
