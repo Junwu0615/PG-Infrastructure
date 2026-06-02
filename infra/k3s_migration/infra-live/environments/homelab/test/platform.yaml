@@ -1,4 +1,33 @@
 apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+
+metadata:
+  name: platform
+  # 分類關鍵: 資源建立在 argocd
+  namespace: argocd
+  finalizers:
+    # 作用對象： 針對「專案安全外殼」本身
+    # 行為： 當你嘗試刪除這個 AppProject 時，Argo CD 會檢查隸屬於這個專案的所有 Application 是否都已經死光了。如果還有 App 在運作，它會卡住不讓你刪除專案，直到你把 App 清空
+    # 危險性： 很低。 它是一種保護機制，防止你誤刪了專案外殼，導致底下的 App 變成沒有安全原則的孤兒
+    - resources-finalizer.argocd.argoproj.io
+
+spec:
+  sourceRepos:
+    - 'http://192.168.0.15:8090/pg/infra-live.git'
+
+  # 允許專案部署到當前叢集的任何命名空間
+  destinations:
+    - namespace: '*'
+      server: https://kubernetes.default.svc
+
+  # 專案合法建立其他子應用（App-of-Apps 模式）
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+---
+
+apiVersion: argoproj.io/v1alpha1
 kind: Application
 
 metadata:
@@ -6,7 +35,10 @@ metadata:
   # 分類關鍵: 資源建立在 argocd
   namespace: argocd
   finalizers:
-    # 確保刪除母應用時，子應用也會一起乾淨刪除
+    # 作用對象： 針對「Git 目錄結構的同步器」
+    # 行為： 級聯刪除子應用。如果有人把這個 databases 母應用刪除（無論在 UI 點刪除，或是在更上層的 homelab-test-root 裡移除了這個定義）
+    # 結果： Argo CD 會觸發連鎖反應，把 applications/databases/ 底下掃描出來的所有子 Application 資源從 K8s 裡抹除
+    # 危險性： 中高。 如果子應用本身有保護，資料還不會死；但如果子應用沒防護，這會引發連鎖全面崩潰
     - resources-finalizer.argocd.argoproj.io
 
 spec:
@@ -21,10 +53,6 @@ spec:
     server: https://kubernetes.default.svc
     # 分類關鍵: 資源建立在 argocd
     namespace: argocd
-
-  #  clusterResourceWhitelist:
-  #    - group: '*'
-  #      kind: '*'
 
   syncPolicy:
     automated:

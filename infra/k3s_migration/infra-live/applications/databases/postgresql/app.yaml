@@ -4,6 +4,9 @@ kind: Application
 metadata:
   name: postgresql
   namespace: argocd
+#  finalizers:
+#    # 千萬別在有狀態服務加這行，否則一不小心就會引發連鎖全面崩潰
+#    - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/part-of: databases
 
