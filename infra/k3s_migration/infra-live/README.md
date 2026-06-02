@@ -565,11 +565,11 @@ ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>       
 
 ```
 # 將已定義的應用類部署
-    # 1. 建立專案
+    * 手動建立專案
     kubectl apply -f infra-live/environments/homelab/test/root-app.yaml
     kubectl apply -f infra-live/environments/homelab/test/databases.yaml
     
-    # 2. 強制讓 Argo CD 重新載入該 Application ( root-app.yaml )
+    ⭐ 強制讓 Argo CD 重新載入該 Application ( root-app.yaml ) # 前置作業要先 push 到 gitlab
     kubectl annotate application homelab-test-root -n argocd argocd.argoproj.io/refresh=normal --overwrite
 
 # root-app.yaml 不同層級用途差異
