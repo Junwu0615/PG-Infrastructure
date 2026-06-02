@@ -1,4 +1,4 @@
-## *DEV Startup Service*
+## *DEV Services*
 
 <details>
 <summary><b><i>　1.　PostgreSQL </i></b></summary>
@@ -594,7 +594,68 @@
 <br>
 
 <details>
-<summary><b><i>　11.　Monitoring </i></b></summary>
+<summary><b><i>　11.　Tempo </i></b></summary>
+<ul>
+
+- #### *a.　使用細節*
+  ```
+  # 確認服務存活
+  [wsl2]
+  curl -v -H "Host: tempo.k8s.local" http://10.88.0.20:30547/ready
+  
+  [powershell]
+  Invoke-RestMethod -Uri "http://tempo.k8s.local:8080/ready" -Method Get
+  
+  
+  # 終端機執行 測試腳本傳輸 => 檢視 Grafana ( k3s_migration/archive/grafana/test-dashboard.json )
+  [wsl2]
+  curl -v -H "Host: tempo.k8s.local" \
+       -H "Content-Type: application/json" \
+       http://10.88.0.20:30547/v1/traces \
+       -d '{
+         "resourceSpans": [
+           {
+             "resource": {
+               "attributes": [
+                 {
+                   "key": "service.name",
+                   "value": { "stringValue": "demo-app" }
+                 }
+               ]
+             },
+             "scopeSpans": [
+               {
+                 "spans": [
+                   {
+                     "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+                     "spanId": "00f067aa0ba902b7",
+                     "name": "hello-test-span",
+                     "kind": 1,
+                     "startTimeUnixNano": "1780441200000000000",
+                     "endTimeUnixNano":   "1780441201000000000",
+                     "attributes": [
+                       {
+                         "key": "http.status_code",
+                         "value": { "intValue": 200 }
+                       }
+                     ],
+                     "status": { "code": 1 }
+                   }
+                 ]
+               }
+            ]
+          }
+        ]
+      }'
+  ```
+
+</ul>
+</details>
+
+<br>
+
+<details>
+<summary><b><i>　12.　Monitoring </i></b></summary>
 <ul>
 
 - #### *a.　Grafana 設定*

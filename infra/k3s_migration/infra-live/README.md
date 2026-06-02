@@ -724,6 +724,29 @@ DEBUG
     [1] cat output.yaml | grep "image: "
     [2] grep "image: " output.yaml
     
+    ⚠️ 渲染路徑查找法 ( 找搞怪目標: replication_factor )
+        # 單指 output.yaml
+        grep -rn "replication_factor" output.yaml
+        
+        # 該目錄開始所有目標
+        grep -rn "replication_factor" .
+    
+        # 解讀方式
+        ex: ./official-values.yaml:1226:        replication_factor: {{ .Values.ingester.config.replication_factor }}
+        Values 檔案中 ingester.config.replication_factor 這個參數會被套用到 Chart 中的 replication_factor 位置
+    
+    ⚠️ 逆向排查 SOP
+        * 原廠變數精準定位
+        grep -rn "目標參數關鍵字" .
+        
+        * 沙盒地獄渲染驗證
+        # 1. 執行本地渲染 # 帶上所有 values # 無法確實輸出就是初步渲染都失敗
+        helm template . -f values/common.yaml -f values/test.yaml > output.yaml
+        
+        # 2. 直接在產出的實體檔案中尋找該參數，驗證是否成功變更
+        grep -n "目標參數關鍵字" output.yaml
+        
+    
     * 確認 Chart 是否真的載入到 dependency
     helm dependency list .
     
