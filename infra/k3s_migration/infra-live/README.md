@@ -565,7 +565,12 @@ ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>       
 
 ```
 # 將已定義的應用類部署
-kubectl apply -f infra-live/argocd/projects/
+    # 1. 建立專案
+    kubectl apply -f infra-live/environments/homelab/test/root-app.yaml
+    kubectl apply -f infra-live/environments/homelab/test/databases.yaml
+    
+    # 2. 強制讓 Argo CD 重新載入該 Application ( root-app.yaml )
+    kubectl annotate application homelab-test-root -n argocd argocd.argoproj.io/refresh=normal --overwrite
 
 # root-app.yaml 不同層級用途差異
     # [初始一次] 讓 ArgoCD 開始接管 GitOps
@@ -703,6 +708,7 @@ security            Unknown       Unknown
         make ./infra-live/applications/observability/metrics/prometheus-stack
         make ./infra-live/applications/observability/logging/loki
         make ./infra-live/applications/observability/tracing/tempo
+        make ./infra-live/applications/databases/postgresql
 
 
 DEBUG

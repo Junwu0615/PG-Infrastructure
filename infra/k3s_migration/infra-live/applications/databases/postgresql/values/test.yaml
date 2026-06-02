@@ -1,0 +1,18 @@
+postgresql:
+  architecture: standalone # 測試環境單節點即可，節省資源
+
+  # 資源配額最佳實踐：明確設定限制防止佔滿 OOM
+  primary:
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+
+    # 儲存配置
+    persistence:
+      enabled: true
+      storageClass: "standard" # 各雲端平台的動態 PVC (如 GKE 的 standard-rwo)
+      size: 10Gi

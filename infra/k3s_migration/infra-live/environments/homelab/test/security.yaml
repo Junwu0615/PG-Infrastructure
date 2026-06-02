@@ -22,6 +22,10 @@ spec:
     # 分類關鍵: 資源建立在 argocd
     namespace: argocd
 
+  #  clusterResourceWhitelist:
+  #    - group: '*'
+  #      kind: '*'
+
   syncPolicy:
     automated:
       prune: true

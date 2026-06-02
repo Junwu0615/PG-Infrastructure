@@ -59,8 +59,9 @@ X = 已棄用
 <ul>
 
 ```bash
-tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
-tree -d -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data'
+tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
+
+.
 
 .
 ├── LICENSE

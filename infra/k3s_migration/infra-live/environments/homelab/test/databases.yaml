@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 
 metadata:
-  name: platform
+  name: databases
   # 分類關鍵: 資源建立在 argocd
   namespace: argocd
   finalizers:
@@ -10,21 +10,21 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 
 spec:
-  project: platform
+  project: databases
   source:
     repoURL: http://192.168.0.15:8090/pg/infra-live.git
     targetRevision: main
     # 大類掃描所有小類
-    path: applications/platform
+    path: applications/databases
 
   destination:
     server: https://kubernetes.default.svc
     # 分類關鍵: 資源建立在 argocd
     namespace: argocd
 
-  #  clusterResourceWhitelist:
-  #    - group: '*'
-  #      kind: '*'
+#  clusterResourceWhitelist:
+#    - group: '*'
+#      kind: '*'
 
   syncPolicy:
     automated:
@@ -34,3 +34,5 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+#      - Replace=true
+#      - PruneLast=true

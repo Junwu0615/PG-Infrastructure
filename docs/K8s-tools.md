@@ -97,12 +97,12 @@ namespace:
   favorites:
   - all
   - argocd
-  - observability
-  - pg-apps
-  - platform
-  - security
-  - databases
-  - storage
+  - portainer
+  - loki
+  - prometheus-stack
+  - grafana
+  - promtail
+  - tempo
 ------
 : ：輸入命令（ 例如 :pod 看 Pod, :node 看節點 ）
 / ：過濾關鍵字
@@ -172,6 +172,8 @@ kubectl get cm
 # 確認 namespaces
 kubectl get namespaces
 
+# 確認 appproject 狀態 ( ArgoCD 定義的專案 )
+kubectl get appproject -n argocd
 
 # 確認應用狀態 ( 透過 ArgoCD 定義的藍圖 )
 kubectl get application -A

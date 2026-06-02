@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: postgresql
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: databases
+
+spec:
+  project: databases
+
+  source:
+    repoURL: http://192.168.0.15:8090/pg/infra-live.git
+    targetRevision: main
+    path: applications/databases/postgresql
+
+    helm:
+      valueFiles:
+        - values/common.yaml
+        - values/test.yaml
+
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: databases
+
+  syncPolicy:
+    automated:
+      # 有狀態服務關閉自動修剪(Prune)，避免手滑刪除資料
+      prune: false
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+#      - Replace=true
+#      - PruneLast=true
