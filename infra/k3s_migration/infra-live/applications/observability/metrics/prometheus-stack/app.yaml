@@ -4,6 +4,8 @@ kind: Application
 metadata:
   name: prometheus-stack
   namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: observability
 
 spec:
   project: observability

@@ -607,7 +607,11 @@
   Invoke-RestMethod -Uri "http://tempo.k8s.local:8080/ready" -Method Get
   
   
-  # 終端機執行 測試腳本傳輸 => 檢視 Grafana ( k3s_migration/archive/grafana/test-dashboard.json )
+  # 測試腳本
+    # 1. 終端機執行底下指令
+    # 2. 檢視 Grafana ( k3s_migration/archive/grafana/test-dashboard.json )
+      # 查找: 4bf92f3577b34da6a3ce929d0e0e4736
+  
   [wsl2]
   curl -v -H "Host: tempo.k8s.local" \
        -H "Content-Type: application/json" \

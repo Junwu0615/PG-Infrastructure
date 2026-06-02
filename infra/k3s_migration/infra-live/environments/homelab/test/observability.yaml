@@ -3,19 +3,24 @@ kind: Application
 
 metadata:
   name: observability
+  # 分類關鍵: 資源建立在 argocd
   namespace: argocd
+  finalizers:
+    # 確保刪除母應用時，子應用也會一起乾淨刪除
+    - resources-finalizer.argocd.argoproj.io
 
 spec:
   project: observability
-
   source:
     repoURL: http://192.168.0.15:8090/pg/infra-live.git
     targetRevision: main
+    # 大類掃描所有小類
     path: applications/observability
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: observability
+    # 分類關鍵: 資源建立在 argocd
+    namespace: argocd
 
   syncPolicy:
     automated:

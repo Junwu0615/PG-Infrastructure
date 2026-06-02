@@ -165,7 +165,32 @@
         "uid": "Tempo"
       },
       "fieldConfig": {
-        "defaults": {},
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
         "overrides": []
       },
       "gridPos": {
@@ -176,10 +201,16 @@
       },
       "id": 3,
       "options": {
-        "edges": {},
-        "layoutAlgorithm": "layered",
-        "nodes": {},
-        "zoomMode": "cooperative"
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
       },
       "pluginVersion": "12.1.0",
       "targets": [
@@ -188,12 +219,23 @@
             "type": "tempo",
             "uid": "Tempo"
           },
-          "queryType": "search",
-          "refId": "A"
+          "filters": [
+            {
+              "id": "d687b9f1",
+              "operator": "=",
+              "scope": "span"
+            }
+          ],
+          "limit": 20,
+          "metricsQueryType": "range",
+          "query": "4bf92f3577b34da6a3ce929d0e0e4736",
+          "queryType": "traceql",
+          "refId": "A",
+          "tableType": "traces"
         }
       ],
       "title": "3. Tempo 驗證：最新流入的鏈路追蹤紀錄 (Traces)",
-      "type": "nodeGraph"
+      "type": "table"
     }
   ],
   "preload": false,
@@ -219,5 +261,5 @@
   "timezone": "",
   "title": "PG k3s 可觀測性大三元即時驗證面板",
   "uid": "78a7a560-84a4-49de-8e07-b4655a4ebf89",
-  "version": 2
+  "version": 4
 }

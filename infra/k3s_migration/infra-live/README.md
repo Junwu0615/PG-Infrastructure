@@ -110,7 +110,7 @@ kubectl get ingressroute -n infra-tools
 # ...
 kubectl get ingressroutetcps.traefik.io -A
 
-# ⚠️ 檢視 svc -o yaml
+⭐ 檢視 svc -o yaml
 kubectl get svc -n kube-system traefik -o yaml
 kubectl get svc -n infra-tools gitlab-infra-webservice-default -o yaml
 
@@ -610,8 +610,8 @@ Applications (observability)
     Extra Kustomize Resources
 
 ------
-⚠️ Git Repo = Desired State
-⚠️ ArgoCD = Reconciliation Engine
+⭐ Git Repo = Desired State
+⭐ ArgoCD = Reconciliation Engine
 
 直接 push 整個 infra-live tree
     git init
@@ -724,7 +724,7 @@ DEBUG
     [1] cat output.yaml | grep "image: "
     [2] grep "image: " output.yaml
     
-    ⚠️ 渲染路徑查找法 ( 找搞怪目標: replication_factor )
+    ⭐ 渲染路徑查找法 ( 找搞怪目標: replication_factor )
         # 單指 output.yaml
         grep -rn "replication_factor" output.yaml
         
@@ -735,7 +735,7 @@ DEBUG
         ex: ./official-values.yaml:1226:        replication_factor: {{ .Values.ingester.config.replication_factor }}
         Values 檔案中 ingester.config.replication_factor 這個參數會被套用到 Chart 中的 replication_factor 位置
     
-    ⚠️ 逆向排查 SOP
+    ⭐ 逆向排查 SOP
         * 原廠變數精準定位
         grep -rn "目標參數關鍵字" .
         
@@ -764,7 +764,7 @@ DEBUG
         helm template charts/loki -f values/common.yaml
     
 ------
-⚠️ 刪除孤兒做法 當 argocd 已消失名單 但 pod 還在 ... ( prometheus )
+⭐ 刪除孤兒做法 當 argocd 已消失名單 但 pod 還在 ... ( prometheus )
 1. 先檢查 kubectl get application -n argocd
 
 ⚠️ 2. 查所有相關服務 因為前置設定已綁 -n prometheus

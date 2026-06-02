@@ -62,9 +62,47 @@ curl -sS https://webinstall.dev/k9s | bash
 ------
 # 按 0： 切換到「所有命名空間」
 # 輸入:
-    pod
+    po # Pod 列表
+    ns # Namespace 列表 # f 可加入快捷 ( 0 -9 ) # 直接編輯設定檔
+    svc # Service 列表
+    ing # Ingress 列表
+    cm # ConfigMap 列表
     node
 
+------
+# 找系統位置 => (Context Configs: /home/pc/.local/share/k9s/clusters)
+k9s info
+
+$ cat /home/pc/.local/share/k9s/clusters/default/default/config.yaml
+k9s:
+  cluster: default
+  namespace:
+    active: all
+    lockFavorites: false
+    favorites:
+      - all
+      - argocd
+      - default
+  view:
+    active: v1/pods all
+  featureGates:
+    nodeShell: false
+  proxy: null
+  
+# 修改 Namespace 列表 最愛清單
+$ nano /home/pc/.local/share/k9s/clusters/default/default/config.yaml
+
+namespace:
+  active: default
+  favorites:
+  - all
+  - argocd
+  - observability
+  - pg-apps
+  - platform
+  - security
+  - databases
+  - storage
 ------
 : ：輸入命令（ 例如 :pod 看 Pod, :node 看節點 ）
 / ：過濾關鍵字
@@ -133,6 +171,30 @@ kubectl get cm
 
 # 確認 namespaces
 kubectl get namespaces
+
+
+# 確認應用狀態 ( 透過 ArgoCD 定義的藍圖 )
+kubectl get application -A
+
+    # 更新環境校正 ( homelab-test-root )
+    kubectl patch app homelab-test-root -n argocd --type=merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
+    
+    # 查看 ArgoCD 定義的藍圖路徑 ( observability )
+    kubectl get app observability -n argocd -o jsonpath='{.spec.source.path}'
+
+# 大類查詢 ( 用標籤型式跨 namespace 查詢 )
+    # 1 pod -A => 要個別針對支援的欄位 太麻煩
+        
+    ⭐ 2 app -n argocd
+    kubectl get app -n argocd \
+    -l app.kubernetes.io/part-of=observability
+    
+    NAME               SYNC STATUS   HEALTH STATUS
+    grafana            Synced        Healthy
+    loki               Synced        Healthy
+    prometheus-stack   Unknown       Healthy
+    promtail           Synced        Healthy
+    tempo              Synced        Healthy
 
 ⭐ [ 組合技 ] 確認所有組件狀態
 kubectl get pods,pvc,svc,ingress,cm,nodes
