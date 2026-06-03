@@ -45,6 +45,10 @@
 - #### *c.　k3s 集群 secret 設定*
   ```
   # 一次設定 3 組密碼
+    # 管理員強密碼: postgres-password123
+    # 一般使用者密碼: password123
+    # 複寫使用者密碼: replication-password123
+  
   $ kubectl create secret generic postgresql-credentials \
     --namespace databases \
     --from-literal=postgres-password="postgres-password123" \
@@ -56,6 +60,102 @@
   $ kubectl get secret -n databases
   NAME                     TYPE     DATA   AGE
   postgresql-credentials   Opaque   3      5s
+  ```
+  
+- #### *d.　k3s 集群 ingress 設定*
+  ```
+  * 無法同先前用 nginx 轉進內部 ( Kind: Ingress ) => 嘗試用 HTTP 規則包裝 TCP 流量，會導致連線失敗
+  * 改用 Kind: ConfigMap
+  
+  1. 在 Nginx Controller 中設定 TCP Stream
+  kubectl edit configmap ingress-nginx-controller -n ingress-nginx
+  
+  
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: ingress-nginx
+      meta.helm.sh/release-namespace: ingress-nginx
+    creationTimestamp: "2026-05-28T14:32:39Z"
+    labels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/instance: ingress-nginx
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: ingress-nginx
+      app.kubernetes.io/part-of: ingress-nginx
+      app.kubernetes.io/version: 1.15.1
+      helm.sh/chart: ingress-nginx-4.15.1
+    name: ingress-nginx-controller
+    namespace: ingress-nginx
+    resourceVersion: "961"
+    uid: 205954b1-a0f6-4c18-b0ae-ce25d7b0e62e
+  data:
+    "5432": "databases/postgresql:5432"
+    
+  ------
+  
+  2. 調整 Nginx Controller 的 Service (開啟 Port)
+  kubectl edit svc ingress-nginx-controller -n ingress-nginx
+  
+  
+  ports:
+  - appProtocol: http
+    name: http
+    nodePort: 30547
+    port: 80
+    protocol: TCP
+    targetPort: http
+  - appProtocol: https
+    name: https
+    nodePort: 32451
+    port: 443
+    protocol: TCP
+    targetPort: https
+  - name: postgresql-tcp
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  
+  
+  3.1. 測試連線 ( password123 )
+  kubectl exec -it postgresql-0  -n databases \
+    -- psql -U pg-user -d pgdatabase
+  
+  
+  3.2. 先確認外部能連上
+  kubectl port-forward svc/postgresql -n databases 5432:5432
+  
+  
+  3.3. 測試連線 ( 需要設定 socat 轉發 + netsh portproxy 轉發 )
+  * k3s/ingress_settings/postgresql-proxy.service
+    * 設定
+    # sudo cat /etc/systemd/system/postgresql-proxy.service
+    # sudo nano /etc/systemd/system/postgresql-proxy.service
+    
+    * 啟動
+    # sudo systemctl daemon-reload
+    # sudo systemctl enable --now postgresql-proxy
+    
+    * 重啟
+    sudo systemctl restart postgresql-proxy
+  
+    * 確認是否開始監聽
+    sudo ss -ltnp | grep :5432
+  
+  * [管理員] Windows Admin PowerShell
+  netsh interface portproxy add v4tov4 `
+    listenaddress=0.0.0.0 `
+    listenport=5432 `
+    connectaddress=172.28.113.34 `
+    connectport=5432
+  
+  * 測試連線
+    # 檢查埠號是否回應
+    Test-NetConnection -ComputerName postgresql.k8s.local -Port 5432
+  
+  jdbc:postgresql://postgresql.k8s.local:5432/pgdatabase
+  jdbc:postgresql://postgresql.k8s.local:5432/pgdatabase?sslmode=disable
   ```
 
 </ul>

@@ -14,6 +14,15 @@ postgresql:
 #    repository: bitnami/postgresql
     tag: 17.2.0-debian-12-r2
 
+
+  primary:
+    pgHbaConfiguration: |-
+      # TYPE  DATABASE        USER            ADDRESS                 METHOD
+      local   all             all                                     trust
+      host    all             all             127.0.0.1/32            md5
+      host    all             all             0.0.0.0/0               md5
+
+
   # 監控最佳實踐：啟用 Prometheus Metrics Exporter
 #  metrics:
 #    enabled: true
