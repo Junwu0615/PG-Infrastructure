@@ -1,33 +1,41 @@
 postgresql:
+  global:
+    security:
+      allowInsecureImages: true
+
   # 使用架構：預設單節點（可在特定環境覆蓋為 primary-readReplica）
   architecture: replication
 
   # 建議在 GitOps 中固定 Image Tag，避免自動浮動
   image:
-    tag: 16.2.0-debian-12-r12
+    registry: docker.io
+    # 官方已將 Image 移至 legacy 倉庫，並停止在 bitnami 倉庫提供該版本
+    repository: bitnamilegacy/postgresql
+#    repository: bitnami/postgresql
+    tag: 17.2.0-debian-12-r2
 
   # 監控最佳實踐：啟用 Prometheus Metrics Exporter
-  metrics:
-    enabled: true
-    service:
-      ports:
-        metrics: 9187
-    serviceMonitor:
-      enabled: true
-      interval: 30s
+#  metrics:
+#    enabled: true
+#    service:
+#      ports:
+#        metrics: 9187
+#
+#    serviceMonitor:
+#      enabled: true
+#      interval: 30s
 
   # 安全最佳實踐：不使用預設的非 root 權限，明確指定 UID
   containerSecurityContext:
     enabled: true
     runAsUser: 1001
 
-  # 停用 Chart 自帶的密碼生成（GitOps 應搭配外部 Secret 系統，如 SealedSecrets 或 Vault）
   auth:
-    usePasswordFiles: false
-    # 注意：資料庫密碼不應直接寫在 Git。
-    # 這裡宣告引用的現成 Secret 名稱，GitOps 只負責查閱該 Secret
-    existingSecret: "postgresql-credentials"
+    username: pg-user
+    database: pgdatabase
+
+    existingSecret: postgresql-credentials
     secretKeys:
-      adminPasswordKey: "postgres-password"
-      userPasswordKey: "password"
-      replicationPasswordKey: "replication-password"
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+      replicationPasswordKey: replication-password

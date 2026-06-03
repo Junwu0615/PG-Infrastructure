@@ -41,6 +41,22 @@
   -- 試著下面語句，確認現在資料庫在「等什麼」
   SELECT * FROM pg_wait_sampling_current;
   ```
+  
+- #### *c.　k3s 集群 secret 設定*
+  ```
+  # 一次設定 3 組密碼
+  $ kubectl create secret generic postgresql-credentials \
+    --namespace databases \
+    --from-literal=postgres-password="postgres-password123" \
+    --from-literal=password="password123" \
+    --from-literal=replication-password="replication-password123" \
+    -n databases
+  
+  
+  $ kubectl get secret -n databases
+  NAME                     TYPE     DATA   AGE
+  postgresql-credentials   Opaque   3      5s
+  ```
 
 </ul>
 </details>

@@ -13,4 +13,5 @@ loki:
     persistence:
       enabled: true
       size: 10Gi
-      # storageClass: "local-path" # 根據你 K3s 的 StorageClass 調整
+      # storageClass: "local-path"
+      # storageClass: "standard"

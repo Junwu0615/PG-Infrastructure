@@ -4,7 +4,11 @@
 ```
 # Evolution: MiniKube -> K3d -> K3s -> ✅ K3s Migration -> Kubeadm -> GKE
 
-# Summary: Null
+# Summary:
+    - GitOps 架構 需要非常嚴謹考量並調整 ( 包括: 服務依賴 / 環境切換 / 後期維運 )
+    - 遇到 OOM 問題 => 折衷改為 Docker Compose + K3s 混合架構
+    - Values 渲染很多坑 => search: 逆向渲染大法
+    - 完整實施 k8s 框架下各類嘗試
 ```
 
 <br>
@@ -320,6 +324,32 @@ cd infra/docker-compose
 <ul>
 
 ```
+* --- 改進方案 --- *
+    infra-live/
+    ├── argocd/                         # ⚠️ 全域 ArgoCD 最高指揮部
+    │   ├── root-app.yaml               # 大總管
+    │   ├── projects/                   # 專案防護外殼 (databases, security...)
+    │   └── applications/               # 💡 只有自動化生成器 (ApplicationSet)
+    │       └── postgresql-appset.yaml  # 一支檔案，自動動態派發 test / prod 
+    │
+    ├── charts/                         # 📦 特效第三方 Chart 封裝 (如官方 PostgreSQL)
+    │   └── postgresql/
+    │
+    ├── templates/                      # 🧱 既有的內部自訂 K8s 模板基地 (Base)
+    │   ├── app-deployment.yaml
+    │   └── ingress-template.yaml
+    │
+    ├── policies/                       # 🛡️ 全域安全防禦策略 (Gatekeeper / NetworkPolicies)
+    │   ├── deny-privileged-pods.yaml
+    │   └── network-isolation.yaml
+    │
+    └── environments/                   # 🎨 純粹的環境變數儲存所 (絕無重複的 ArgoCD 宣告)
+        ├── homelab-test/               
+        │   └── postgresql-values.yaml  # 只有測試環境的調校參數
+        └── homelab-prod/               
+            └── postgresql-values.yaml  # 只有生產環境的高可用參數
+        
+        
 * --- GitLab 專案結構樹 ( Repo 即是 infra-live 內容 ) --- *
     infra-live/
     ├── applications/
@@ -428,9 +458,9 @@ cd infra/docker-compose
         └── storage-project.yaml
     
 
-* --- Applications: Databases --- *
+* --- [?] Applications: Databases --- *
 
-    infra-live/applications/postgresql/
+    infra-live/applications/databases/postgresql/
     ├── helm-release/
     ├── backup/
     ├── restore/
@@ -439,14 +469,14 @@ cd infra/docker-compose
     
 * --- Applications: Helm + Values 分離 --- *
 
-    applications/grafana
+    applications/observability/visualization/grafana
     ├── charts/    # Helm Wrapper Chart ( Helm-first GitOps )
     ├── values/                     ⚠️ Environment Overlay
     ├── app.yaml   # ArgoCD Application 定義
     ├── Chart.lock # 初始化 Chart 依賴包後自動生成
     └── Chart.yaml # Helm Chart 定義 ( 包含依賴包定義 )
 
-    applications/grafana/values/    ⚠️ Promotion Flow ( 非 main / Git Tag Promotion )
+    applications/observability/visualization/grafana/values/    ⚠️ Promotion Flow ( 非 main / Git Tag Promotion )
     ├── common.yaml  # 共用: image repo / ingress annotations / persistence
     ├── test.yaml
     ├── stage.yaml
@@ -564,13 +594,23 @@ ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>       
 <ul>
 
 ```
-# 將已定義的應用類部署
+# 應用類部署
     * 手動建立專案
     kubectl apply -f infra-live/environments/homelab/test/root-app.yaml
     kubectl apply -f infra-live/environments/homelab/test/databases.yaml
     
     ⭐ 強制讓 Argo CD 重新載入該 Application ( root-app.yaml ) # 前置作業要先 push 到 gitlab
     kubectl annotate application homelab-test-root -n argocd argocd.argoproj.io/refresh=normal --overwrite
+    
+    $ kubectl get appproject -n argocd
+    NAME            AGE
+    databases       3m14s
+    default         5d3h
+    observability   4d3h
+    pg-apps         23s
+    platform        23s
+    security        23s
+
 
 # root-app.yaml 不同層級用途差異
     # [初始一次] 讓 ArgoCD 開始接管 GitOps
@@ -586,7 +626,6 @@ ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>       
     - platform.yaml
     - security.yaml
     - pg-apps.yaml
-    
     
 Bootstrap Root App
     ↓
@@ -610,9 +649,9 @@ Applications (observability)
 
     Application
         ↓
-    Helm Chart
+    Kustomize
         ↓
-    Extra Kustomize Resources
+    Helm Chart
 
 ------
 ⭐ Git Repo = Desired State
@@ -730,7 +769,7 @@ DEBUG
     [1] cat output.yaml | grep "image: "
     [2] grep "image: " output.yaml
     
-    ⭐ 渲染路徑查找法 ( 找搞怪目標: replication_factor )
+    ⭐ 渲染路徑查找 ( 找搞怪目標: replication_factor )
         # 單指 output.yaml
         grep -rn "replication_factor" output.yaml
         
@@ -741,7 +780,7 @@ DEBUG
         ex: ./official-values.yaml:1226:        replication_factor: {{ .Values.ingester.config.replication_factor }}
         Values 檔案中 ingester.config.replication_factor 這個參數會被套用到 Chart 中的 replication_factor 位置
     
-    ⭐ 逆向排查 SOP
+    ⭐ 逆向渲染大法
         * 原廠變數精準定位
         grep -rn "目標參數關鍵字" .
         

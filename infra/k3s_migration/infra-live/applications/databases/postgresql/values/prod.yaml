@@ -13,7 +13,7 @@ postgresql:
         memory: 2Gi
     persistence:
       enabled: true
-      storageClass: "premium-rwo" # 推薦使用高 IOPS 的 SSD 雲端硬碟
+      storageClass: "local-path" # 推薦使用高 IOPS 的 SSD 雲端硬碟
       size: 50Gi
 
   primary:
@@ -26,7 +26,7 @@ postgresql:
         memory: 4Gi
     persistence:
       enabled: true
-      storageClass: "premium-rwo"
+      storageClass: "local-path"
       size: 100Gi
 
   # 生產環境安全參數最佳實踐

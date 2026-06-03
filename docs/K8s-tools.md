@@ -154,8 +154,18 @@ kubectl get pods -w
 # 確認 pvc ( 儲存 ) 狀態
 kubectl get pvc
 
-# 確認 節點 狀態
+# 確認 nodes 狀態
 kubectl get nodes
+
+# 確認 StorageClass 狀態
+kubectl get sc
+
+# 確認 StatefulSet 狀態
+kubectl get sts
+    # 查找設定 ( postgresql )
+    kubectl get sts postgresql \
+      -n databases \
+      -o yaml | grep -A5 storageClassName
 
 # 確認 crd 狀態 ( 藍圖被註冊進 K8s 系統 )
 kubectl get crd
@@ -175,7 +185,7 @@ kubectl get namespaces
 # 確認 appproject 狀態 ( ArgoCD 定義的專案 )
 kubectl get appproject -n argocd
 
-# 確認應用狀態 ( 透過 ArgoCD 定義的藍圖 )
+# 確認 application 狀態 ( 透過 ArgoCD 定義的藍圖 )
 kubectl get application -A
 
     # 更新環境校正 ( homelab-test-root )

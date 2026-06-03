@@ -33,7 +33,8 @@ loki:
     persistence:
       enabled: true
       size: 200Gi
-      # storageClass: "premium-rwo"
+      # storageClass: "local-path"
+      # storageClass: "standard"
 
     # 為了提高生產環境的查詢效能，開啟快取與平行查詢
     extraArgs:

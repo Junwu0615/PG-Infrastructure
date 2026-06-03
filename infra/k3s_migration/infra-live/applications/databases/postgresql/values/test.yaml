@@ -14,5 +14,5 @@ postgresql:
     # 儲存配置
     persistence:
       enabled: true
-      storageClass: "standard" # 各雲端平台的動態 PVC (如 GKE 的 standard-rwo)
+      storageClass: "local-path"
       size: 10Gi
