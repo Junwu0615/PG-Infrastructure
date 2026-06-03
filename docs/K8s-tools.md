@@ -73,23 +73,8 @@ curl -sS https://webinstall.dev/k9s | bash
 # 找系統位置 => (Context Configs: /home/pc/.local/share/k9s/clusters)
 k9s info
 
-$ cat /home/pc/.local/share/k9s/clusters/default/default/config.yaml
-k9s:
-  cluster: default
-  namespace:
-    active: all
-    lockFavorites: false
-    favorites:
-      - all
-      - argocd
-      - default
-  view:
-    active: v1/pods all
-  featureGates:
-    nodeShell: false
-  proxy: null
-  
 # 修改 Namespace 列表 最愛清單
+$ cat /home/pc/.local/share/k9s/clusters/default/default/config.yaml
 $ nano /home/pc/.local/share/k9s/clusters/default/default/config.yaml
 
 namespace:
@@ -103,6 +88,7 @@ namespace:
   - grafana
   - promtail
   - tempo
+  
 ------
 : ：輸入命令（ 例如 :pod 看 Pod, :node 看節點 ）
 / ：過濾關鍵字
@@ -181,6 +167,23 @@ kubectl get cm
 
 # 確認 namespaces
 kubectl get namespaces
+    
+    ⭐ 強制刪除 Namespace ( ex: ingress-nginx ) 
+    1. 刪除該 Namespace 下所有的 ReplicaSet
+    kubectl delete rs --all -n ingress-nginx --force --grace-period=0
+    
+    2. 直接移除 Namespace 的 finalizers => 強制將其刪除
+    kubectl patch namespace ingress-nginx -p '{"metadata":{"finalizers":[]}}' --type=merge
+    
+    3. 確認 Namespace 已被刪除
+    kubectl get ns ingress-nginx
+    
+    * 如果 Namespace 已經被刪除，但相關資源仍殘留在系統中，則可以使用以下命令強制刪除這些資源：
+    kubectl delete all --all -n ingress-nginx --force --grace-period=0
+    
+    * 部分服務會與負載平衡器綑綁 ( ex: ingress-nginx )
+    kubectl get ds -A | grep ingress-nginx
+    kubectl delete ds <daemonset-name> -n kube-system
 
 # 確認 appproject 狀態 ( ArgoCD 定義的專案 )
 kubectl get appproject -n argocd

@@ -1,11 +1,36 @@
 controller:
   replicaCount: 1
-
   ingressClassResource:
     default: true
 
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  kind: DaemonSet
+  containerPorts:
+    http: 80
+    https: 443
+    postgresql: 5432
   service:
-    type: LoadBalancer
+    # 改為 ClusterIP，因為 hostNetwork 會直接接管硬體，不需要 LoadBalancer
+    type: ClusterIP
+
+#  hostNetwork: false
+#  service:
+#    type: NodePort
+#    # 必須明確告訴 Helm 指定 Port 開放
+#    ports:
+#      http: 80
+#      https: 443
+#      postgresql: 5432
+#    # 指定對應的 NodePort (外部訪問用)
+#    nodePorts:
+#      http: 30080
+#      https: 30443
+#      postgresql: 30543
+
+  # 定義 TCP 轉發 (對應到 PostgreSQL Service)
+  tcp:
+    5432: "databases/postgresql:5432"
 
   metrics:
     enabled: true
