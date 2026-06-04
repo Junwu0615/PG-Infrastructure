@@ -516,15 +516,25 @@ Helm:
 👁️ 測試 15： Ingress 流量入口 ( Traefik )
 
     * 單一環境連線路徑:
-        Chrome
-          ↓
-        Windows:8080
-          ↓ netsh portproxy
-        WSL2:80
-          ↓ socat
-        ingress-nginx
-          ↓
-        pod service
+
+        Chrome Browser <localhost:8080>
+        ↓
+        
+        Windows
+        
+        ↓  PortProxy <TRANSFER: 80 / 443 / 5432>
+        
+        WSL2  <172.28.113.34>
+        
+        ↓  Socat <TRANSFER: 80 / 443 / 5432>
+        
+        ingress-nginx <10.88.0.20> <LISTEN: 80 / 443 / 5432> 
+        ↓
+        
+        Ingress Rule
+        ↓
+        
+        pod-server
         
         # ⚠️ STEP 1 安裝 ingress-nginx ( 不採用 Traefik )
             # 安裝 ingress-nginx

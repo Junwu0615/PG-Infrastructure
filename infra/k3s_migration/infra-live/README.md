@@ -546,7 +546,7 @@ Pod Service Running
 <ul>
 
 ```
- Browser <localhost:8080> & IDE TCP 5432
+ Chrome Browser <localhost:8080> & IDE TCP 5432
     ↓
     
  Windows
@@ -621,51 +621,54 @@ ingress-nginx-controller-metrics     ClusterIP   10.43.213.22    <none>        1
     systemctl enable k8s-http-proxy
     systemctl enable k8s-https-proxy
     systemctl enable postgresql-proxy
+    systemctl enable portainer-agent-proxy
     
     # 確認狀態
     systemctl status k8s-http-proxy
     systemctl status k8s-https-proxy
     systemctl status postgresql-proxy
+    systemctl status portainer-agent-proxy
 
 
-4. 進入 VM 確認 ( 含有 ingress-nginx ): sudo ss -ltnp | grep -E ':80|:443|:5432'
+4. 進入 VM 確認 ( 含有 ingress-nginx ): sudo ss -ltnp | grep -E ':80|:443|:5432|nginx'
 LISTEN 0      511          0.0.0.0:5432       0.0.0.0:*    users:(("nginx",pid=10393,fd=15),("nginx",pid=10388,fd=15))
 LISTEN 0      4096         0.0.0.0:80         0.0.0.0:*    users:(("nginx",pid=10393,fd=7),("nginx",pid=10388,fd=7))
 LISTEN 0      4096         0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=10393,fd=9),("nginx",pid=10388,fd=9))
 
 
-5.1. 測試: Socat 是否確實轉發: sudo ss -ltnp | grep -E ':80|:443|:5432'
+5.1. 測試: Socat 是否確實轉發: sudo ss -ltnp | grep -E ':80|:443|:5432|socat'
 LISTEN 0      5             0.0.0.0:443        0.0.0.0:*    users:(("socat",pid=1681752,fd=5))
 LISTEN 0      5             0.0.0.0:80         0.0.0.0:*    users:(("socat",pid=1680697,fd=5))
 LISTEN 0      5             0.0.0.0:5432       0.0.0.0:*    users:(("socat",pid=1683769,fd=5))
 
 ---
-
 curl http://10.88.0.20:80
 curl http://10.88.0.20:443
-curl http://10.88.0.20:9001
-curl http://10.88.0.20:5432
 
 
-5.2. 測試: 確認 WSL2 能否打進 VM 內部
-nc -zv 10.88.0.22 80 => Connection to 10.88.0.22 80 port [tcp/http] succeeded!
-nc -zv 10.88.0.22 443 => Connection to 10.88.0.22 443 port [tcp/https] succeeded!
-nc -zv 10.88.0.22 5432 => Connection to 10.88.0.22 5432 port [tcp/postgresql] succeeded!
+5.2. 測試: 確認 WSL2 能否打進 VM 內部 ( HTTP / TCP 適用 )
+nc -zv 10.88.0.20 80 => Connection to 10.88.0.20 80 port [tcp/http] succeeded!
+nc -zv 10.88.0.20 443 => Connection to 10.88.0.20 443 port [tcp/https] succeeded!
+nc -zv 10.88.0.20 5432 => Connection to 10.88.0.20 5432 port [tcp/postgresql] succeeded!
+nc -zv 10.88.0.20 9001 => Connection to 10.88.0.20 9001 port [tcp/*] succeeded!
 
 
 5.3. 測試: WSL2 HTTPS / HTTP 連線是否能打進 ingress-nginx
 curl -H "Host: argo-cd.k8s.local" http://10.88.0.20:80
-curl -H "Host: postgresql.k8s.local" http://10.88.0.20:5432
 
 
-5.4. 測試: WIN 端是否能打進 ingress-nginx
+5.4. WIN 端是否能打進 ingress-nginx
 Test-NetConnection argo-cd.k8s.local -Port 8080 
 http://argo-cd.k8s.local:8080/
 
 
+5.5. 測試: TCP 連線 ( 0 成功 ; 1 失敗 )
+echo > /dev/tcp/10.88.0.20/5432
+echo $?
+echo > /dev/tcp/10.88.0.20/9001
+echo $?
 
-
-
+---
 * 輸出官方範本參考
 helm show values ingress-nginx/ingress-nginx > official-values.yaml
 
@@ -678,23 +681,6 @@ helm get values ingress-nginx -n ingress-nginx
 kubectl get deploy ingress-nginx-controller \
     -n ingress-nginx \
     -o yaml
-
-
-
-
-
-3. 測試
-    # 確保基本服務已可用
-    kubectl port-forward svc/argocd-server -n argocd 8081:80
-    
-    # WSL2 端
-    curl http://10.88.0.20:30547
-    curl http://10.88.0.20:32451
-    curl -H "Host: argo-cd.k8s.local" http://10.88.0.20:30547
-    
-    # WIN 端
-    Test-NetConnection argo-cd.k8s.local -Port 8080 
-    http://argo-cd.k8s.local:8080/
 ```
 
 </ul>

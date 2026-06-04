@@ -30,4 +30,4 @@
 # 127.0.0.1 mqtt.k8s.local
 # 127.0.0.1 superset.k8s.local
 # 127.0.0.1 airflow.k8s.local
-# 127.0.0.1 postgresql.k8s.local
+127.0.0.1 postgresql.k8s.local

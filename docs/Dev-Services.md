@@ -100,6 +100,7 @@
   3.5. 測試連線: 連線字串
   jdbc:postgresql://postgresql.k8s.local:5432/pgdatabase
   ```
+  ![PNG](../assets/conn_postgresql.png)
 
 </ul>
 </details>
@@ -596,10 +597,25 @@
     NAME                       TYPE           CLUSTER-IP    EXTERNAL-IP                        PORT(S)          AGE
     portainer-agent            LoadBalancer   10.43.59.37   10.88.0.20,10.88.0.21,10.88.0.22   9001:31928/TCP   42m
     portainer-agent-headless   ClusterIP      None          <none>                             <none>           42m
+  
+    # 建立轉接設定 ( k3s/ingress_settings/portainer-agent-proxy.service )
+    sudo nano /etc/systemd/system/portainer-agent-proxy.service
+    sudo cat /etc/systemd/system/portainer-agent-proxy.service
+    
+      # 重啟設定
+      sudo systemctl daemon-reload
+      sudo systemctl enable --now portainer-agent-proxy
+      sudo systemctl restart portainer-agent-proxy
+      sudo systemctl status portainer-agent-proxy
+      sudo systemctl stop portainer-agent-proxy    
+      
+      # 測試
+      curl http://10.88.0.20:31928
     
     # UI 設定 k8s 連線設置:
     Name: pg-k3s-master
-    Environment address: host.docker.internal:9001
+    [X] Environment address: portainer.k8s.local:9001
+    [O] Environment address: host.docker.internal:9001
   ```
   ![PNG](../assets/portainer.png)
 
