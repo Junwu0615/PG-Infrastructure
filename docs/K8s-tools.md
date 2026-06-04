@@ -36,9 +36,7 @@ curl -sS https://webinstall.dev/k9s | bash
     # 前 10 名行程損耗
     ps aux --sort=-%mem | head -n 11
     
-    # 手動釋放記憶體
-    sudo sync && echo 3 | sudo tee /proc/sys/vm/drop_caches
-    
+    # 手動釋放記憶體    
                    total        used        free      shared  buff/cache   available
     Mem:            31Gi        15Gi       7.4Gi        57Mi       8.4Gi        15Gi
     
@@ -365,7 +363,7 @@ k3d --version
 
 ### *F.　Install K3s*
 ```
-參考說明檔 docs/k3s.md
+參考說明文件 docs/K3s.md
 ```
 
 <br>

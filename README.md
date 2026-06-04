@@ -62,8 +62,6 @@ X = 已棄用
 tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
 
 .
-
-.
 ├── LICENSE
 ├── README.md
 └── infra

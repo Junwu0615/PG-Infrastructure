@@ -225,7 +225,7 @@ helm upgrade gitlab-infra gitlab/gitlab \
     # 查看 ingress 設置 ( K3s 是否有啟動 Traefik # 預設 )
     kubectl get pods -n kube-system | grep traefik
     
-    # [管理員 powershell] 增加路徑 # 參考 k3s.md
+    # [管理員 powershell] 增加路徑 # 參考說明文件 docs/K3s.md
     
     # 查看 ingress 實際偵測到的路由 ( ADDRESS 有值 )
     kubectl get ingress -n infra-tools
@@ -312,7 +312,9 @@ cd infra/docker-compose
     ✅ 3. 手動初始化 bootstrap
     make init-gitops
     
-    4. 親合/反親合設定
+    4. 標籤設定 => 親合/反親合
+    kubectl label nodes k3s-node-0 service-type=ingress-nginx --overwrite
+    
 ```
 
 </ul>
@@ -544,16 +546,18 @@ Pod Service Running
 <ul>
 
 ```
- Browser <localhost:8080>
+ Browser <localhost:8080> & IDE TCP 5432
     ↓
     
  Windows
-    ↓  PortProxy <TRANSFER 8080:80>
+ 
+    ↓  PortProxy <TRANSFER: 80 / 443 / 5432>
     
-  WSL2
-    ↓  socat <LISTEN:80> <TRANSFER 80:30547>
+  WSL2  <172.28.113.34>
+  
+    ↓  Socat <TRANSFER: 80 / 443 / 5432>
     
-ingress-nginx <10.88.0.20:30547> 
+ingress-nginx <10.88.0.20> <LISTEN: 80 / 443 / 5432> 
     ↓
     
 Ingress Rule
@@ -563,12 +567,121 @@ pod-server
 
 
 1. 確認映射位置: kubectl get svc -n ingress-nginx
-NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP                        PORT(S)                      AGE
-ingress-nginx-controller             LoadBalancer   10.43.95.35    10.88.0.20,10.88.0.21,10.88.0.22   80:30547/TCP,443:32451/TCP   17m
-ingress-nginx-controller-admission   ClusterIP      10.43.166.76   <none>                             443/TCP                      17m
-ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>                             10254/TCP                    17m
+NAME                                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                   AGE
+ingress-nginx-controller             ClusterIP   10.43.74.36     <none>        80/TCP,443/TCP,5432/TCP   20h
+ingress-nginx-controller-admission   ClusterIP   10.43.184.124   <none>        443/TCP                   20h
+ingress-nginx-controller-metrics     ClusterIP   10.43.213.22    <none>        10254/TCP                 20h
 
-2. 設定 socat ( 參考 k3s.md )
+
+2. 設定 Netsh PortProxy
+    # 新增
+    netsh interface portproxy add v4tov4 `
+        listenaddress=0.0.0.0 `
+        listenport=8080 `
+        connectaddress=172.28.113.34 `
+        connectport=80
+        
+    netsh interface portproxy add v4tov4 `
+        listenaddress=0.0.0.0 `
+        listenport=443 `
+        connectaddress=172.28.113.34 `
+        connectport=443
+        
+    netsh interface portproxy add v4tov4 `
+        listenaddress=0.0.0.0 `
+        listenport=5432 `
+        connectaddress=172.28.113.34 `
+        connectport=5432
+        
+    # 刪除
+    netsh interface portproxy delete v4tov4 listenport=8080 listenaddress=0.0.0.0
+    netsh interface portproxy delete v4tov4 listenport=443 listenaddress=0.0.0.0
+    netsh interface portproxy delete v4tov4 listenport=5432 listenaddress=0.0.0.0
+    
+    
+    # 驗證
+    netsh interface portproxy show all
+    Address         Port        Address         Port
+    --------------- ----------  --------------- ----------
+    192.168.0.15    8090        172.28.113.34   8090
+    192.168.0.15    5100        172.28.113.34   5100
+    0.0.0.0         8080        172.28.113.34   80
+    0.0.0.0         443         172.28.113.34   443
+    0.0.0.0         5432        172.28.113.34   5432
+
+
+3. 設定 Socat 轉發
+    # 參考說明文件:
+        - docs/K3s.md
+        - docs/Dev-Services.md
+    
+    # 設定檔位置: k3s_migration/archive/ingress_settings/*
+    
+    # 重啟 
+    systemctl enable k8s-http-proxy
+    systemctl enable k8s-https-proxy
+    systemctl enable postgresql-proxy
+    
+    # 確認狀態
+    systemctl status k8s-http-proxy
+    systemctl status k8s-https-proxy
+    systemctl status postgresql-proxy
+
+
+4. 進入 VM 確認 ( 含有 ingress-nginx ): sudo ss -ltnp | grep -E ':80|:443|:5432'
+LISTEN 0      511          0.0.0.0:5432       0.0.0.0:*    users:(("nginx",pid=10393,fd=15),("nginx",pid=10388,fd=15))
+LISTEN 0      4096         0.0.0.0:80         0.0.0.0:*    users:(("nginx",pid=10393,fd=7),("nginx",pid=10388,fd=7))
+LISTEN 0      4096         0.0.0.0:443        0.0.0.0:*    users:(("nginx",pid=10393,fd=9),("nginx",pid=10388,fd=9))
+
+
+5.1. 測試: Socat 是否確實轉發: sudo ss -ltnp | grep -E ':80|:443|:5432'
+LISTEN 0      5             0.0.0.0:443        0.0.0.0:*    users:(("socat",pid=1681752,fd=5))
+LISTEN 0      5             0.0.0.0:80         0.0.0.0:*    users:(("socat",pid=1680697,fd=5))
+LISTEN 0      5             0.0.0.0:5432       0.0.0.0:*    users:(("socat",pid=1683769,fd=5))
+
+---
+
+curl http://10.88.0.20:80
+curl http://10.88.0.20:443
+curl http://10.88.0.20:9001
+curl http://10.88.0.20:5432
+
+
+5.2. 測試: 確認 WSL2 能否打進 VM 內部
+nc -zv 10.88.0.22 80 => Connection to 10.88.0.22 80 port [tcp/http] succeeded!
+nc -zv 10.88.0.22 443 => Connection to 10.88.0.22 443 port [tcp/https] succeeded!
+nc -zv 10.88.0.22 5432 => Connection to 10.88.0.22 5432 port [tcp/postgresql] succeeded!
+
+
+5.3. 測試: WSL2 HTTPS / HTTP 連線是否能打進 ingress-nginx
+curl -H "Host: argo-cd.k8s.local" http://10.88.0.20:80
+curl -H "Host: postgresql.k8s.local" http://10.88.0.20:5432
+
+
+5.4. 測試: WIN 端是否能打進 ingress-nginx
+Test-NetConnection argo-cd.k8s.local -Port 8080 
+http://argo-cd.k8s.local:8080/
+
+
+
+
+
+* 輸出官方範本參考
+helm show values ingress-nginx/ingress-nginx > official-values.yaml
+
+
+* 手動確認是否吃到參數
+helm get values ingress-nginx -n ingress-nginx
+
+
+* 確認實際 Deployment 參數
+kubectl get deploy ingress-nginx-controller \
+    -n ingress-nginx \
+    -o yaml
+
+
+
+
 
 3. 測試
     # 確保基本服務已可用
@@ -580,7 +693,6 @@ ingress-nginx-controller-metrics     ClusterIP      10.43.36.168   <none>       
     curl -H "Host: argo-cd.k8s.local" http://10.88.0.20:30547
     
     # WIN 端
-    ping argo-cd.k8s.local
     Test-NetConnection argo-cd.k8s.local -Port 8080 
     http://argo-cd.k8s.local:8080/
 ```

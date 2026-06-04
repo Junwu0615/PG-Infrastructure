@@ -4,6 +4,7 @@ VALUES_PATH=./helm/app-stack/values-dev.yaml
 TERRAFORM_PATH=./bootstrap/terraform
 ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
+INFRA_LIVE_BOOTSTRAP_DIR=./infra-live/bootstrap/cluster
 
 ALL_CHART_DIRS := \
     ./infra-live/applications/observability/visualization/grafana \
@@ -21,9 +22,9 @@ CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
 SHELL := /bin/bash
 .PHONY: rollback deploy clean build \
-status init apply destroy terraform-list label-nodes vm-format vm-power \
+status init apply destroy output terraform-list label-nodes vm-format vm-power \
 load-images save \
-init-gitops helm-chart-build $(CHART_DIRS)
+init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress
 
 
 init-gitops:
@@ -77,6 +78,11 @@ $(CHART_DIRS):
 	else \
 	    echo "* ℹ️ 該 Chart 無包含任何 CustomResourceDefinition，跳過"; \
 	fi
+
+upgrade-ingress:
+	helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+	  --namespace ingress-nginx \
+	  -f "${INFRA_LIVE_BOOTSTRAP_DIR}/ingress-nginx/values.yaml"
 
 save:
 	@echo "* 導出映像檔至 $(TAR_FILE)"
@@ -167,25 +173,31 @@ rollback:
 	@echo "✅  <make rollback> done."
 
 init:
-	@echo "* 初始化 terraform 配置"
+	@echo "* [Terraform] 初始化配置"
 	cd $(TERRAFORM_PATH) && \
 	terraform init --upgrade
 	@echo "✅  <make init> done."
 
 apply:
-	@echo "* 安裝 VM 環境"
+	@echo "* [Terraform] 安裝 VM 環境"
 	cd $(TERRAFORM_PATH) && \
 	terraform apply -auto-approve -var-file="$(VAR_FILE)"
 	@echo "✅  <make apply> done."
 
 destroy:
-	@echo "* 拆除 VM 環境"
+	@echo "* [Terraform] 拆除 VM 環境"
 	cd $(TERRAFORM_PATH) && \
 	terraform destroy
 	@echo "✅  <make destroy> done."
 
+output:
+	@echo "* [Terraform] 檢視輸出格式"
+	cd $(TERRAFORM_PATH) && \
+	terraform output
+	@echo "✅  <make output> done."
+
 terraform-list:
-	@echo "* 確認 Terraform 狀態清單是否缺失"
+	@echo "* [Terraform] 確認狀態清單是否缺失"
 	cd $(TERRAFORM_PATH) && \
 	terraform state list
 	@echo "✅  <make state-list> done."

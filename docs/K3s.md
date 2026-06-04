@@ -561,8 +561,8 @@ Helm:
       
         # STEP 3 WSL 開 port forward
             # [不推薦] 手動 # 視窗不能關
-                # sudo socat TCP-LISTEN:80,fork TCP:10.88.0.20:30161
-                # sudo socat TCP-LISTEN:443,fork TCP:10.88.0.20:32109
+                sudo socat TCP-LISTEN:80,fork TCP:10.88.0.20:30161
+                sudo socat TCP-LISTEN:443,fork TCP:10.88.0.20:32109
                 
             # 背景常駐
                 # 安裝 socat
@@ -577,16 +577,16 @@ Helm:
                     LISTEN 0      5                   *:80               *:*    users:(("socat",pid=202306,fd=5))
                 
                 # 建立檔案
-                # sudo cat /etc/systemd/system/k8s-http-proxy.service
-                # sudo nano /etc/systemd/system/k8s-http-proxy.service
+                sudo cat /etc/systemd/system/k8s-http-proxy.service
+                sudo nano /etc/systemd/system/k8s-http-proxy.service
                 
-                # sudo cat /etc/systemd/system/k8s-https-proxy.service
-                # sudo nano /etc/systemd/system/k8s-https-proxy.service
+                sudo cat /etc/systemd/system/k8s-https-proxy.service
+                sudo nano /etc/systemd/system/k8s-https-proxy.service
                 
                 # 啟動
-                # sudo systemctl daemon-reload
-                # sudo systemctl enable --now k8s-http-proxy
-                # sudo systemctl enable --now k8s-https-proxy
+                sudo systemctl daemon-reload
+                sudo systemctl enable --now k8s-http-proxy
+                sudo systemctl enable --now k8s-https-proxy
                     * 重啟
                     sudo systemctl restart k8s-http-proxy
                     sudo systemctl restart k8s-https-proxy

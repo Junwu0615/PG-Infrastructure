@@ -65,77 +65,28 @@
 - #### *d.　k3s 集群 ingress 設定*
   ```
   * 無法同先前用 nginx 轉進內部 ( Kind: Ingress ) => 嘗試用 HTTP 規則包裝 TCP 流量，會導致連線失敗
-  * 改用 Kind: ConfigMap
-  
-  1. 在 Nginx Controller 中設定 TCP Stream
-  kubectl edit configmap ingress-nginx-controller -n ingress-nginx
+  * 參考: k3s_migration/README.md ( V.　重新校正 ingress-nginx 位置 )
   
   
-  apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    annotations:
-      meta.helm.sh/release-name: ingress-nginx
-      meta.helm.sh/release-namespace: ingress-nginx
-    creationTimestamp: "2026-05-28T14:32:39Z"
-    labels:
-      app.kubernetes.io/component: controller
-      app.kubernetes.io/instance: ingress-nginx
-      app.kubernetes.io/managed-by: Helm
-      app.kubernetes.io/name: ingress-nginx
-      app.kubernetes.io/part-of: ingress-nginx
-      app.kubernetes.io/version: 1.15.1
-      helm.sh/chart: ingress-nginx-4.15.1
-    name: ingress-nginx-controller
-    namespace: ingress-nginx
-    resourceVersion: "961"
-    uid: 205954b1-a0f6-4c18-b0ae-ce25d7b0e62e
-  data:
-    "5432": "databases/postgresql:5432"
-    
-  ------
-  
-  2. 調整 Nginx Controller 的 Service (開啟 Port)
-  kubectl edit svc ingress-nginx-controller -n ingress-nginx
-  
-  
-  ports:
-  - appProtocol: http
-    name: http
-    nodePort: 30547
-    port: 80
-    protocol: TCP
-    targetPort: http
-  - appProtocol: https
-    name: https
-    nodePort: 32451
-    port: 443
-    protocol: TCP
-    targetPort: https
-  - name: postgresql-tcp
-    port: 5432
-    protocol: TCP
-    targetPort: 5432
-  
-  
-  3.1. 測試連線 ( password123 )
+  3.1. 測試連線: 容器 ( password123 )
   kubectl exec -it postgresql-0  -n databases \
     -- psql -U pg-user -d pgdatabase
   
   
-  3.2. 先確認外部能連上
+  3.2. 測試連線: 確認外部可連上
   kubectl port-forward svc/postgresql -n databases 5432:5432
   
   
-  3.3. 測試連線 ( 需要設定 socat 轉發 + netsh portproxy 轉發 )
-  * k3s/ingress_settings/postgresql-proxy.service
+  3.3. 設定 socat 轉發
+  * k3s_migration/archive/ingress_settings/postgresql-proxy.service
+  
     * 設定
-    # sudo cat /etc/systemd/system/postgresql-proxy.service
-    # sudo nano /etc/systemd/system/postgresql-proxy.service
+    sudo cat /etc/systemd/system/postgresql-proxy.service
+    sudo nano /etc/systemd/system/postgresql-proxy.service
     
     * 啟動
-    # sudo systemctl daemon-reload
-    # sudo systemctl enable --now postgresql-proxy
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now postgresql-proxy
     
     * 重啟
     sudo systemctl restart postgresql-proxy
@@ -143,19 +94,11 @@
     * 確認是否開始監聽
     sudo ss -ltnp | grep :5432
   
-  * [管理員] Windows Admin PowerShell
-  netsh interface portproxy add v4tov4 `
-    listenaddress=0.0.0.0 `
-    listenport=5432 `
-    connectaddress=172.28.113.34 `
-    connectport=5432
+  3.4. 測試連線: 檢查埠號是否回應 WIN 端
+  Test-NetConnection -ComputerName postgresql.k8s.local -Port 5432
   
-  * 測試連線
-    # 檢查埠號是否回應
-    Test-NetConnection -ComputerName postgresql.k8s.local -Port 5432
-  
+  3.5. 測試連線: 連線字串
   jdbc:postgresql://postgresql.k8s.local:5432/pgdatabase
-  jdbc:postgresql://postgresql.k8s.local:5432/pgdatabase?sslmode=disable
   ```
 
 </ul>
@@ -653,38 +596,10 @@
     NAME                       TYPE           CLUSTER-IP    EXTERNAL-IP                        PORT(S)          AGE
     portainer-agent            LoadBalancer   10.43.59.37   10.88.0.20,10.88.0.21,10.88.0.22   9001:31928/TCP   42m
     portainer-agent-headless   ClusterIP      None          <none>                             <none>           42m
-  
-    # 建立轉接設定 ( k3s/ingress_settings/portainer-agent-proxy.service )
-    sudo nano /etc/systemd/system/portainer-agent-proxy.service
-    sudo cat /etc/systemd/system/portainer-agent-proxy.service
     
-      # 重啟設定
-      sudo systemctl daemon-reload
-      sudo systemctl enable --now portainer-agent-proxy
-      sudo systemctl restart portainer-agent-proxy
-      sudo systemctl status portainer-agent-proxy
-      * sudo systemctl stop portainer-agent-proxy    
-      
-      # 測試
-      curl http://10.88.0.20:31928
-    
-    # 建立 ingress
-    kubectl apply -f k3s_migration/archive/test/portainer-ingress.yaml
-      
-      # 測試連線
-        # WSL2
-          [X] curl -v -H "Host: portainer.k8s.local" http://10.88.0.20:31928
-          [O] curl -v -H "Host: portainer.k8s.local" https://10.88.0.20:31928
-          curl -k -v https://10.88.0.20:31928
-    
-        # [X] Win: 它直接透過 host.docker.internal 索取資源 無須再從外部進入
-          curl -Verbose -SkipCertificateCheck https://127.0.0.1:9001
-          Test-NetConnection portainer.k8s.local -Port 9001 
-    
-    # 基本如下
+    # UI 設定 k8s 連線設置:
     Name: pg-k3s-master
-    [X] Environment address: portainer.k8s.local:9001
-    [O] Environment address: host.docker.internal:9001
+    Environment address: host.docker.internal:9001
   ```
   ![PNG](../assets/portainer.png)
 
