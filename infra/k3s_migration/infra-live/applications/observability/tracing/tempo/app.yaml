@@ -10,7 +10,6 @@ metadata:
 spec:
   project: observability
 
-  # 依賴自訂變數
   source:
     repoURL: http://192.168.0.15:8090/pg/infra-live.git
     targetRevision: main

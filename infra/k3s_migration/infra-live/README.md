@@ -302,17 +302,25 @@ cd infra/docker-compose
     make kafka action=up
     make elk action=up
 
-# 啟動 k3s 集群
+# 啟動 K3s Cluster
     ✅ 1. 初始化 terraform 配置
     make init
     
     ✅ 2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/test.tfvars
     
-    ✅ 3. 手動初始化 bootstrap
+    ✅ 3. 一鍵初始化必要 secrets
+    make init-secrets
+    
+    ✅ 4. 手動初始化 bootstrap
     make init-gitops
     
-    4. 標籤設定 => 親合/反親合
+    ✅ 5. 手動初始化 root-app.yaml
+    kubectl apply -f infra-live/environments/homelab/test/root-app.yaml
+    
+    ✅ 6. 一鍵標籤設定 => 親合/反親合
+    make label-nodes
+    
     kubectl label nodes k3s-node-0 service-type=ingress-nginx --overwrite
     
 ```
@@ -328,28 +336,28 @@ cd infra/docker-compose
 ```
 * --- 改進方案 --- *
     infra-live/
-    ├── argocd/                         # ⚠️ 全域 ArgoCD 最高指揮部
+    ├── argocd/                         # 全域 ArgoCD 最高指揮部
     │   ├── root-app.yaml               # 大總管
     │   ├── projects/                   # 專案防護外殼 (databases, security...)
-    │   └── applications/               # 💡 只有自動化生成器 (ApplicationSet)
+    │   └── applications/               # 自動化生成器 (ApplicationSet)
     │       └── postgresql-appset.yaml  # 一支檔案，自動動態派發 test / prod 
     │
-    ├── charts/                         # 📦 特效第三方 Chart 封裝 (如官方 PostgreSQL)
+    ├── charts/                         # 第三方 Chart 封裝 (如官方 PostgreSQL)
     │   └── postgresql/
     │
-    ├── templates/                      # 🧱 既有的內部自訂 K8s 模板基地 (Base)
+    ├── templates/                      # 既有的內部自訂 K8s 模板基地 (Base)
     │   ├── app-deployment.yaml
     │   └── ingress-template.yaml
     │
-    ├── policies/                       # 🛡️ 全域安全防禦策略 (Gatekeeper / NetworkPolicies)
+    ├── policies/                       # 全域安全防禦策略 (Gatekeeper / NetworkPolicies)
     │   ├── deny-privileged-pods.yaml
     │   └── network-isolation.yaml
     │
-    └── environments/                   # 🎨 純粹的環境變數儲存所 (絕無重複的 ArgoCD 宣告)
+    └── environments/                   # 純粹的環境變數儲存所 (絕無重複的 ArgoCD 宣告)
         ├── homelab-test/               
-        │   └── postgresql-values.yaml  # 只有測試環境的調校參數
+        │   └── postgresql-values.yaml  # 測試環境的調校參數
         └── homelab-prod/               
-            └── postgresql-values.yaml  # 只有生產環境的高可用參數
+            └── postgresql-values.yaml  # 生產環境的高可用參數
         
         
 * --- GitLab 專案結構樹 ( Repo 即是 infra-live 內容 ) --- *

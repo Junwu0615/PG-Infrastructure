@@ -86,6 +86,10 @@ namespace:
   - grafana
   - promtail
   - tempo
+  - postgresql
+  - pg-apps
+  - registry
+  - vault
   
 ------
 : ：輸入命令（ 例如 :pod 看 Pod, :node 看節點 ）
