@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: postgresql-appset
+  namespace: argocd
+  #  finalizers:
+  #    # 千萬別在有狀態服務加這行，否則一不小心就會引發連鎖全面崩潰
+  #    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/part-of: databases
+
+spec:
+  generators:
+    # 自動讀取有被 ArgoCD 註冊的叢集
+    - clusters:
+        selector:
+          matchLabels:
+            argocd.argoproj.io/secret-type: cluster
+
+  template:
+    # 自動套用模板，動態塞參數
+    metadata:
+      name: 'postgresql-{{metadata.labels.env}}'
+    spec:
+      project: databases
+      source:
+        repoURL: http://192.168.0.15:8090/pg/infra-live.git
+        targetRevision: main
+        path: charts/databases/postgresql
+        helm:
+          # 自動對接到對應環境參數
+          valueFiles:
+            - 'templates/common.yaml'
+            - '../../environments/{{metadata.labels.env}}/postgresql-values.yaml'
+      destination:
+        # 自動帶入當前叢集的 API URL
+        server: '{{server}}'
+        # 自動帶入命名空間，讓不同環境的互相隔離
+        namespace: 'postgresql-{{metadata.labels.env}}'
+
+  syncPolicy:
+    automated:
+      # 有狀態服務關閉自動修剪(Prune)，避免手滑刪除資料
+      prune: false
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  #      - Replace=true
+  #      - PruneLast=true

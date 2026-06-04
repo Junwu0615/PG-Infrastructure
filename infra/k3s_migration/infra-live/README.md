@@ -309,20 +309,17 @@ cd infra/docker-compose
     ✅ 2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/test.tfvars
     
-    ✅ 3. 一鍵初始化必要 secrets
-    make init-secrets
-    
-    ✅ 4. 手動初始化 bootstrap
+    ✅ 3. 手動初始化 bootstrap
     make init-gitops
     
-    ✅ 5. 手動初始化 root-app.yaml
-    kubectl apply -f infra-live/environments/homelab/test/root-app.yaml
+    ✅ 4. 初始化/更新 Secrets
+    make init-secrets
     
-    ✅ 6. 一鍵標籤設定 => 親合/反親合
+    ✅ 5. 初始化/更新 標籤設定 ( 親合/反親合 )
     make label-nodes
     
-    kubectl label nodes k3s-node-0 service-type=ingress-nginx --overwrite
-    
+    ✅ 6. 切換環境 (test)
+    kubectl label secret -n argocd -l argocd.argoproj.io/secret-type=cluster env=test --overwrite
 ```
 
 </ul>
@@ -334,30 +331,34 @@ cd infra/docker-compose
 <ul>
 
 ```
-* --- 改進方案 --- *
+* --- GitLab 專案結構樹 ( GitOps 與其對齊 ) --- *
     infra-live/
-    ├── argocd/                         # 全域 ArgoCD 最高指揮部
-    │   ├── root-app.yaml               # 大總管
-    │   ├── projects/                   # 專案防護外殼 (databases, security...)
-    │   └── applications/               # 自動化生成器 (ApplicationSet)
-    │       └── postgresql-appset.yaml  # 一支檔案，自動動態派發 test / prod 
+    ├── argocd/                         # 【 Control Plane / Bootstrap 層 】# 控制平面/開機層
+    │   ├── root-app.yaml               # 【 Root Application / 大總管 】
+    │   ├── projects/                   # 【 Tenants / Governance 邊界 】# 租戶隔離
+    │   └── applications/               # 【 App Generators / 動態宣告器 】
+    │       ...
+    │       └── postgresql-appset.yaml  # 【 統一動態派發環境變數 】# test / stage / prod 
     │
-    ├── charts/                         # 第三方 Chart 封裝 (如官方 PostgreSQL)
+    ├── charts/                         # 【 Bases / Helm Remote Wrappers 】# 基礎模板/封裝層
+    │   ...
     │   └── postgresql/
     │
-    ├── templates/                      # 既有的內部自訂 K8s 模板基地 (Base)
+    ├── templates/                      # 【 Internal Shared Manifests 】# 內部共享資產
     │   ├── app-deployment.yaml
     │   └── ingress-template.yaml
     │
-    ├── policies/                       # 全域安全防禦策略 (Gatekeeper / NetworkPolicies)
+    ├── policies/                       # 【 Cluster Guardrails 】# 叢集護欄/安全合規
     │   ├── deny-privileged-pods.yaml
     │   └── network-isolation.yaml
     │
-    └── environments/                   # 純粹的環境變數儲存所 (絕無重複的 ArgoCD 宣告)
+    └── environments/                   # 【 Target Environments / Overlay 變數層 】# 環境覆蓋層
         ├── homelab-test/               
-        │   └── postgresql-values.yaml  # 測試環境的調校參數
+        │   └── ???-values.yaml         # 【 測試環境 】調校參數
+        ├── homelab-stage/               
+        │   └── ???-values.yaml         # 【 過渡環境 】調校參數
         └── homelab-prod/               
-            └── postgresql-values.yaml  # 生產環境的高可用參數
+            └── ???-values.yaml         # 【 生產環境 】高可用參數
         
         
 * --- GitLab 專案結構樹 ( Repo 即是 infra-live 內容 ) --- *
@@ -392,9 +393,7 @@ cd infra/docker-compose
     ├── applications/       ⚠️ Deployable Units  
     │   ├── observability/
     │   │   ├── tracing/
-    │   │   │   ├── [X] tempo/
-    │   │   │   ├── [X] jaeger/
-    │   │   │   └── [X] opentelemetry/
+    │   │   │   └── tempo/
     │   │   │
     │   │   ├── visualization/
     │   │   │   └── grafana/

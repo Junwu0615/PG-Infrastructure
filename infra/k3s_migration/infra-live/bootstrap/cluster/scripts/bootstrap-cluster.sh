@@ -30,14 +30,14 @@ helm repo add argo https://argoproj.github.io/argo-helm
 
 helm repo update
 
-echo ""
-echo "[4/10] Install ingress-nginx..."
-
-kubectl apply -f "${BASE_DIR}/ingress-nginx/namespace.yaml"
-
-helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  -f "${BASE_DIR}/ingress-nginx/values.yaml"
+#echo ""
+#echo "[4/10] Install ingress-nginx..."
+#
+#kubectl apply -f "${BASE_DIR}/ingress-nginx/namespace.yaml"
+#
+#helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+#  --namespace ingress-nginx \
+#  -f "${BASE_DIR}/ingress-nginx/values.yaml"
 
 echo ""
 echo "[5/10] Install cert-manager..."

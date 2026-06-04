@@ -24,7 +24,7 @@ SHELL := /bin/bash
 .PHONY: rollback deploy clean build \
 status init apply destroy output terraform-list label-nodes vm-format vm-power \
 load-images save \
-init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress
+init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress init-secrets
 
 
 init-gitops:
@@ -80,9 +80,44 @@ $(CHART_DIRS):
 	fi
 
 upgrade-ingress:
+	@echo "* 初始化/更新 ingress-nginx"
+	kubectl apply -f "${INFRA_LIVE_BOOTSTRAP_DIR}/ingress-nginx/namespace.yaml"
 	helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
 	  --namespace ingress-nginx \
 	  -f "${INFRA_LIVE_BOOTSTRAP_DIR}/ingress-nginx/values.yaml"
+	@echo "✅  <make upgrade-ingress> done."
+
+label-nodes:
+	@echo "* 初始化/更新 標籤設定 ( 親合/反親合 )"
+	kubectl label nodes k3s-node-0 service-type=ingress-nginx --overwrite
+	@echo "✅  <make label-nodes> done."
+
+init-secrets:
+	@echo "* 初始化/更新 Secrets"
+	@echo ""
+	@echo "* postgresql-credentials (包含多個密碼資訊)"
+	kubectl create secret generic postgresql-credentials \
+		--namespace databases \
+		--from-literal=postgres-password="postgres-password123" \
+		--from-literal=password="password123" \
+		--from-literal=replication-password="replication-password123" \
+		-n databases \
+		--dry-run=client -o yaml | kubectl apply -f -
+
+	@echo "* 檢視密碼明文 (base64 解碼)"
+	@echo "* postgresql-credentials => postgres-password"
+	kubectl get secret postgresql-credentials -n databases -o jsonpath="{.data.postgres-password}" | base64 --decode
+	@echo ""
+	@echo "--------------------------------------------------"
+	@echo "* postgresql-credentials => password"
+	kubectl get secret postgresql-credentials -n databases -o jsonpath="{.data.password}" | base64 --decode
+	@echo ""
+	@echo "--------------------------------------------------"
+	@echo "* postgresql-credentials => replication-password"
+	kubectl get secret postgresql-credentials -n databases -o jsonpath="{.data.replication-password}" | base64 --decode
+	@echo ""
+	@echo "--------------------------------------------------"
+	@echo "✅  <make init-secrets> done."
 
 save:
 	@echo "* 導出映像檔至 $(TAR_FILE)"

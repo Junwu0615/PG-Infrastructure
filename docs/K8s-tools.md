@@ -145,6 +145,9 @@ kubectl get pvc
 # 確認 nodes 狀態
 kubectl get nodes
 
+# 確認 secrets 狀態
+kubectl get secrets
+
 # 確認 StorageClass 狀態
 kubectl get sc
 

@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: homelab-root
+  namespace: argocd
+  # 確保留空 finalizers，保護根節點安全
+
+spec:
+  # 保持 default，讓大總管有權限派發其他不同專案（Project）的子應用
+  project: default
+
+  source:
+    repoURL: http://192.168.0.15:8090/pg/infra-live.git
+    targetRevision: main
+    path: argocd
+    directory:
+      # 遞迴 => 自動帶起 projects/ 與 applications/
+      recurse: true
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+#      - Replace=true
+#      - PruneLast=true
