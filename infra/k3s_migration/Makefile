@@ -117,6 +117,10 @@ init-secrets:
 	kubectl get secret postgresql-credentials -n databases -o jsonpath="{.data.replication-password}" | base64 --decode
 	@echo ""
 	@echo "--------------------------------------------------"
+	@echo "* ArgoCD UI 密碼"
+	kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d && echo
+	@echo ""
+	@echo "--------------------------------------------------"
 	@echo "✅  <make init-secrets> done."
 
 save:

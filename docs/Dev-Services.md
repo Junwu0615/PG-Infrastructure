@@ -631,8 +631,11 @@
 - #### *a.　使用細節*
   ```
   admin
-  # 初始密碼用 bootstrap-cluster.sh 檢視
-  v3dkI7VPVRd1kkNq
+  
+  # 初始密碼檢視
+  bootstrap-cluster.sh 
+  or
+  make init-secrets
   ```
 
 </ul>

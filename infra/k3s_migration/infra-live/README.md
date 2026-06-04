@@ -289,12 +289,12 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 
 <br>
 
-<details>
+<details open>
 <summary><b><i>　I.　啟動服務 </i></b></summary>
 <ul>
 
 ```
-# 啟動 Docker Compose
+# ✅ 啟動 Docker Compose
 cd infra/docker-compose
     make gitlab action=up
     make portainer action=up
@@ -302,23 +302,23 @@ cd infra/docker-compose
     make kafka action=up
     make elk action=up
 
-# 啟動 K3s Cluster
-    ✅ 1. 初始化 terraform 配置
+# ✅ 啟動 K3s Cluster
+    1. 初始化 terraform 配置
     make init
     
-    ✅ 2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
+    2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/test.tfvars
     
-    ✅ 3. 手動初始化 bootstrap
+    3. 手動初始化 bootstrap
     make init-gitops
     
-    ✅ 4. 初始化/更新 Secrets
+    4. 初始化/更新 Secrets
     make init-secrets
     
-    ✅ 5. 初始化/更新 標籤設定 ( 親合/反親合 )
+    5. 初始化/更新 標籤設定 ( 親合/反親合 )
     make label-nodes
     
-    ✅ 6. 切換環境 (test)
+    6. 切換環境 (test)
     kubectl label secret -n argocd -l argocd.argoproj.io/secret-type=cluster env=test --overwrite
 ```
 
@@ -331,6 +331,7 @@ cd infra/docker-compose
 <ul>
 
 ```
+########################  NEW  ########################
 * --- GitLab 專案結構樹 ( GitOps 與其對齊 ) --- *
     infra-live/
     ├── argocd/                         # 【 Control Plane / Bootstrap 層 】# 控制平面/開機層
@@ -360,7 +361,9 @@ cd infra/docker-compose
         └── homelab-prod/               
             └── ???-values.yaml         # 【 生產環境 】高可用參數
         
-        
+
+
+########################  OLD  ########################
 * --- GitLab 專案結構樹 ( Repo 即是 infra-live 內容 ) --- *
     infra-live/
     ├── applications/
