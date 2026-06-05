@@ -1,0 +1,15 @@
+prometheus:
+  replicaCount: 1
+
+  server:
+    ingress:
+      enabled: false
+
+    persistentVolume:
+      enabled: true
+      size: 10Gi
+
+  alertmanager:
+    persistentVolume:
+      enabled: true
+      size: 2Gi

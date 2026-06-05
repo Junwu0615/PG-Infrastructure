@@ -8,16 +8,17 @@ INFRA_LIVE_BOOTSTRAP_DIR=./infra-live/bootstrap/cluster
 ROOT_APP_DIR=./infra-live/argocd/root-app.yaml
 
 ALL_CHART_DIRS := \
-    ./infra-live/applications/observability/visualization/grafana \
-    ./infra-live/applications/observability/metrics/prometheus \
-    ./infra-live/applications/observability/metrics/prometheus-stack \
-    ./infra-live/applications/observability/logging/loki \
-    ./infra-live/applications/observability/logging/promtail \
-    ./infra-live/applications/observability/tracing/tempo \
-    ./infra-live/applications/databases/postgresql \
+    ./infra-live/charts/observability/grafana \
+    ./infra-live/charts/observability/prometheus \
+    ./infra-live/charts/observability/prometheus-stack \
+    ./infra-live/charts/observability/loki \
+    ./infra-live/charts/observability/promtail \
+    ./infra-live/charts/observability/tempo \
+    ./infra-live/charts/databases/postgresql \
+    ./infra-live/charts/platform/ingress-nginx \
 
 FILTER_CHART_DIRS := \
-	./infra-live/applications/observability/metrics/prometheus \
+	./infra-live/charts/observability/prometheus \
 
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
@@ -106,11 +107,15 @@ see-secrets:
 	fi
 	@echo "* [1] ArgoCD UI 密碼"
 	kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d && echo && echo
-	@echo "* [2] postgresql-credentials => postgres-password"
+	@echo "* [2] Gitlab 連線設置 (url + username + password)"
+	kubectl get secret gitlab-repo-secret -n argocd -o jsonpath='{.data.url}' | base64 -d && echo && echo
+	kubectl get secret gitlab-repo-secret -n argocd -o jsonpath='{.data.username}' | base64 -d && echo && echo
+	kubectl get secret gitlab-repo-secret -n argocd -o jsonpath='{.data.password}' | base64 -d && echo && echo
+	@echo "* [3] postgresql-credentials => postgres-password"
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.postgres-password}" | base64 -d && echo && echo
-	@echo "* [3] postgresql-credentials => password"
+	@echo "* [4] postgresql-credentials => password"
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.password}" | base64 -d && echo && echo
-	@echo "* [4] postgresql-credentials => replication-password"
+	@echo "* [5] postgresql-credentials => replication-password"
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.replication-password}" | base64 -d && echo && echo
 	@echo "✅  <make init-secrets> done."
 

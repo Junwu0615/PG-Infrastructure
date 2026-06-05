@@ -44,22 +44,23 @@
   
 - #### *c.　k3s 集群 secret 設定*
   ```
-  # 一次設定 3 組密碼
-    # 管理員強密碼: postgres-password123
-    # 一般使用者密碼: password123
-    # 複寫使用者密碼: replication-password123
+  # ! 無須手動 => gitops 直接建立 => 後續由 vault 管理密碼，並自動更新 k3s secret
+    # 一次設定 3 組密碼
+      # 管理員強密碼: postgres-password123
+      # 一般使用者密碼: password123
+      # 複寫使用者密碼: replication-password123
   
-  $ kubectl create secret generic postgresql-credentials \
-    --namespace databases \
-    --from-literal=postgres-password="postgres-password123" \
-    --from-literal=password="password123" \
-    --from-literal=replication-password="replication-password123" \
-    -n databases
+    $ kubectl create secret generic postgresql-credentials \
+      --namespace databases \
+      --from-literal=postgres-password="postgres-password123" \
+      --from-literal=password="password123" \
+      --from-literal=replication-password="replication-password123" \
+      -n databases
   
   
-  $ kubectl get secret -n databases
-  NAME                     TYPE     DATA   AGE
-  postgresql-credentials   Opaque   3      5s
+    $ kubectl get secret -n databases
+    NAME                     TYPE     DATA   AGE
+    postgresql-credentials   Opaque   3      5s
   ```
   
 - #### *d.　k3s 集群 ingress 設定*
@@ -633,9 +634,7 @@
   admin
   
   # 初始密碼檢視
-  bootstrap-cluster.sh 
-  or
-  make init-secrets
+  make see-secrets ENV=homelab-test
   ```
 
 </ul>

@@ -313,16 +313,22 @@ cd infra/docker-compose
     3. 手動初始化 bootstrap
     make init-gitops
     
-    ⭐ 4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
+    ⭐ 4. 初始化/更新 Chart 依賴包
+    make helm-chart-build
+    
+    ⭐ 5. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
+    # 切換環境: 透過 appset/*/app.ymal 調整環境 (註解)
     make root-app
     
-    5. 檢視 Secrets 明文 ( ex: homelab-test )
+    6. 檢視 Secrets 明文 ( ex: homelab-test )
     make init-secrets ENV=homelab-test
     
-    6. 初始化/更新 標籤設定 ( 親合/反親合 )
+    7. 初始化/更新 標籤設定 ( 親合/反親合 )
     make label-nodes
     
-    7. 切換環境 ...
+# 其他
+啟動 ingress-nginx => 已經將其加入正規定義中 無須用此方式
+make upgrade-ingress
 ```
 
 </ul>
@@ -854,11 +860,13 @@ security            Unknown       Unknown
         make helm-chart-build
         
         # 單一建置
-        make ./infra-live/applications/observability/visualization/grafana
-        make ./infra-live/applications/observability/metrics/prometheus-stack
-        make ./infra-live/applications/observability/logging/loki
-        make ./infra-live/applications/observability/tracing/tempo
-        make ./infra-live/applications/databases/postgresql
+        make ./infra-live/charts/observability/grafana
+        make ./infra-live/charts/observability/prometheus
+        make ./infra-live/charts/observability/prometheus-stack
+        make ./infra-live/charts/observability/loki
+        make ./infra-live/charts/observability/tempo
+        make ./infra-live/charts/databases/postgresql
+        make ./infra-live/charts/platform/ingress-nginx
 
 
 DEBUG
