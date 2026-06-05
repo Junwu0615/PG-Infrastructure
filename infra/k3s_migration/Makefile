@@ -5,6 +5,7 @@ TERRAFORM_PATH=./bootstrap/terraform
 ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
 INFRA_LIVE_BOOTSTRAP_DIR=./infra-live/bootstrap/cluster
+ROOT_APP_DIR=./infra-live/argocd/root-app.yaml
 
 ALL_CHART_DIRS := \
     ./infra-live/applications/observability/visualization/grafana \
@@ -24,7 +25,7 @@ SHELL := /bin/bash
 .PHONY: rollback deploy clean build \
 status init apply destroy output terraform-list label-nodes vm-format vm-power \
 load-images save \
-init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress init-secrets
+init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress init-secrets root-app
 
 
 init-gitops:
@@ -78,6 +79,10 @@ $(CHART_DIRS):
 	else \
 	    echo "* ℹ️ 該 Chart 無包含任何 CustomResourceDefinition，跳過"; \
 	fi
+
+root-app:
+	kubectl apply -f "${ROOT_APP_DIR}"
+	@echo "✅  <make apply_root> done."
 
 upgrade-ingress:
 	@echo "* 初始化/更新 ingress-nginx"

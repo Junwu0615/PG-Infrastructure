@@ -2,7 +2,8 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 
 metadata:
-  name: databases
+  # UI 獨立視窗名稱
+  name: databases-infra-controller
   # 分類關鍵: 資源建立在 argocd
   namespace: argocd
   finalizers:
@@ -17,8 +18,8 @@ spec:
   source:
     repoURL: http://192.168.0.15:8090/pg/infra-live.git
     targetRevision: main
-    # 大類掃描所有小類
-    path: applications/databases
+    # 指向存放 ???-appset.yaml 目錄
+    path: argocd/appset/databases
 
   destination:
     server: https://kubernetes.default.svc

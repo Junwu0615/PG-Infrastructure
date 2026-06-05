@@ -309,8 +309,9 @@ cd infra/docker-compose
     2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/test.tfvars
     
-    3. 手動初始化 bootstrap
+    3. 手動初始化 bootstrap + 啟動 ArgoCD 入口
     make init-gitops
+    make root-app
     
     4. 初始化/更新 Secrets
     make init-secrets
@@ -947,7 +948,32 @@ helm search repo grafana/loki --versions | head -30
 
 <br>
 
-### *D.　量化測試*
+### *D.　遷移完成狀態確認*
+```
+$ watch -d -n 2 free -hw
+               total        used        free      shared     buffers       cache   available
+Mem:            31Gi        14Gi        10Gi        61Mi        61Mi       6.1Gi        16Gi
+Swap:          8.0Gi       780Ki       8.0Gi
+
+
+Docker Compose: gitlab + portainer
+
+K3s Cluster: 3 Nodes ( 1 Master + 2 Worker )
+    - observability: grafana + prometheus + loki + promtail + tempo
+    - databases:
+    - pg-apps:
+    - platform: argocd
+    - security:
+    - storage:
+```
+
+<br>
+
+### *E.　收斂階段*
 - [K8s - 基礎設施高可用性測試](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/HA.md)
+- [K8s - CI/CD](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/CI-CD.md)
+- [K8s - 日誌統一收集與發送](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Logging.md)
+- [K8s - 可觀測性](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability.md)
+- [K8s - Vault 分發密鑰](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)
 
 <br><br><br>

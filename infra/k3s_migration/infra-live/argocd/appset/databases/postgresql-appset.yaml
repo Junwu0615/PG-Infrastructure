@@ -38,14 +38,14 @@ spec:
         # 自動帶入命名空間，讓不同環境的互相隔離
         namespace: 'postgresql-{{metadata.labels.env}}'
 
-  syncPolicy:
-    automated:
-      # 有狀態服務關閉自動修剪(Prune)，避免手滑刪除資料
-      prune: false
-      selfHeal: true
+      syncPolicy:
+        automated:
+          # 有狀態服務關閉自動修剪(Prune)，避免手滑刪除資料
+          prune: false
+          selfHeal: true
 
-    syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
-  #      - Replace=true
-  #      - PruneLast=true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+      #      - Replace=true
+      #      - PruneLast=true
