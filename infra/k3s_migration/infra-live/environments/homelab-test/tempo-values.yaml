@@ -1,4 +1,6 @@
 tempo-distributed:
+  namespaceOverride: "tempo-homelab-test"
+
   ingester:
     replicas: 1
     resources:

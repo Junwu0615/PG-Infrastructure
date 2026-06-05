@@ -948,6 +948,30 @@ dependencies:
     
 helm repo list
 helm search repo grafana/loki --versions | head -30
+
+------
+ingress-nginx 建立多個 namespaces 遇到 ValidatingWebhookConfiguration 衝突問題
+
+$ kubectl get ingress -A => 只出現一個
+NAMESPACE   NAME            CLASS   HOSTS               ADDRESS        PORTS   AGE
+argocd      argocd-server   nginx   argo-cd.k8s.local   10.43.176.15   80      23h
+
+$ kubectl get validatingwebhookconfigurations
+NAME                                   WEBHOOKS   AGE
+cert-manager-webhook                   1          23h
+ingress-nginx-admission                1          23h
+ingress-nginx-homelab-test-admission   1          73m
+prometheus-stack-homelab-t-admission   2          47m
+
+$ kubectl delete validatingwebhookconfiguration ingress-nginx-admission
+validatingwebhookconfiguration.admissionregistration.k8s.io "ingress-nginx-admission" deleted
+
+$ kubectl get ingress -A => 其他的冒出
+NAMESPACE                       NAME                                    CLASS   HOSTS                  ADDRESS        PORTS   AGE
+argocd                          argocd-server                           nginx   argo-cd.k8s.local      10.43.176.15   80      23h
+grafana-homelab-test            grafana-homelab-test                    nginx   grafana.k8s.local      10.43.176.15   80      21m
+prometheus-stack-homelab-test   prometheus-stack-homelab-t-prometheus   nginx   prometheus.k8s.local   10.43.176.15   80      18m
+tempo-homelab-test              tempo                                   nginx   tempo.k8s.local        10.43.176.15   80      91s
 ```
 
 </ul>

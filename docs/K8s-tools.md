@@ -189,6 +189,9 @@ kubectl get namespaces
     * 部分服務會與負載平衡器綑綁 ( ex: ingress-nginx )
     kubectl get ds -A | grep ingress-nginx
     kubectl delete ds <daemonset-name> -n kube-system
+    
+    * 取得該域名底下所有套用的資源
+    kubectl get all -n ingress-nginx
 
 # 確認 appproject 狀態 ( ArgoCD 定義的專案 )
 kubectl get appproject -n argocd

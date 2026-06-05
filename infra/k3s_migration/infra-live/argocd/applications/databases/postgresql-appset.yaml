@@ -49,5 +49,6 @@ spec:
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true
+          - SkipDryRunOnFields=true
       #      - Replace=true
       #      - PruneLast=true
