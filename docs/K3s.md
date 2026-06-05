@@ -5,7 +5,9 @@
 ```
 # Evolution: MiniKube -> K3d -> ✅ K3s -> K3s Migration -> Kubeadm -> GKE
 
-# Summary: Null
+# Summary:
+    - Ingress 坑: 如何讓對外開放服務打通管道
+    - 👁️ 測試 15 - 16
 
 ------
 
@@ -510,8 +512,6 @@ Helm:
 ### *D.　測試驗證*
 ```
 👁️ 持續觀察 K8s 如何分配任務: kubectl get pods -w -o wide
-
-👁️ 測試 0 - 14： 重新復刻
 
 👁️ 測試 15： Ingress 流量入口 ( Traefik )
 

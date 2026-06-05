@@ -13,7 +13,8 @@ spec:
   source:
     repoURL: http://192.168.0.15:8090/pg/infra-live.git
     targetRevision: main
-    path: argocd/base
+    path: argocd
+#    path: argocd/base
     directory:
       # 遞迴 => 自動帶起 projects/ 與 applications/
       recurse: true

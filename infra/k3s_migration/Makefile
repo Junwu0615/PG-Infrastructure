@@ -95,37 +95,23 @@ upgrade-ingress:
 label-nodes:
 	@echo "* 初始化/更新 標籤設定 ( 親合/反親合 )"
 	kubectl label nodes k3s-node-0 service-type=ingress-nginx --overwrite
+	kubectl get nodes -L service-type
 	@echo "✅  <make label-nodes> done."
 
-init-secrets:
-	@echo "* 初始化/更新 Secrets"
-	@echo ""
-	@echo "* postgresql-credentials (包含多個密碼資訊)"
-	kubectl create secret generic postgresql-credentials \
-		--namespace databases \
-		--from-literal=postgres-password="postgres-password123" \
-		--from-literal=password="password123" \
-		--from-literal=replication-password="replication-password123" \
-		-n databases \
-		--dry-run=client -o yaml | kubectl apply -f -
-
-	@echo "* 檢視密碼明文 (base64 解碼)"
-	@echo "* postgresql-credentials => postgres-password"
-	kubectl get secret postgresql-credentials -n databases -o jsonpath="{.data.postgres-password}" | base64 --decode
-	@echo ""
-	@echo "--------------------------------------------------"
-	@echo "* postgresql-credentials => password"
-	kubectl get secret postgresql-credentials -n databases -o jsonpath="{.data.password}" | base64 --decode
-	@echo ""
-	@echo "--------------------------------------------------"
-	@echo "* postgresql-credentials => replication-password"
-	kubectl get secret postgresql-credentials -n databases -o jsonpath="{.data.replication-password}" | base64 --decode
-	@echo ""
-	@echo "--------------------------------------------------"
-	@echo "* ArgoCD UI 密碼"
-	kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d && echo
-	@echo ""
-	@echo "--------------------------------------------------"
+see-secrets:
+	@echo "* 檢視 Secrets 明文 (base64 解碼)" && echo
+	@if [ -z "$(ENV)" ]; then \
+		echo "Error: 必須指定 ENV，ex: make see-secrets ENV=homelab-test"; \
+		exit 1; \
+	fi
+	@echo "* [1] ArgoCD UI 密碼"
+	kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d && echo && echo
+	@echo "* [2] postgresql-credentials => postgres-password"
+	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.postgres-password}" | base64 -d && echo && echo
+	@echo "* [3] postgresql-credentials => password"
+	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.password}" | base64 -d && echo && echo
+	@echo "* [4] postgresql-credentials => replication-password"
+	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.replication-password}" | base64 -d && echo && echo
 	@echo "✅  <make init-secrets> done."
 
 save:

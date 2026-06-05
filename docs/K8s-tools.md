@@ -193,8 +193,13 @@ kubectl get namespaces
 # 確認 appproject 狀態 ( ArgoCD 定義的專案 )
 kubectl get appproject -n argocd
 
+# 確認 applicationset 狀態 ( ArgoCD 動態定義的藍圖 )
+kubectl get applicationset -A
+kubectl get appset -A
+
 # 確認 application 狀態 ( 透過 ArgoCD 定義的藍圖 )
 kubectl get application -A
+kubectl get app -A
 
     # 更新環境校正 ( homelab-test-root )
     kubectl patch app homelab-test-root -n argocd --type=merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'

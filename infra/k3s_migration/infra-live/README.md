@@ -5,10 +5,20 @@
 # Evolution: MiniKube -> K3d -> K3s -> ✅ K3s Migration -> Kubeadm -> GKE
 
 # Summary:
-    - GitOps 架構 需要非常嚴謹考量並調整 ( 包括: 服務依賴 / 環境切換 / 後期維運 )
+    - GitOps 架構 需極嚴謹考量 ( 包括: 服務依賴 / 環境切換 / 後期維運 / ... ) => 期間重構 3 次結構樹
+        - Namespace
+        - AppProject
+        - Application
+        - ApplicationSet
     - 遇到 OOM 問題 => 折衷改為 Docker Compose + K3s 混合架構
-    - Values 渲染很多坑 => search: 逆向渲染大法
-    - 完整實施 k8s 框架下各類嘗試
+    - Helm Values 渲染坑 => search: 逆向渲染大法
+    - 原生服務遷移坑 => 無法由 compose 先行體驗 而是直用 k8s 架起 => 注意力易發散
+    - 各類狀況如何 DEBUG 找原因
+        - configmap 設定檔
+        - pod describe 病歷表
+        - o yaml 查看實際部署設定
+        - ...
+    - 完整實施 k8s 框架下各類嘗試 ( E.　收斂階段 )
 ```
 
 <br>
@@ -40,15 +50,6 @@ Ansible:
     
     # VM 重新啟動 ( K3s 集群 )
     make vm-power action=reboot
-
-Kubectl ( k ):
-    # 標籤設置
-    kubectl label nodes k3s-node-0 service-type=none --overwrite
-    kubectl label nodes k3s-node-1 service-type=infra-data --overwrite
-    kubectl label nodes k3s-node-2 service-type=infra-tools --overwrite
-    kubectl get nodes -L service-type
-    
-Helm:
 ```
 
 <br>
@@ -309,18 +310,19 @@ cd infra/docker-compose
     2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/test.tfvars
     
-    3. 手動初始化 bootstrap + 啟動 ArgoCD 入口
+    3. 手動初始化 bootstrap
     make init-gitops
+    
+    ⭐ 4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
     make root-app
     
-    4. 初始化/更新 Secrets
-    make init-secrets
+    5. 檢視 Secrets 明文 ( ex: homelab-test )
+    make init-secrets ENV=homelab-test
     
-    5. 初始化/更新 標籤設定 ( 親合/反親合 )
+    6. 初始化/更新 標籤設定 ( 親合/反親合 )
     make label-nodes
     
-    6. 切換環境 (test)
-    kubectl label secret -n argocd -l argocd.argoproj.io/secret-type=cluster env=test --overwrite
+    7. 切換環境 ...
 ```
 
 </ul>
@@ -938,6 +940,26 @@ dependencies:
     
 helm repo list
 helm search repo grafana/loki --versions | head -30
+
+------
+$ k get appproject -A
+NAMESPACE   NAME            AGE
+argocd      databases       20h
+argocd      default         20h
+argocd      observability   20h
+argocd      pg-apps         20h
+argocd      platform        20h
+argocd      security        20h
+
+$ k get app -A
+NAMESPACE   NAME                      SYNC STATUS   HEALTH STATUS
+argocd      homelab-root              Synced        Healthy
+argocd      postgresql-homelab-test   Unknown       Healthy
+
+k get appset -A
+NAMESPACE   NAME                   AGE
+argocd      ingress-nginx-appset   10m
+argocd      postgresql-appset      5m8s
 ```
 
 </ul>
@@ -948,7 +970,7 @@ helm search repo grafana/loki --versions | head -30
 
 <br>
 
-### *D.　遷移完成狀態確認*
+### *D.　遷移狀態確認*
 ```
 $ watch -d -n 2 free -hw
                total        used        free      shared     buffers       cache   available
