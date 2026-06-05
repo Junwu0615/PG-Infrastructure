@@ -352,7 +352,7 @@ make upgrade-ingress
     │
     ├── charts/                         # 【 Bases / Helm Remote Wrappers 】# 基礎模板/封裝層
     │   ...
-    │   └── postgresql/
+    │   └── databases/postgresql ( Chart.yaml / templates / values )
     │
     ├── templates/                      # 【 Internal Shared Manifests 】# 內部共享資產
     │   ├── app-deployment.yaml
@@ -948,26 +948,6 @@ dependencies:
     
 helm repo list
 helm search repo grafana/loki --versions | head -30
-
-------
-$ k get appproject -A
-NAMESPACE   NAME            AGE
-argocd      databases       20h
-argocd      default         20h
-argocd      observability   20h
-argocd      pg-apps         20h
-argocd      platform        20h
-argocd      security        20h
-
-$ k get app -A
-NAMESPACE   NAME                      SYNC STATUS   HEALTH STATUS
-argocd      homelab-root              Synced        Healthy
-argocd      postgresql-homelab-test   Unknown       Healthy
-
-k get appset -A
-NAMESPACE   NAME                   AGE
-argocd      ingress-nginx-appset   10m
-argocd      postgresql-appset      5m8s
 ```
 
 </ul>
@@ -995,6 +975,39 @@ K3s Cluster: 3 Nodes ( 1 Master + 2 Worker )
     - platform: argocd
     - security:
     - storage:
+
+------
+
+$ k get appproject -A
+NAMESPACE   NAME            AGE
+argocd      databases       22h
+argocd      default         22h
+argocd      observability   22h
+argocd      pg-apps         22h
+argocd      platform        22h
+argocd      security        22h
+argocd      storage         10m
+
+$ k get app -A
+NAMESPACE   NAME                            SYNC STATUS   HEALTH STATUS
+argocd      grafana-homelab-test            OutOfSync     Healthy
+argocd      homelab-root                    Synced        Healthy
+argocd      ingress-nginx-homelab-test      Synced        Healthy
+argocd      loki-homelab-test               Synced        Healthy
+argocd      postgresql-homelab-test         Synced        Healthy
+argocd      prometheus-stack-homelab-test   OutOfSync     Healthy
+argocd      promtail-homelab-test           Synced        Healthy
+argocd      tempo-homelab-test              OutOfSync     Healthy
+
+k get appset -A
+NAMESPACE   NAME                   AGE
+argocd      grafana-appset            3m18s
+argocd      ingress-nginx-appset      108m
+argocd      loki-appset               3m18s
+argocd      postgresql-appset         103m
+argocd      prometheus-stack-appset   3m18s
+argocd      promtail-appset           3m18s
+argocd      tempo-appset              3m18s
 ```
 
 <br>

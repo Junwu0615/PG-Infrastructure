@@ -1,0 +1,51 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+
+metadata:
+  name: grafana-appset
+  namespace: argocd
+  #  finalizers:
+  #    # 千萬別在有狀態服務加這行，否則一不小心就會引發連鎖全面崩潰
+  #    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/part-of: observability
+
+spec:
+  generators:
+    - list:
+        elements:
+          - env: homelab-test
+            server: https://kubernetes.default.svc
+#          - env: homelab-stage
+#            server: https://kubernetes.default.svc
+#          - env: homelab-prod
+#            server: https://kubernetes.default.svc
+
+  template:
+    metadata:
+      name: 'grafana-{{env}}'
+
+    spec:
+      project: observability
+      source:
+        repoURL: http://192.168.0.15:8090/pg/infra-live.git
+        targetRevision: main
+        path: charts/observability/grafana
+        helm:
+          valueFiles:
+            - 'values/common.yaml'
+            - '../../../environments/{{env}}/grafana-values.yaml'
+      destination:
+        server: '{{server}}'
+        namespace: 'grafana-{{env}}'
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+      #      - Replace=true
+      #      - PruneLast=true

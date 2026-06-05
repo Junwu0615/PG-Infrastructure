@@ -1,0 +1,2 @@
+# 只要此檔案存在，ArgoCD 會認為這是一個有效的 Kustomize 目錄
+resources: []

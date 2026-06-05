@@ -1,11 +1,15 @@
-controller:
-  replicaCount: 3
+ingress-nginx:
+  tcp:
+    5432: "postgresql-homelab-prod/postgresql-homelab-prod:5432"
 
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
+  controller:
+    replicaCount: 3
 
-    limits:
-      cpu: 300m
-      memory: 256Mi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+      limits:
+        cpu: 300m
+        memory: 256Mi

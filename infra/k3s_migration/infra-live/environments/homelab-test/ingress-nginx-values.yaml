@@ -1,11 +1,15 @@
-controller:
-  replicaCount: 1
+ingress-nginx:
+  tcp:
+    5432: "postgresql-homelab-test/postgresql-homelab-test:5432"
 
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
+  controller:
+    replicaCount: 1
 
-    limits:
-      cpu: 300m
-      memory: 256Mi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+      limits:
+        cpu: 300m
+        memory: 256Mi
