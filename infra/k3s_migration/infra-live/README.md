@@ -918,7 +918,7 @@ tempo-homelab-test              tempo                                   nginx   
 </details>
 
 
-<details>
+<details open>
 <summary><b><i>　VII.　管理 K8s GitOps 優先級問題 </i></b></summary>
 <ul>
 
@@ -967,16 +967,34 @@ Level 4. 集群環境層級 => 刪除業務 Namespace
     kubectl delete namespace <namespace>
 
 
-Level 5. 基礎設施層級 => 卸載 ArgoCD
+Level 5. 基礎設施層級 => 卸載 ArgoCD 叢集全面大洗地
     ⚠️ 嚴重警告： 絕對不要使用 kubectl delete namespace argocd --force --grace-period=0
     
-    ⭐ 唯一正確 ArgoCD 卸載方式： ArgoCD 官方提供的清單進行反向刪除，它會按照精準的拓撲順序，
-       從 Role、CRD 到 Deployment 一步步安全卸載，最後才刪除 namespace
-    kubectl delete -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+    ⭐ 無腦 make destroy 另說 ... 正常流程如下 :
+    
+    Step 1. 安全卸載工具鏈 ( 拔除大腦，解除 Finalizer 依賴 ) : 
+        * 拔除大總管 ArgoCD
+        helm uninstall argocd -n argocd
+        
+        * 移除其他核心組件: 清除憑證 + 加密控制器
+        helm uninstall sealed-secrets -n sealed-secrets
+        helm uninstall cert-manager -n cert-manager
+    
+    Step 2. 飽和式大掃除
+        # 一鍵精準刪除「所有非原生」的命名空間
+        # 利用 Namespace 級聯特性蒸發所有 cm, secret, pvc, ingress 全都會陪葬
+        kubectl delete ns $(kubectl get ns -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -vE '^(kube-system|kube-public|kube-node-lease|default)$') --force --grace-period=0
+    
+    Step 3. 清理全域殘留（掃除殘留的 Cluster 級別資源）
+        # 針對全叢集，只要是帶有 Helm 標籤的殘留全域物件，一律強制超渡
+        kubectl delete all,configmaps,secrets,ingresses,clusterroles,clusterrolebindings -A -l "app.kubernetes.io/managed-by=Helm" --force --grace-period=0
+    
 
-
-⚠️ * 查所有相關服務
+⚠️ 查所有相關服務
 kubectl get all -n <namespace>
+
+⚠️ 查詢哪個保護鎖卡住
+kubectl get <資源類型> <資源名稱> -n <命名空間> -o jsonpath='{.metadata.finalizers}'
 
 * 懶人查詢
 kubectl get app,appset,appproject -A
