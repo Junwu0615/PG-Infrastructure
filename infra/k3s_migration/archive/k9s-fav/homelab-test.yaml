@@ -5,6 +5,7 @@ k9s:
     lockFavorites: false
     favorites:
       - all
+      - kube-system
       - argocd
       - portainer
       - grafana-homelab-test

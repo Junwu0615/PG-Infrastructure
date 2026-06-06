@@ -1,6 +1,24 @@
 crds:
   enabled: true
 
+nodeSelector:
+  workload-class: stateless
+  traffic-zone: internal-only
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: workload-class
+              operator: In
+              values:
+                - stateless
+            - key: traffic-zone
+              operator: In
+              values:
+                - internal-only
+
 resources:
   requests:
     cpu: 100m

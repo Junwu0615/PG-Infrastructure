@@ -79,7 +79,7 @@
   
   
   3.3. 設定 socat 轉發
-  * k3s_migration/archive/ingress_settings/postgresql-proxy.service
+  * k3s_migration/archive/ingress-settings/postgresql-proxy.service
   
     * 設定
     sudo cat /etc/systemd/system/postgresql-proxy.service
@@ -599,7 +599,7 @@
     portainer-agent            LoadBalancer   10.43.59.37   10.88.0.20,10.88.0.21,10.88.0.22   9001:31928/TCP   42m
     portainer-agent-headless   ClusterIP      None          <none>                             <none>           42m
   
-    # 建立轉接設定 ( k3s/ingress_settings/portainer-agent-proxy.service )
+    # 建立轉接設定 ( k3s/ingress-settings/portainer-agent-proxy.service )
     sudo nano /etc/systemd/system/portainer-agent-proxy.service
     sudo cat /etc/systemd/system/portainer-agent-proxy.service
     

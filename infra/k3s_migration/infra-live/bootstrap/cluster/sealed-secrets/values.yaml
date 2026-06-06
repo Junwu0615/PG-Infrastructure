@@ -1,5 +1,23 @@
 fullnameOverride: sealed-secrets-controller
 
+nodeSelector:
+  workload-class: stateless
+  traffic-zone: internal-only
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: workload-class
+              operator: In
+              values:
+                - stateless
+            - key: traffic-zone
+              operator: In
+              values:
+                - internal-only
+
 resources:
   requests:
     cpu: 50m

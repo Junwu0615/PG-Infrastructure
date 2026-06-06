@@ -648,7 +648,7 @@ ingress-nginx-controller-metrics     ClusterIP   10.43.213.22    <none>        1
         - docs/K3s.md
         - docs/Dev-Services.md
     
-    # 設定檔位置: k3s_migration/archive/ingress_settings/*
+    # 設定檔位置: k3s_migration/archive/ingress-settings/*
     
     # 重啟 
     systemctl enable k8s-http-proxy
@@ -982,10 +982,32 @@ $ watch -n 2 -d "kubectl top nodes --sort-by=memory"
 $ make k-top
 
 ================== [ 叢集硬體算力消耗狀態 ] ==================
-NAME         CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
-k3s-node-0   178m         8%       2691Mi          68%
-k3s-node-2   128m         3%       1977Mi          33%
-k3s-node-1   113m         2%       1722Mi          29%
+NAME           CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
+k3s-master-0   162m         8%       1153Mi          58%
+k3s-master-1   114m         5%       1067Mi          54%
+k3s-master-2   147m         7%       1039Mi          52%
+k3s-agent-2    51m          1%       476Mi           8%
+k3s-agent-0    46m          1%       474Mi           8%
+k3s-agent-1    45m          1%       461Mi           7%
+
+------
+
+$ kubectl get pod -A -o wide | grep "master"
+argocd           argocd-notifications-controller-74fc7549b4-zwcwr    1/1     Running   0          5m4s    10.42.2.2   k3s-master-1   <none>           <none>
+kube-system      coredns-8db54c48d-9lh7h                             1/1     Running   0          108m    10.42.0.2   k3s-master-0   <none>           <none>
+kube-system      local-path-provisioner-5d9d9885bc-4q8rz             1/1     Running   0          108m    10.42.0.4   k3s-master-0   <none>           <none>
+kube-system      metrics-server-786d997795-69vpd                     1/1     Running   0          108m    10.42.0.3   k3s-master-0   <none>           <none>
+
+$ kubectl get pod -A -o wide | grep "agent"
+argocd           argocd-application-controller-0                     1/1     Running   0          5m14s   10.42.4.4   k3s-agent-2    <none>           <none>
+argocd           argocd-applicationset-controller-695bcdb688-xtr62   1/1     Running   0          5m15s   10.42.4.3   k3s-agent-2    <none>           <none>
+argocd           argocd-redis-788b7d567b-tjq9m                       1/1     Running   0          5m15s   10.42.3.5   k3s-agent-0    <none>           <none>
+argocd           argocd-repo-server-775957db78-zslwm                 1/1     Running   0          5m15s   10.42.5.3   k3s-agent-1    <none>           <none>
+argocd           argocd-server-86b8cb666-hz9z6                       1/1     Running   0          5m15s   10.42.3.6   k3s-agent-0    <none>           <none>
+cert-manager     cert-manager-7857c97778-jzbml                       1/1     Running   0          2m52s   10.42.5.4   k3s-agent-1    <none>           <none>
+cert-manager     cert-manager-cainjector-567c6b47ff-b6lln            1/1     Running   0          6m11s   10.42.4.2   k3s-agent-2    <none>           <none>
+cert-manager     cert-manager-webhook-7cc5c588cb-v7c2d               1/1     Running   0          6m11s   10.42.5.2   k3s-agent-1    <none>           <none>
+sealed-secrets   sealed-secrets-controller-674596f4bf-xbrdz          1/1     Running   0          2m49s   10.42.5.5   k3s-agent-1    <none>           <none>
 
 ------
 

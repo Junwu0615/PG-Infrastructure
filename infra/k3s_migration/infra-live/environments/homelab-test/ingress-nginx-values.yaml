@@ -7,7 +7,6 @@ ingress-nginx:
 
     admissionWebhooks:
       enabled: true
-      # 明確指定 Service 的位置
       patch:
         enabled: true
         image:
