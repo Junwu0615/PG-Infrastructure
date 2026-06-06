@@ -3,9 +3,9 @@
 vm_user    = "debian"
 ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
-# net_segment = "192.168.0"
 net_segment = "10.88.0"
-net_segment_start = 20
+net_segment_master_start = 10
+net_segment_agent_start = 20
 
 master_count = 3
 agent_count = 3

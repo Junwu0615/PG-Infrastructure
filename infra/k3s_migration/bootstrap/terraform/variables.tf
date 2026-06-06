@@ -15,8 +15,13 @@ variable "net_segment" {
   default = "192.168.0"
 }
 
-variable "net_segment_start" {
-  description = "網段開始位置"
+variable "net_segment_master_start" {
+  description = "Master 網段開始位置"
+  default = 10
+}
+
+variable "net_segment_agent_start" {
+  description = "Agent 網段開始位置"
   default = 20
 }
 

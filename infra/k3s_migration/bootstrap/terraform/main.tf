@@ -80,16 +80,16 @@ resource "libvirt_network" "k3s_net" {
       for_each = range(var.master_count)
       content {
         hostname = "k3s-master-${hosts.value}"
-        ip       = "${var.net_segment}.${var.net_segment_start + hosts.value}"
+        ip       = "${var.net_segment}.${var.net_segment_master_start + hosts.value}"
       }
     }
 
-    # Agents DNS (IP 順延接在 Master 後面)
+    # Agents DNS
     dynamic "hosts" {
       for_each = range(var.agent_count)
       content {
         hostname = "k3s-agent-${hosts.value}"
-        ip       = "${var.net_segment}.${var.net_segment_start + var.master_count + hosts.value}"
+        ip       = "${var.net_segment}.${var.net_segment_agent_start + hosts.value}"
       }
     }
   }
@@ -99,7 +99,7 @@ resource "libvirt_network" "k3s_net" {
 resource "libvirt_domain" "k3s_masters" {
   count = var.master_count
   name  = "k3s-master-${count.index}"
-  # 採用你的配置風格，可自行在變數中為 k3s-master-X 調配 RAM/CPU
+
   memory = lookup(var.node_config, "k3s-master-${count.index}", var.node_config["default"]).memory
   vcpu   = lookup(var.node_config, "k3s-master-${count.index}", var.node_config["default"]).vcpu
 
@@ -108,8 +108,8 @@ resource "libvirt_domain" "k3s_masters" {
   network_interface {
     network_id     = libvirt_network.k3s_net.id
     hostname       = "k3s-master-${count.index}"
-    addresses      = ["${var.net_segment}.${var.net_segment_start + count.index}"]
-    mac            = format("52:54:00:00:10:%02x", var.net_segment_start + count.index)
+    addresses      = ["${var.net_segment}.${var.net_segment_master_start + count.index}"]
+    mac            = format("52:54:00:00:10:%02x", var.net_segment_master_start + count.index)
     wait_for_lease = true
   }
 
@@ -131,6 +131,7 @@ resource "libvirt_domain" "k3s_masters" {
 resource "libvirt_domain" "k3s_agents" {
   count = var.agent_count
   name  = "k3s-agent-${count.index}"
+
   memory = lookup(var.node_config, "k3s-agent-${count.index}", var.node_config["default"]).memory
   vcpu   = lookup(var.node_config, "k3s-agent-${count.index}", var.node_config["default"]).vcpu
 
@@ -139,8 +140,8 @@ resource "libvirt_domain" "k3s_agents" {
   network_interface {
     network_id     = libvirt_network.k3s_net.id
     hostname       = "k3s-agent-${count.index}"
-    addresses      = ["${var.net_segment}.${var.net_segment_start + var.master_count + count.index}"]
-    mac            = format("52:54:00:00:20:%02x", var.net_segment_start + var.master_count + count.index)
+    addresses      = ["${var.net_segment}.${var.net_segment_agent_start + count.index}"]
+    mac            = format("52:54:00:00:20:%02x", var.net_segment_agent_start + count.index)
     wait_for_lease = true
   }
 
@@ -220,8 +221,8 @@ resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/inventory.tftpl", {
     gateway_ip = "${var.net_segment}.10"
     user       = var.vm_user
-    masters    = [for i in range(var.master_count) : "${var.net_segment}.${var.net_segment_start + i}"]
-    agents     = [for i in range(var.agent_count) : "${var.net_segment}.${var.net_segment_start + var.master_count + i}"]
+    masters    = [for i in range(var.master_count) : "${var.net_segment}.${var.net_segment_master_start + i}"]
+    agents     = [for i in range(var.agent_count) : "${var.net_segment}.${var.net_segment_agent_start + i}"]
   })
   filename = "../ansible/inventory.ini"
 }
@@ -241,7 +242,27 @@ resource "null_resource" "wait_for_ssh" {
     virsh net-autostart k3s_net  || true
 
     for ip in \
-    $(seq ${var.net_segment_start} $(( ${var.net_segment_start} + ${var.master_count} + ${var.agent_count} - 1 )) )
+    $(seq ${var.net_segment_master_start} $(( ${var.net_segment_master_start} + ${var.master_count} - 1 )) )
+    do
+      TARGET=${var.net_segment}.$ip
+
+      echo "Waiting SSH on $TARGET"
+
+      until ssh \
+        -o StrictHostKeyChecking=no \
+        -o BatchMode=yes \
+        -o ConnectTimeout=5 \
+        ${var.vm_user}@$TARGET 'echo ok' >/dev/null 2>&1
+      do
+        sleep 5
+      done
+
+      echo "$TARGET SSH ready"
+    done
+    EOT \
+
+    for ip in \
+    $(seq ${var.net_segment_agent_start} $(( ${var.net_segment_agent_start} + ${var.agent_count} - 1 )) )
     do
       TARGET=${var.net_segment}.$ip
 
@@ -286,12 +307,12 @@ resource "null_resource" "ansible_trigger" {
 
       # 動態清理 SSH 舊指紋 ( Masters )
       %{ for i in range(var.master_count) }
-      ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.${var.net_segment_start + i}" || true
+      ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.${var.net_segment_master_start + i}" || true
       %{ endfor }
 
       # 動態清理 SSH 舊指紋 ( Agents )
       %{ for i in range(var.agent_count) }
-      ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.${var.net_segment_start + var.master_count + i}" || true
+      ssh-keygen -f "$HOME/.ssh/known_hosts" -R "${var.net_segment}.${var.net_segment_agent_start + i}" || true
       %{ endfor }
 
       # 執行 Ansible
