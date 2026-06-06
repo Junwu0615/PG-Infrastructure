@@ -1,4 +1,4 @@
-## *K8s Tools ( WSL2 Ubuntu )*
+## *K8s Tools*
 
 
 ### *A.　Install K9s*
@@ -49,6 +49,15 @@ curl -sS https://webinstall.dev/k9s | bash
     * 啟動時餵路徑
     # k9s --kubeconfig ~/.kube/config-k3s
     
+    * 觀察啟動日誌
+    tail -f /home/pc/.local/state/k9s/k9s.log
+    
+    * 檢視所有叢集設置
+    cat /home/pc/.local/share/k9s/clusters/*/*/config.yaml
+    
+    * 當前使用設定
+    kubectl config current-context --kubeconfig ~/.kube/config-k3s
+    
     * 軟連結
     # 確認底下文件
     ls ~/.kube
@@ -71,26 +80,9 @@ curl -sS https://webinstall.dev/k9s | bash
 # 找系統位置 => (Context Configs: /home/pc/.local/share/k9s/clusters)
 k9s info
 
-# 修改 Namespace 列表 最愛清單
-$ cat /home/pc/.local/share/k9s/clusters/default/default/config.yaml
-$ nano /home/pc/.local/share/k9s/clusters/default/default/config.yaml
+# 修改 Namespace 列表 最愛清單 ( 參考 k3s_migration/archive/k9s/k9s-fav.yaml )
+make k9s-fav
 
-namespace:
-  active: default
-  favorites:
-  - all
-  - argocd
-  - portainer
-  - loki
-  - prometheus-stack
-  - grafana
-  - promtail
-  - tempo
-  - postgresql
-  - pg-apps
-  - registry
-  - vault
-  
 ------
 : ：輸入命令（ 例如 :pod 看 Pod, :node 看節點 ）
 / ：過濾關鍵字

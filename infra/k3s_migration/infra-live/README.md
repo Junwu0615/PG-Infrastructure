@@ -13,7 +13,7 @@
     - 遇到 OOM 問題 => 折衷改為 Docker Compose + K3s 混合架構
     - Helm Values 渲染坑 => search: 逆向渲染大法
     - 原生服務遷移坑 => 無法由 compose 先行體驗 而是直用 k8s 架起 => 注意力易發散
-    - 各類狀況如何 DEBUG 找原因
+    - 各類狀況如何 DEBUG
         - configmap 設定檔
         - pod describe 病歷表
         - o yaml 查看實際部署設定
@@ -26,14 +26,11 @@
 ### *B.　Makefile Command*
 ```
 Terraform:
-    # 初始化 terraform 配置
+    # 初始化配置
     make init
     
     # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/test.tfvars
-    
-    # 手動初始化 bootstrap
-    make init-gitops
     
     # 拆除 VM 環境
     make destroy
@@ -303,32 +300,38 @@ cd infra/docker-compose
     make kafka action=up
     make elk action=up
 
+
 # ✅ 啟動 K3s Cluster
-    1. 初始化 terraform 配置
-    make init
-    
-    2. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
-    make apply VAR_FILE=./env_tfvars/test.tfvars
-    
-    3. 手動初始化 bootstrap
+    1. 手動初始化 bootstrap
     make init-gitops
     
-    ⭐ 4. 初始化/更新 Chart 依賴包
+    ⭐ 2. 初始化/更新 Chart 依賴包
     make helm-chart-build
     
-    ⭐ 5. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
+    ⭐ 3. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
     # 切換環境: 透過 appset/*/app.ymal 調整環境 (註解)
     make root-app
     
-    6. 檢視 Secrets 明文 ( ex: homelab-test )
-    make init-secrets ENV=homelab-test
-    
-    7. 初始化/更新 標籤設定 ( 親合/反親合 )
+    4. 初始化/更新 標籤設定 ( 親合/反親合 )
     make label-nodes
     
+    * 檢視 Secrets 明文 ( ex: homelab-test )
+    make init-secrets ENV=homelab-test
+
+
 # 其他
-啟動 ingress-nginx => 已經將其加入正規定義中 無須用此方式
-make upgrade-ingress
+    * 啟動 ingress-nginx => 已將其加入正式定義 無須用此方式
+    make upgrade-ingress
+
+    * 更新 k9s 最愛設定
+        - 備份原先設定
+        cp /home/pc/.config/k9s/config.yaml /home/pc/.config/k9s/config.yaml.bak
+        
+        - 還原設定
+        cp /home/pc/.config/k9s/config.yaml.bak /home/pc/.config/k9s/config.yaml
+        
+        ⭐ - 替換設定
+        make k9s-fav
 ```
 
 </ul>
@@ -1002,36 +1005,38 @@ K3s Cluster: 3 Nodes ( 1 Master + 2 Worker )
 
 ------
 
-$ k get appproject -A
+$ kubectl get appproject -A
 NAMESPACE   NAME            AGE
-argocd      databases       22h
-argocd      default         22h
-argocd      observability   22h
-argocd      pg-apps         22h
-argocd      platform        22h
-argocd      security        22h
-argocd      storage         10m
+argocd      databases       35h
+argocd      default         35h
+argocd      observability   35h
+argocd      pg-apps         35h
+argocd      platform        35h
+argocd      security        35h
+argocd      storage         13h
 
-$ k get app -A
+
+$ kubectl get app -A
 NAMESPACE   NAME                            SYNC STATUS   HEALTH STATUS
-argocd      grafana-homelab-test            OutOfSync     Healthy
+argocd      grafana-homelab-test            Synced        Healthy
 argocd      homelab-root                    Synced        Healthy
 argocd      ingress-nginx-homelab-test      Synced        Healthy
 argocd      loki-homelab-test               Synced        Healthy
 argocd      postgresql-homelab-test         Synced        Healthy
-argocd      prometheus-stack-homelab-test   OutOfSync     Healthy
+argocd      prometheus-stack-homelab-test   Unknown       Healthy
 argocd      promtail-homelab-test           Synced        Healthy
-argocd      tempo-homelab-test              OutOfSync     Healthy
+argocd      tempo-homelab-test              Synced        Healthy
 
-k get appset -A
+
+$ kubectl get appset -A
 NAMESPACE   NAME                   AGE
-argocd      grafana-appset            3m18s
-argocd      ingress-nginx-appset      108m
-argocd      loki-appset               3m18s
-argocd      postgresql-appset         103m
-argocd      prometheus-stack-appset   3m18s
-argocd      promtail-appset           3m18s
-argocd      tempo-appset              3m18s
+argocd      grafana-appset            13h
+argocd      ingress-nginx-appset      14h
+argocd      loki-appset               13h
+argocd      postgresql-appset         14h
+argocd      prometheus-stack-appset   13h
+argocd      promtail-appset           13h
+argocd      tempo-appset              13h
 ```
 
 <br>

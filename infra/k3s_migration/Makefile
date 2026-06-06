@@ -25,6 +25,7 @@ CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 SHELL := /bin/bash
 .PHONY: rollback deploy clean build \
 status init apply destroy output terraform-list label-nodes vm-format vm-power \
+k9s-fav \
 load-images save \
 init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress init-secrets root-app
 
@@ -118,6 +119,15 @@ see-secrets:
 	@echo "* [5] postgresql-credentials => replication-password"
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.replication-password}" | base64 -d && echo && echo
 	@echo "✅  <make init-secrets> done."
+
+k9s-fav:
+	rm -rf /home/pc/.local/share/k9s/clusters/default/
+	k9s --kubeconfig ~/.kube/config
+
+	sudo cp ./archive/k9s-fav/homelab-test.yaml ~/.local/share/k9s/clusters/default/default/config.yaml
+	cat ~/.local/share/k9s/clusters/default/default/config.yaml
+
+	@echo "✅  <make k9s-fav> done."
 
 save:
 	@echo "* 導出映像檔至 $(TAR_FILE)"

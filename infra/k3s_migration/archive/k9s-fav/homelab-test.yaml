@@ -1,0 +1,21 @@
+k9s:
+  cluster: default
+  namespace:
+    active: all
+    lockFavorites: false
+    favorites:
+      - all
+      - argocd
+      - portainer
+      - grafana-homelab-test
+      - loki-homelab-test
+      - tempo-homelab-test
+      - promtail-homelab-test
+      - prometheus-stack-homelab-test
+      - ingress-nginx-homelab-test-test
+      - postgresql-homelab-test
+  view:
+    active: v1/pods all
+  featureGates:
+    nodeShell: false
+  proxy: null
