@@ -12,7 +12,7 @@
         - ApplicationSet
     - 遇到 OOM 問題 => 折衷改為 Docker Compose + K3s 混合架構
     - Argo 同步機制坑 ( CRD / validatingwebhookconfigurations )
-    - Helm Values 渲染坑 => search: 渲染大法
+    - Helm Chart「諸侯割據」踩雷現象 => search: 渲染大法
     - 原生服務遷移坑 => 無法由 compose 先行體驗 而是直用 k8s 架起 => 注意力易發散
     - 各類狀況如何 DEBUG
         - configmap 設定檔
@@ -811,7 +811,16 @@ DEBUG
         [O] 
             helm template charts/observability/grafana -f charts/observability/grafana/values/common.yaml -f environments/homelab-test/grafana-values.yaml --set namespaceOverride=homelab-test > output.yaml
             helm template charts/observability/tempo -f charts/observability/tempo/values/common.yaml -f environments/homelab-test/tempo-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/observability/loki -f charts/observability/loki/values/common.yaml -f environments/homelab-test/loki-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/observability/prometheus-stack -f charts/observability/prometheus-stack/values/common.yaml -f environments/homelab-test/prometheus-stack-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/observability/promtail -f charts/observability/promtail/values/common.yaml -f environments/homelab-test/promtail-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            
+            helm template charts/databases/postgresql -f charts/databases/postgresql/values/common.yaml -f environments/homelab-test/postgresql-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            
+            helm template charts/platform/ingress-nginx -f charts/platform/ingress-nginx/values/common.yaml -f environments/homelab-test/ingress-nginx-values.yaml --set namespaceOverride=homelab-test > output.yaml
+        
         grep -rn "homelab" output.yaml
+        grep -rn "key" output.yaml
         
     
     * 確認 Chart 是否真的載入到 dependency
