@@ -24,11 +24,18 @@ CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
 SHELL := /bin/bash
 .PHONY: rollback deploy clean build \
-status init apply destroy output terraform-list label-nodes vm-format vm-power \
+init apply destroy output terraform-list \
+status k-top label-nodes vm-format vm-power \
 k9s-fav \
 load-images save \
 init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress init-secrets root-app
 
+
+k-top:
+	@echo "================== [ 節點資源配額預佔狀態 ] =================="
+	@kubectl describe nodes | grep -A 20 "Allocated resources" || true && echo && echo && echo
+	@echo "================== [ 叢集硬體算力消耗狀態 ] =================="
+	@kubectl top nodes --sort-by=memory || echo "⚠️ 無法取得指標，請檢查 metrics-server 是否正常運行。"
 
 init-gitops:
 	@echo "* 一鍵部署基礎設置 ( GitOps Bootstrap Cluster )"

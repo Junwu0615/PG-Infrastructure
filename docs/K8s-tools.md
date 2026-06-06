@@ -19,8 +19,10 @@ curl -sS https://webinstall.dev/k9s | bash
     # 首選 ( 拆更細 )
     free -h
     
-        ⭐ 動態更新 ( 每 2 秒更新一次 )
-        watch -d -n 2 free -hw
+        ⭐ 動態更新 ( 每 2 秒更新一次 ) 
+        # -d 參數會高亮顯示變化的部分，更容易追蹤記憶體使用情況的變化趨勢
+        # -n 參數指定更新的頻率(設置為 2 秒)，能夠實時監控記憶體使用情況
+        watch -n 2 -d free -hw
         
         # 欄位意思
         # total = used + free + buff/cache (總實體記憶體)
@@ -133,6 +135,11 @@ kubectl get pods -w
 
 # 確認 pvc ( 儲存 ) 狀態
 kubectl get pvc
+
+⭐ 確認資源使用狀態 ( nodes )
+kubectl top nodes
+    ⭐ 動態更新 ( 每 2 秒更新一次 )
+    watch -n 2 -d "kubectl top nodes --sort-by=memory"
 
 # 確認 nodes 狀態
 kubectl get nodes

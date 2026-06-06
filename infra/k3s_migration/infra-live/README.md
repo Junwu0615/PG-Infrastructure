@@ -965,7 +965,8 @@ kubectl get app,appset,appproject -A
 ### *D.　遷移狀態確認*
 ![PNG](../../../assets/k9s.png)
 ```
-$ watch -d -n 2 free -hw
+$ watch -n 2 -d free -hw
+$ watch -n 2 -d "kubectl top nodes --sort-by=memory"
 
 
 Docker Compose: gitlab + portainer
