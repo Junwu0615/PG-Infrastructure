@@ -25,13 +25,14 @@
 <br>
 
 ### *B.　Makefile Command*
+![PNG](../../../assets/k3s_vm.png)
 ```
 Terraform:
     # 初始化配置
     make init
     
     # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
-    make apply VAR_FILE=./env_tfvars/test.tfvars
+    make apply VAR_FILE=./env_tfvars/homelab-test.tfvars
     
     # 拆除 VM 環境
     make destroy
@@ -292,6 +293,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 <summary><b><i>　I.　啟動服務 </i></b></summary>
 <ul>
 
+![PNG](../../../assets/label_nodes.png)
 ```
 # ✅ 啟動 Docker Compose
 cd infra/docker-compose

@@ -26,8 +26,8 @@ variable "master_count" {
 }
 
 variable "agent_count" {
-  description = "生成 Agent 節點總數"
-  default = 3
+  description = "生成 Agent 節點總數 ( 有/無狀態 )"
+  default = 2
 }
 
 variable "node_config" {

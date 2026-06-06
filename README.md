@@ -177,7 +177,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
     │   │   └── terraform
     │   │       ├── cloud_init.cfg
     │   │       ├── env_tfvars
-    │   │       │   └── test.tfvars
+    │   │       │   └── homelab-test.tfvars
     │   │       ├── inventory.tftpl
     │   │       ├── main.tf
     │   │       ├── outputs.tf

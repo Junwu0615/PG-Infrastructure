@@ -28,7 +28,7 @@ init apply destroy output terraform-list \
 status k-top label-nodes vm-format vm-power \
 k9s-fav \
 load-images save \
-init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress init-secrets root-app
+root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
 
 k-top:
@@ -134,9 +134,55 @@ upgrade-ingress:
 	@echo "✅  <make upgrade-ingress> done."
 
 label-nodes:
-	@echo "* 初始化/更新 標籤設定 ( 親合/反親合 )"
-	kubectl label nodes k3s-node-0 service-type=ingress-nginx --overwrite
-	kubectl get nodes -L service-type
+	@echo "* 動態初始化/更新 K3s 節點 => 按比例注入群組標籤 ( 親合/反親合/汙點防禦 )" && echo
+
+	# 獲取當前叢集中所有的 Agent 節點清單並排序
+	$(eval AGENTS := $(shell kubectl get nodes -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep 'agent' | sort))
+	$(eval AGENT_COUNT := $(shell echo "$(AGENTS)" | wc -w))
+
+	@if [ $(AGENT_COUNT) -eq 0 ]; then \
+		echo "❌ 錯誤：叢集中未發現任何 k3s-agent 節點！"; \
+		exit 1; \
+	fi
+
+	# 計算切分點：一半劃分為前端無狀態，一半劃分為後端有狀態
+	$(eval MID_POINT := $(shell echo $$(( ($(AGENT_COUNT) + 1) / 2 )) ))
+
+	@echo && echo "* 當前偵測到 Agent 總數: $(AGENT_COUNT) 台，切分臨界點為第 $(MID_POINT) 台。"
+	# 循環遍歷節點，動態計算並打上對應的三大類別標籤
+	@INDEX=1; \
+	for node in $(AGENTS); do \
+		echo "  - 正在處理節點: $$node [$$INDEX/$(AGENT_COUNT)]"; \
+		\
+		# 所有人都是基礎工作節點 \
+		kubectl label nodes $$node node-role.kubernetes.io/worker=worker --overwrite >/dev/null 2>&1; \
+		\
+		if [ $$INDEX -eq 1 ]; then \
+			# 🎯 第一台 Agent 永遠作為最前線的流量守門員 \
+			echo "   📍 角色指派 -> [邊緣網關 + 無狀態服務] (Edge Ingress & Stateless)"; \
+			kubectl label nodes $$node workload-class=stateless --overwrite >/dev/null 2>&1; \
+			kubectl label nodes $$node traffic-zone=edge-ingress --overwrite >/dev/null 2>&1; \
+			kubectl label nodes $$node hardware-type- --overwrite >/dev/null 2>&1; \
+		elif [ $$INDEX -le $(MID_POINT) ]; then \
+			# 🎯 前半段的其他 Agent 作為普通無狀態擴容節點 \
+			echo "   📍 角色指派 -> [標準無狀態微服務區] (Stateless)"; \
+			kubectl label nodes $$node workload-class=stateless --overwrite >/dev/null 2>&1; \
+			kubectl label nodes $$node traffic-zone=internal-only --overwrite >/dev/null 2>&1; \
+			kubectl label nodes $$node hardware-type- --overwrite >/dev/null 2>&1; \
+		else \
+			# 🎯 後半段的 Agent 作為高 I/O 有狀態資料庫專區 \
+			echo "   📍 角色指派 -> [高 I/O 有狀態資料庫區] (Stateful & High-IO)"; \
+			kubectl label nodes $$node workload-class=stateful --overwrite >/dev/null 2>&1; \
+			kubectl label nodes $$node hardware-type=high-io --overwrite >/dev/null 2>&1; \
+			kubectl label nodes $$node traffic-zone- --overwrite >/dev/null 2>&1; \
+		fi; \
+		INDEX=$$((INDEX + 1)); \
+	done
+
+	@echo && echo && echo " ================== [ 節點專屬維運標籤一覽 ] =================="
+	@#kubectl get nodes -l node-role.kubernetes.io/worker=worker -L workload-class -L hardware-type -L traffic-zone
+	@kubectl get nodes -L workload-class -L hardware-type -L traffic-zone
+
 	@echo "✅  <make label-nodes> done."
 
 see-secrets:
@@ -159,7 +205,7 @@ see-secrets:
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.replication-password}" | base64 -d && echo && echo
 	@#echo "* [6] Grafana UI 密碼"
 	#kubectl get secret grafana-$(ENV) -n grafana-$(ENV) -o jsonpath="{.data.adminPassword}" | base64 -d && echo && echo
-	@echo "✅  <make init-secrets> done."
+	@echo "✅  <make see-secrets> done."
 
 k9s-fav:
 	@echo "* 初始化/更新 k9s 收藏設定"
