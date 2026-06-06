@@ -46,6 +46,7 @@ X = 已棄用
 | **Gitlab** | O | - | - | - | - | * | - | - |
 | **Jenkins** | X | X | X | X | X | X | X | X |
 | **ArgoCD** | X | - | - | - | - | O | - | - |
+| **Harbor** | X | X | X | X | X | X | X | X |
 | **Docker Registry** | O | - | - | - | - | O | - | - |
 | **Docker Registry UI** | X | X | X | X | X | X | X | X |
 | **Portainer** | O | O | - | - | O | △ | - | - |
@@ -340,6 +341,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
 | **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | * | O |
 | **Jenkins** | `Continuous Delivery` | X | X | X |
 | **ArgoCD** | `Continuous Delivery`<br>`Deployment Controller` | X | [8080](http://argo-cd.k8s.local:8080) | O/X |
+| **Harbor** | Replace `Docker Registry` | X | - | O |
 | **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | [8080](http://docker-registry.k8s.local:8080) | O |
 | **Docker Registry UI** | for `Docker Registry` | X | X | X |
 | **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | △ | X |

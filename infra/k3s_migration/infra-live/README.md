@@ -742,10 +742,16 @@ kubectl get deploy ingress-nginx-controller \
         make ./infra-live/charts/observability/tempo
         make ./infra-live/charts/databases/postgresql
         make ./infra-live/charts/platform/ingress-nginx
+        make ./infra-live/charts/platform/registry
+        make ./infra-live/charts/platform/harbor
 
 
 DEBUG
-    * 輸出 values 範例 => 檢視內部參數方式
+    ⭐ 快速渲染
+    helm lint .
+    helm lint . -f values/common.yaml
+    
+    ⭐ 輸出 values 範例 => 檢視內部參數方式
     helm show values charts/observability/prometheus/charts/prometheus-27.39.0.tgz > official-values.yaml
     helm show values charts/observability/loki/charts/loki > official-values.yaml
     
@@ -788,6 +794,8 @@ DEBUG
             helm template charts/databases/postgresql -f charts/databases/postgresql/values/common.yaml -f environments/homelab-test/postgresql-values.yaml --set namespaceOverride=homelab-test > output.yaml
             
             helm template charts/platform/ingress-nginx -f charts/platform/ingress-nginx/values/common.yaml -f environments/homelab-test/ingress-nginx-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/platform/ingress-nginx -f charts/platform/harbor/values/common.yaml -f environments/homelab-test/harbor-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/platform/ingress-nginx -f charts/platform/registry/values/common.yaml -f environments/homelab-test/registry-values.yaml --set namespaceOverride=homelab-test > output.yaml
         
         grep -rn "homelab" output.yaml
         grep -rn "key" output.yaml

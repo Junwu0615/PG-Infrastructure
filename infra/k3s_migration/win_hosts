@@ -13,6 +13,7 @@
 # 127.0.0.1 kas.k8s.local
 127.0.0.1 argo-cd.k8s.local
 127.0.0.1 docker-registry.k8s.local
+# 127.0.0.1 harbor-registry.k8s.local
 127.0.0.1 hashicorp-vault.k8s.local
 # 127.0.0.1 elasticsearch.k8s.local
 # 127.0.0.1 logstash.k8s.local

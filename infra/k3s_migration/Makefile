@@ -16,9 +16,12 @@ ALL_CHART_DIRS := \
     ./infra-live/charts/observability/tempo \
     ./infra-live/charts/databases/postgresql \
     ./infra-live/charts/platform/ingress-nginx \
+    ./infra-live/charts/platform/registry \
+    ./infra-live/charts/platform/harbor \
 
 FILTER_CHART_DIRS := \
 	./infra-live/charts/observability/prometheus \
+	./infra-live/charts/observability/harbor \
 
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
