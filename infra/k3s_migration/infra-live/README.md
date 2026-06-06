@@ -24,7 +24,7 @@
 
 <br>
 
-### *B.　Makefile Command*
+### *B.　VM 生命週期 ( Makefile )*
 ![PNG](../../../assets/k3s_vm.png)
 ```
 Terraform:
@@ -295,7 +295,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 
 ![PNG](../../../assets/label_nodes.png)
 ```
-# ✅ 啟動 Docker Compose
+* 啟動 Docker Compose
 cd infra/docker-compose
     make gitlab action=up
     make portainer action=up
@@ -304,7 +304,7 @@ cd infra/docker-compose
     make elk action=up
 
 
-# ⭐ 啟動 K3s Cluster
+⭐ 啟動 K3s Cluster
     1. 初始化/更新 標籤設定 ( 親合/反親合 )
     make label-nodes
     
@@ -319,17 +319,17 @@ cd infra/docker-compose
     make root-app ENV=homelab-test
 
 
-# 其他
-    * 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
+* 其他
+    # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
     make k-top
     
-    * 啟動 ingress-nginx => 已將其加入正式定義 無須用此方式
+    # 啟動 ingress-nginx => 已將其加入正式定義 無須用此方式
     make upgrade-ingress
     
-    * 檢視 Secrets 明文 ( ex: homelab-test )
+    # 檢視 Secrets 明文 ( ex: homelab-test )
     make see-secrets ENV=homelab-test
 
-    * 更新 k9s 最愛設定
+    # 更新 k9s 最愛設定
         - 備份原先設定
         cp /home/pc/.config/k9s/config.yaml /home/pc/.config/k9s/config.yaml.bak
         

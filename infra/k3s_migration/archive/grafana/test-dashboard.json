@@ -152,7 +152,10 @@
             "type": "loki",
             "uid": "Loki"
           },
-          "expr": "{namespace=\"loki\", app_kubernetes_io_name=\"loki\"}",
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{namespace=\"loki-homelab-test\", app_kubernetes_io_name=\"loki\"}",
+          "queryType": "range",
           "refId": "A"
         }
       ],
@@ -261,5 +264,5 @@
   "timezone": "",
   "title": "PG k3s 可觀測性大三元即時驗證面板",
   "uid": "78a7a560-84a4-49de-8e07-b4655a4ebf89",
-  "version": 4
+  "version": 2
 }

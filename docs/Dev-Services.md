@@ -650,7 +650,7 @@
   ```
   # 確認服務存活
   [wsl2]
-  curl -v -H "Host: tempo.k8s.local" http://10.88.0.20:30547/ready
+  curl -v -H "Host: tempo.k8s.local" http://10.88.0.20:80/ready
   
   [powershell]
   Invoke-RestMethod -Uri "http://tempo.k8s.local:8080/ready" -Method Get
@@ -664,7 +664,7 @@
   [wsl2]
   curl -v -H "Host: tempo.k8s.local" \
        -H "Content-Type: application/json" \
-       http://10.88.0.20:30547/v1/traces \
+       http://10.88.0.20:80/v1/traces \
        -d '{
          "resourceSpans": [
            {
