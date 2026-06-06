@@ -313,7 +313,7 @@ cd infra/docker-compose
     
     ⭐ 4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
     # 切換環境: 透過 appset/*/app.ymal 調整環境 (註解)
-    make root-app
+    make root-app ENV=homelab-test
 
 
 # 其他
@@ -330,8 +330,8 @@ cd infra/docker-compose
         - 還原設定
         cp /home/pc/.config/k9s/config.yaml.bak /home/pc/.config/k9s/config.yaml
         
-        ⭐ - 替換設定
-        make k9s-fav
+        ⭐ 一鍵替換設定
+        make k9s-fav ENV=homelab-test
 ```
 
 </ul>

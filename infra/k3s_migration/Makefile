@@ -84,27 +84,13 @@ $(CHART_DIRS):
 
 root-app:
 	@echo "🚀 開始同步 GitOps 根應用 (root-app) ..."
-	@#echo "🧹 正在動態安全掃描並清理基礎設施過渡期 Webhook ..."
-	@#kubectl delete validatingwebhookconfigurations \
-#		$$(kubectl get validatingwebhookconfigurations -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E 'nginx|prometheus') \
-#		--ignore-not-found 2>/dev/null || true
-
-	@echo "🔍 正在檢查基礎設施 Webhook 安全防禦狀態..."
-	@#if kubectl get validatingwebhookconfigurations ingress-nginx-homelab-test-admission >/dev/null 2>&1; then \
-#		CABUNDLE=$$(kubectl get validatingwebhookconfigurations ingress-nginx-homelab-test-admission -o jsonpath='{.webhooks[0].clientConfig.caBundle}' 2>/dev/null); \
-#		if [ -z "$$CABUNDLE" ]; then \
-#			echo "⚠️ 偵測到 Nginx Webhook 處於憑證空白空窗期（會引發 x509 報錯）！"; \
-#			echo "🧹 主動清除過渡期空殼 Webhook，確保 ArgoCD 順暢通行..."; \
-#			kubectl delete validatingwebhookconfigurations \
-#				$$(kubectl get validatingwebhookconfigurations -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E 'nginx|prometheus') \
-#				--ignore-not-found 2>/dev/null || true; \
-#		else \
-#			echo "✅ Nginx Webhook 憑證 (caBundle) 已就緒，跳過清理流程。"; \
-#		fi \
-#	fi
-
-	@if kubectl get validatingwebhookconfigurations ingress-nginx-homelab-test-admission >/dev/null 2>&1; then \
-		CABUNDLE=$$(kubectl get validatingwebhookconfigurations ingress-nginx-homelab-test-admission -o jsonpath='{.webhooks[0].clientConfig.caBundle}' 2>/dev/null); \
+	@if [ -z "$(ENV)" ]; then \
+		echo "Error: 必須指定 ENV，ex: make root-app ENV=homelab-test"; \
+		exit 1; \
+	fi
+	@echo "🔍 正在檢查基礎設施 Webhook 安全防禦狀態 ..."
+	@if kubectl get validatingwebhookconfigurations ingress-nginx-$(ENV)-admission >/dev/null 2>&1; then \
+		CABUNDLE=$$(kubectl get validatingwebhookconfigurations ingress-nginx-$(ENV)-admission -o jsonpath='{.webhooks[0].clientConfig.caBundle}' 2>/dev/null); \
 		if [ -z "$$CABUNDLE" ]; then \
 			echo "⚠️ 偵測到 Nginx Webhook 憑證空白！ 主動清除過渡期空殼（會引發 x509 報錯）"; \
 			echo "1. 主動清除過渡期空殼 Webhook，確保 ArgoCD 順暢通行 ..."; \
@@ -112,8 +98,8 @@ root-app:
 				$$(kubectl get validatingwebhookconfigurations -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E 'nginx|prometheus') \
 				--ignore-not-found 2>/dev/null || true; \
 			echo "2. 強制重新觸發 Helm 自帶的憑證生成 Job ..."; \
-			kubectl -n ingress-nginx-homelab-test create job --from=cronjob/ingress-nginx-homelab-test-admission-patch admission-patch-manual-$$(date +%s) 2>/dev/null || \
-			kubectl get pods -n ingress-nginx-homelab-test -l app.kubernetes.io/component=admission-webhook -o name | xargs kubectl delete 2>/dev/null || true; \
+			kubectl -n ingress-nginx-$(ENV) create job --from=cronjob/ingress-nginx-$(ENV)-admission-patch admission-patch-manual-$$(date +%s) 2>/dev/null || \
+			kubectl get pods -n ingress-nginx-$(ENV) -l app.kubernetes.io/component=admission-webhook -o name | xargs kubectl delete 2>/dev/null || true; \
 		else \
 			echo "✅ Nginx Webhook 憑證 (caBundle) 已就緒，跳過清理流程。"; \
 		fi \
@@ -169,10 +155,15 @@ see-secrets:
 	@echo "✅  <make init-secrets> done."
 
 k9s-fav:
+	@echo "* 初始化/更新 k9s 收藏設定"
+	@if [ -z "$(ENV)" ]; then \
+		echo "Error: 必須指定 ENV，ex: make k9s-fav ENV=homelab-test"; \
+		exit 1; \
+	fi
 	rm -rf /home/pc/.local/share/k9s/clusters/default/
 	k9s --kubeconfig ~/.kube/config
 
-	sudo cp ./archive/k9s-fav/homelab-test.yaml ~/.local/share/k9s/clusters/default/default/config.yaml
+	sudo cp ./archive/k9s-fav/$(ENV).yaml ~/.local/share/k9s/clusters/default/default/config.yaml
 	cat ~/.local/share/k9s/clusters/default/default/config.yaml
 
 	@echo "✅  <make k9s-fav> done."
