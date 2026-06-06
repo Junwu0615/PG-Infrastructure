@@ -11,6 +11,7 @@ master_count = 3
 agent_count = 3
 
 node_config = {
+  "default"     = { memory = 2048, vcpu = 2 }
   "k3s-master-0"= { memory = 2048, vcpu = 2 }
   "k3s-master-1"= { memory = 2048, vcpu = 2 }
   "k3s-master-2"= { memory = 2048, vcpu = 2 }

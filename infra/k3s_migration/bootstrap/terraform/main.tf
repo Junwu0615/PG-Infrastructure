@@ -241,7 +241,7 @@ resource "null_resource" "wait_for_ssh" {
     virsh net-autostart k3s_net  || true
 
     for ip in \
-    $(seq ${var.net_segment_start} $(( ${var.net_segment_start} + ${var.node_count} - 1 )) )
+    $(seq ${var.net_segment_start} $(( ${var.net_segment_start} + ${var.master_count} + ${var.agent_count} - 1 )) )
     do
       TARGET=${var.net_segment}.$ip
 

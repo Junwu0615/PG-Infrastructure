@@ -7,14 +7,18 @@
 
 # Master SSH
 output "master_ssh_command" {
-  value = "k3s-node-0 => ssh debian@${libvirt_domain.k3s_nodes[0].network_interface.0.addresses[0]}"
+  # value = "k3s-node-0 => ssh debian@${libvirt_domain.k3s_nodes[0].network_interface.0.addresses[0]}"
+  value = [
+    for i in range(1, var.master_count) :
+    "k3s-node-${i} => ssh debian@${libvirt_domain.k3s_masters[i].network_interface.0.addresses[0]}"
+  ]
 }
 
 # Agent SSH
 output "agent_ssh_commands" {
   value = [
-    for i in range(1, var.node_count) :
-    "k3s-node-${i} => ssh debian@${libvirt_domain.k3s_nodes[i].network_interface.0.addresses[0]}"
+    for i in range(1, var.agent_count) :
+    "k3s-node-${i} => ssh debian@${libvirt_domain.k3s_agents[i].network_interface.0.addresses[0]}"
   ]
 }
 
