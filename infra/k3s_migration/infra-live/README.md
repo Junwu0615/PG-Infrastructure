@@ -304,17 +304,17 @@ cd infra/docker-compose
     make elk action=up
 
 
-# ✅ 啟動 K3s Cluster
+# ⭐ 啟動 K3s Cluster
     1. 初始化/更新 標籤設定 ( 親合/反親合 )
     make label-nodes
     
     2. 手動初始化 bootstrap
     make init-gitops
     
-    ⭐ 3. 初始化/更新 Chart 依賴包
+    3. 初始化/更新 Chart 依賴包
     make helm-chart-build
     
-    ⭐ 4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
+    4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
     # 切換環境: 透過 appset/*/app.ymal 調整環境 (註解)
     make root-app ENV=homelab-test
 
@@ -527,7 +527,7 @@ cd infra/docker-compose
 <ul>
 
 ```
-Layer 1 — Infra Provisioning ( Terraform)
+Layer 1 — Infra Provisioning ( Terraform )
 
 Layer 2 — Node Bootstrap ( Ansible )
 
@@ -547,35 +547,7 @@ Layer 2 — Node Bootstrap ( Ansible )
 
 
 <details>
-<summary><b><i>　IV.　DevOps Flow 實施步驟 </i></b></summary>
-<ul>
-
-```
-Git Push
-  ↓
-GitLab CI
-  ↓
-Build Image
-  ↓
-Push Registry
-  ↓
-Update values.yaml
-  ↓
-ArgoCD Detect Drift
-  ↓
-Sync
-  ↓
-K3s Apply
-  ↓
-Pod Service Running
-```
-
-</ul>
-</details>
-
-
-<details>
-<summary><b><i>　V.　重新校正 ingress-nginx 位置 </i></b></summary>
+<summary><b><i>　IV.　重新校正 ingress-nginx 位置 </i></b></summary>
 <ul>
 
 ```
@@ -721,7 +693,7 @@ kubectl get deploy ingress-nginx-controller \
 
 
 <details>
-<summary><b><i>　VI.　建立 Applications </i></b></summary>
+<summary><b><i>　V.　建立 Applications </i></b></summary>
 <ul>
 
 ```
@@ -881,7 +853,7 @@ tempo-homelab-test              tempo                                   nginx   
 
 
 <details open>
-<summary><b><i>　VII.　管理 K8s GitOps 優先級問題 </i></b></summary>
+<summary><b><i>　VI.　管理 K8s GitOps 優先級問題 </i></b></summary>
 <ul>
 
 ```
@@ -983,54 +955,104 @@ $ make k-top
 
 ================== [ 叢集硬體算力消耗狀態 ] ==================
 NAME           CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
-k3s-master-0   162m         8%       1153Mi          58%
-k3s-master-1   114m         5%       1067Mi          54%
-k3s-master-2   147m         7%       1039Mi          52%
-k3s-agent-2    51m          1%       476Mi           8%
-k3s-agent-0    46m          1%       474Mi           8%
-k3s-agent-1    45m          1%       461Mi           7%
+k3s-agent-0    134m         3%       1266Mi          21%
+k3s-agent-1    117m         2%       1157Mi          19%
+k3s-agent-2    210m         5%       1732Mi          29%
+k3s-master-0   266m         13%      1554Mi          79%
+k3s-master-1   233m         11%      1548Mi          78%
+k3s-master-2   244m         12%      1431Mi          72%
 
 ------
 
 $ kubectl get pod -A -o wide | grep "master"
-argocd           argocd-notifications-controller-74fc7549b4-zwcwr    1/1     Running   0          5m4s    10.42.2.2   k3s-master-1   <none>           <none>
-kube-system      coredns-8db54c48d-9lh7h                             1/1     Running   0          108m    10.42.0.2   k3s-master-0   <none>           <none>
-kube-system      local-path-provisioner-5d9d9885bc-4q8rz             1/1     Running   0          108m    10.42.0.4   k3s-master-0   <none>           <none>
-kube-system      metrics-server-786d997795-69vpd                     1/1     Running   0          108m    10.42.0.3   k3s-master-0   <none>           <none>
+argocd                          argocd-applicationset-controller-695bcdb688-62tbm                 1/1     Running   0             34m     10.42.1.2    k3s-master-1   <none>           <none>
+kube-system                     coredns-8db54c48d-brt4d                                           1/1     Running   0             40m     10.42.0.3    k3s-master-0   <none>           <none>
+kube-system                     local-path-provisioner-5d9d9885bc-66whf                           1/1     Running   0             40m     10.42.0.4    k3s-master-0   <none>           <none>
+kube-system                     metrics-server-786d997795-bc5qh                                   1/1     Running   0             40m     10.42.0.2    k3s-master-0   <none>           <none>
+kube-system                     svclb-portainer-agent-6ba52cc8-689ln                              1/1     Running   0             3m39s   10.42.3.8    k3s-master-2   <none>           <none>
+kube-system                     svclb-portainer-agent-6ba52cc8-8bh4n                              1/1     Running   0             3m39s   10.42.1.7    k3s-master-1   <none>           <none>
+kube-system                     svclb-portainer-agent-6ba52cc8-d6jj6                              1/1     Running   0             3m39s   10.42.0.8    k3s-master-0   <none>           <none>
+loki-homelab-test               loki-canary-8676d                                                 1/1     Running   0             23m     10.42.1.5    k3s-master-1   <none>           <none>
+loki-homelab-test               loki-canary-rt5t9                                                 1/1     Running   0             23m     10.42.0.6    k3s-master-0   <none>           <none>
+loki-homelab-test               loki-canary-zn2rz                                                 1/1     Running   0             22m     10.42.3.5    k3s-master-2   <none>           <none>
+loki-homelab-test               loki-gateway-6d5fc56d7-bxvq5                                      1/1     Running   0             22m     10.42.3.6    k3s-master-2   <none>           <none>
+loki-homelab-test               loki-homelab-test-logs-6qjxq                                      2/2     Running   0             22m     10.42.1.6    k3s-master-1   <none>           <none>
+loki-homelab-test               loki-homelab-test-logs-h2wqt                                      2/2     Running   0             22m     10.42.3.7    k3s-master-2   <none>           <none>
+loki-homelab-test               loki-homelab-test-logs-wmgc2                                      2/2     Running   0             22m     10.42.0.7    k3s-master-0   <none>           <none>
+prometheus-stack-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-8rlnm      1/1     Running   0             33m     10.88.0.10   k3s-master-0   <none>           <none>
+prometheus-stack-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-bf5s7      1/1     Running   0             33m     10.88.0.11   k3s-master-1   <none>           <none>
+prometheus-stack-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-tlnwk      1/1     Running   1 (22m ago)   33m     10.88.0.12   k3s-master-2   <none>           <none>
+promtail-homelab-test           promtail-homelab-test-5grsh                                       1/1     Running   0             32m     10.42.1.4    k3s-master-1   <none>           <none>
+promtail-homelab-test           promtail-homelab-test-bqt59                                       1/1     Running   0             32m     10.42.0.5    k3s-master-0   <none>           <none>
+promtail-homelab-test           promtail-homelab-test-wqt5l                                       1/1     Running   0             32m     10.42.3.4    k3s-master-2   <none>           <none>
+tempo-homelab-test              tempo-homelab-test-querier-84bbb4689d-dmz2x                       1/1     Running   0             33m     10.42.1.3    k3s-master-1   <none>           <none>       <none>
 
 $ kubectl get pod -A -o wide | grep "agent"
-argocd           argocd-application-controller-0                     1/1     Running   0          5m14s   10.42.4.4   k3s-agent-2    <none>           <none>
-argocd           argocd-applicationset-controller-695bcdb688-xtr62   1/1     Running   0          5m15s   10.42.4.3   k3s-agent-2    <none>           <none>
-argocd           argocd-redis-788b7d567b-tjq9m                       1/1     Running   0          5m15s   10.42.3.5   k3s-agent-0    <none>           <none>
-argocd           argocd-repo-server-775957db78-zslwm                 1/1     Running   0          5m15s   10.42.5.3   k3s-agent-1    <none>           <none>
-argocd           argocd-server-86b8cb666-hz9z6                       1/1     Running   0          5m15s   10.42.3.6   k3s-agent-0    <none>           <none>
-cert-manager     cert-manager-7857c97778-jzbml                       1/1     Running   0          2m52s   10.42.5.4   k3s-agent-1    <none>           <none>
-cert-manager     cert-manager-cainjector-567c6b47ff-b6lln            1/1     Running   0          6m11s   10.42.4.2   k3s-agent-2    <none>           <none>
-cert-manager     cert-manager-webhook-7cc5c588cb-v7c2d               1/1     Running   0          6m11s   10.42.5.2   k3s-agent-1    <none>           <none>
-sealed-secrets   sealed-secrets-controller-674596f4bf-xbrdz          1/1     Running   0          2m49s   10.42.5.5   k3s-agent-1    <none>           <none>
+argocd                          argocd-application-controller-0                                   1/1     Running   0             22m     10.42.6.13   k3s-agent-0    <none>           <none>
+argocd                          argocd-notifications-controller-74fc7549b4-jvgpg                  1/1     Running   0             34m     10.42.6.4    k3s-agent-0    <none>           <none>
+argocd                          argocd-redis-788b7d567b-7knnp                                     1/1     Running   0             34m     10.42.5.3    k3s-agent-2    <none>           <none>
+argocd                          argocd-repo-server-775957db78-x7b2z                               1/1     Running   0             34m     10.42.4.5    k3s-agent-1    <none>           <none>
+argocd                          argocd-server-86b8cb666-nncfg                                     1/1     Running   0             34m     10.42.6.5    k3s-agent-0    <none>           <none>
+cert-manager                    cert-manager-7857c97778-rfhb4                                     1/1     Running   0             35m     10.42.4.3    k3s-agent-1    <none>           <none>
+cert-manager                    cert-manager-cainjector-567c6b47ff-h9tzf                          1/1     Running   0             35m     10.42.5.2    k3s-agent-2    <none>           <none>
+cert-manager                    cert-manager-webhook-7cc5c588cb-8plmw                             1/1     Running   0             35m     10.42.4.2    k3s-agent-1    <none>           <none>
+grafana-homelab-test            grafana-homelab-test-76bdf55cfc-djdbg                             1/1     Running   1 (29m ago)   30m     10.42.4.10   k3s-agent-1    <none>           <none>
+ingress-nginx-homelab-test      ingress-nginx-homelab-test-controller-7c4588f8fc-qvm2j            1/1     Running   0             22m     10.88.0.20   k3s-agent-0    <none>           <none>
+kube-system                     svclb-portainer-agent-6ba52cc8-689ln                              1/1     Running   0             3m56s   10.42.3.8    k3s-master-2   <none>           <none>
+kube-system                     svclb-portainer-agent-6ba52cc8-8bh4n                              1/1     Running   0             3m56s   10.42.1.7    k3s-master-1   <none>           <none>
+kube-system                     svclb-portainer-agent-6ba52cc8-d6jj6                              1/1     Running   0             3m56s   10.42.0.8    k3s-master-0   <none>           <none>
+kube-system                     svclb-portainer-agent-6ba52cc8-llwsk                              1/1     Running   0             3m56s   10.42.4.16   k3s-agent-1    <none>           <none>
+kube-system                     svclb-portainer-agent-6ba52cc8-qbcrg                              1/1     Running   0             3m56s   10.42.6.17   k3s-agent-0    <none>           <none>
+kube-system                     svclb-portainer-agent-6ba52cc8-rm9ph                              1/1     Running   0             3m56s   10.42.5.16   k3s-agent-2    <none>           <none>
+loki-homelab-test               loki-canary-9vjp9                                                 1/1     Running   0             23m     10.42.6.12   k3s-agent-0    <none>           <none>
+loki-homelab-test               loki-canary-fbdkh                                                 1/1     Running   0             23m     10.42.4.11   k3s-agent-1    <none>           <none>
+loki-homelab-test               loki-canary-xnc5s                                                 1/1     Running   0             23m     10.42.5.12   k3s-agent-2    <none>           <none>
+loki-homelab-test               loki-homelab-test-0                                               1/1     Running   0             22m     10.42.5.14   k3s-agent-2    <none>           <none>
+loki-homelab-test               loki-homelab-test-grafana-agent-operator-599f47b676-ccw9m         1/1     Running   0             23m     10.42.4.12   k3s-agent-1    <none>           <none>
+loki-homelab-test               loki-homelab-test-logs-8l7vd                                      2/2     Running   0             22m     10.42.5.15   k3s-agent-2    <none>           <none>
+loki-homelab-test               loki-homelab-test-logs-k985l                                      2/2     Running   0             22m     10.42.4.13   k3s-agent-1    <none>           <none>
+loki-homelab-test               loki-homelab-test-logs-tnt29                                      2/2     Running   0             22m     10.42.6.14   k3s-agent-0    <none>           <none>
+portainer                       portainer-agent-95fb8c48b-h5d27                                   1/1     Running   0             3m56s   10.42.4.17   k3s-agent-1    <none>           <none>
+postgresql-homelab-test         postgresql-homelab-test-0                                         1/1     Running   0             33m     10.42.5.6    k3s-agent-2    <none>           <none>
+prometheus-stack-homelab-test   alertmanager-prometheus-stack-homelab-t-alertmanager-0            2/2     Running   0             32m     10.42.5.9    k3s-agent-2    <none>           <none>
+prometheus-stack-homelab-test   prometheus-prometheus-stack-homelab-t-prometheus-0                2/2     Running   0             32m     10.42.5.10   k3s-agent-2    <none>           <none>
+prometheus-stack-homelab-test   prometheus-stack-homelab-t-operator-6d64d57745-pqrz7              1/1     Running   0             33m     10.42.6.8    k3s-agent-0    <none>           <none>
+prometheus-stack-homelab-test   prometheus-stack-homelab-test-kube-state-metrics-6db996d4dz77dz   1/1     Running   0             33m     10.42.4.8    k3s-agent-1    <none>           <none>
+prometheus-stack-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-5ntwn      1/1     Running   0             33m     10.88.0.20   k3s-agent-0    <none>           <none>
+prometheus-stack-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-8hhmk      1/1     Running   0             33m     10.88.0.22   k3s-agent-2    <none>           <none>
+prometheus-stack-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-q8x7z      1/1     Running   0             33m     10.88.0.21   k3s-agent-1    <none>           <none>
+promtail-homelab-test           promtail-homelab-test-cfr8l                                       1/1     Running   0             32m     10.42.5.11   k3s-agent-2    <none>           <none>
+promtail-homelab-test           promtail-homelab-test-ldh6c                                       1/1     Running   0             32m     10.42.4.9    k3s-agent-1    <none>           <none>
+promtail-homelab-test           promtail-homelab-test-rplhr                                       1/1     Running   0             32m     10.42.6.9    k3s-agent-0    <none>           <none>
+sealed-secrets                  sealed-secrets-controller-674596f4bf-r4zfj                        1/1     Running   0             35m     10.42.4.4    k3s-agent-1    <none>           <none>
+tempo-homelab-test              tempo-homelab-test-compactor-5cc476bcb9-xxwkn                     1/1     Running   0             33m     10.42.6.6    k3s-agent-0    <none>           <none>
+tempo-homelab-test              tempo-homelab-test-distributor-5f4998dcfc-hzsx9                   1/1     Running   0             24m     10.42.6.10   k3s-agent-0    <none>           <none>
+tempo-homelab-test              tempo-homelab-test-ingester-0                                     1/1     Running   0             33m     10.42.5.5    k3s-agent-2    <none>           <none>
+tempo-homelab-test              tempo-homelab-test-memcached-0                                    1/1     Running   0             33m     10.42.6.7    k3s-agent-0    <none>           <none>
+tempo-homelab-test              tempo-homelab-test-query-frontend-88759c5fc-4pkrr                 1/1     Running   0             33m     10.42.4.6    k3s-agent-1    <none>           <none>        <none>
 
 ------
 
 $ kubectl get appproject -A
 NAMESPACE   NAME            AGE
-argocd      databases       77m
-argocd      default         80m
-argocd      observability   77m
-argocd      pg-apps         77m
-argocd      platform        77m
-argocd      security        77m
-argocd      storage         77m
+argocd      databases       34m
+argocd      default         35m
+argocd      observability   34m
+argocd      pg-apps         34m
+argocd      platform        34m
+argocd      security        34m
+argocd      storage         34m
 
 
 $ kubectl get appset -A
 NAMESPACE   NAME                   AGE
-argocd      grafana-appset            77m
-argocd      ingress-nginx-appset      77m
-argocd      loki-appset               77m
-argocd      postgresql-appset         77m
-argocd      prometheus-stack-appset   77m
-argocd      promtail-appset           77m
-argocd      tempo-appset              77m
+argocd      grafana-appset            34m
+argocd      ingress-nginx-appset      34m
+argocd      loki-appset               34m
+argocd      postgresql-appset         34m
+argocd      prometheus-stack-appset   34m
+argocd      promtail-appset           34m
+argocd      tempo-appset              34m
 
 
 $ kubectl get app -A
