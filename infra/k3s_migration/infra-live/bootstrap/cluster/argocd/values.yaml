@@ -1,39 +1,43 @@
 global:
   domain: argocd.local
 
+nodeSelector:
+  workload-class: stateless
+  traffic-zone: internal-only
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: workload-class
+              operator: In
+              values:
+                - stateless
+            - key: traffic-zone
+              operator: In
+              values:
+                - internal-only
+
 configs:
   params:
     server.insecure: true
 
 server:
   replicas: 1
-
   service:
     type: ClusterIP
-
   ingress:
     enabled: false
-
   resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-
-    limits:
-      cpu: 500m
-      memory: 512Mi
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: 500m, memory: 512Mi }
 
 repoServer:
   replicas: 1
-
   resources:
-    requests:
-      cpu: 100m
-      memory: 256Mi
-
-    limits:
-      cpu: 500m
-      memory: 512Mi
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: 500m, memory: 512Mi }
 
 applicationSet:
   replicas: 1

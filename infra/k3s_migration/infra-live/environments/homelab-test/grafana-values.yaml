@@ -22,13 +22,13 @@ grafana:
         - name: Prometheus
           type: prometheus
           access: proxy
-          url: http://prometheus-stack-homelab-t-prometheus.prometheus-stack-{{ .Values.namespaceOverride | default .Release.Namespace }}.svc.cluster.local:9090
+          url: http://prometheus-stack-homelab-t-prometheus.prometheus-stack-homelab-test.svc.cluster.local:9090
           isDefault: true
 
         - name: Loki
           type: loki
           access: proxy
-          url: http://loki-{{ .Values.namespaceOverride | default .Release.Namespace }}.loki.svc.cluster.local:3100
+          url: http://loki-homelab-test.loki.svc.cluster.local:3100
           # 明確指定內部讀取路徑的 API 根節點，繞過 Loki 5.x 讀取節點對根路徑的拒絕
           jsonData:
             httpHeaderName1: "X-Scope-OrgID"
@@ -40,7 +40,7 @@ grafana:
         - name: Tempo
           type: tempo
           access: proxy
-          url: http://tempo-{{ .Values.namespaceOverride | default .Release.Namespace }}-query-frontend.tempo.svc.cluster.local:3100
+          url: http://tempo-homelab-test-query-frontend.tempo.svc.cluster.local:3100
           jsonData:
             # 同步防禦 Loki 相同的 401 / no org id 潛在多租戶隔離限制
             httpHeaderName1: "X-Scope-OrgID"

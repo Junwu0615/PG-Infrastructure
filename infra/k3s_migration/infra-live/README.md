@@ -773,11 +773,9 @@ kubectl get deploy ingress-nginx-controller \
 
 
 DEBUG
-    * 輸出 values 範例 ( grafana/loki --version 5.47.2 )
-    helm show values grafana/loki --version 5.47.2 > official-values.yaml
-        
-    * 檢視內部參數方式 (prometheus-27.39.0.tgz)
-    helm show values charts/prometheus-27.39.0.tgz > values-reference.yaml
+    * 輸出 values 範例 => 檢視內部參數方式
+    helm show values charts/observability/prometheus/charts/prometheus-27.39.0.tgz > official-values.yaml
+    helm show values charts/observability/loki/charts/loki > official-values.yaml
     
     * [ 部分應用渲染需要帶 values 驗證 否則直接報錯 ] helm 渲染 ( 渲染後的 output.yaml 可用來檢視實際部署內容 )
         # 帶參數

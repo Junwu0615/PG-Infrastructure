@@ -273,7 +273,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
 | **PostgreSQL** | Metadata DB for `Airflow` | [5433](http://127.0.0.1:5433) | △ | O |
 | **PgAdmin** | PostgreSQL Web Management UI | [5050](http://127.0.0.1:5050) | X | X |
 | **Apache Airflow** | `OLAP` Workflow Orchestration | [8100](http://127.0.0.1:8100) | * | O |
-| **Superset** | `OLAP` BI Visualization Dashboard | `TBD` | * | O |
+| **Superset** | `OLAP` BI Visualization Dashboard | `TBD` | * | X |
 
 </ul>
 </details>
@@ -339,7 +339,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
 |--:|:--|:--:|:--:|:--:|
 | **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | * | O |
 | **Jenkins** | `Continuous Delivery` | X | X | X |
-| **ArgoCD** | `Continuous Delivery`<br>`Deployment Controller` | X | [8080](http://argo-cd.k8s.local:8080) | O |
+| **ArgoCD** | `Continuous Delivery`<br>`Deployment Controller` | X | [8080](http://argo-cd.k8s.local:8080) | O/X |
 | **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | [8080](http://docker-registry.k8s.local:8080) | O |
 | **Docker Registry UI** | for `Docker Registry` | X | X | X |
 | **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | △ | X |
