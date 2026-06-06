@@ -185,6 +185,12 @@ kubectl get namespaces
     * 取得該域名底下所有套用的資源
     kubectl get all -n ingress-nginx
 
+# 確認 憑證 狀態
+kubectl get certificate
+
+# 確認 webhook 狀態 ( 可能會影響 ArgoCD 的藍圖同步 )
+kubectl get validatingwebhookconfigurations
+
 # 確認 appproject 狀態 ( ArgoCD 定義的專案 )
 kubectl get appproject -n argocd
 

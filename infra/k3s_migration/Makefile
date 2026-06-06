@@ -83,16 +83,52 @@ $(CHART_DIRS):
 	fi
 
 root-app:
-	@echo "🚀 開始同步 GitOps 根應用 ..."
-	kubectl apply -f "$(ROOT_APP_DIR)"
-	kubectl patch application homelab-root -n argocd --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","ServerSideApply=true","PruneLast=true"]}}}' 2>/dev/null || true
+	@echo "🚀 開始同步 GitOps 根應用 (root-app) ..."
+	@#echo "🧹 正在動態安全掃描並清理基礎設施過渡期 Webhook ..."
+	@#kubectl delete validatingwebhookconfigurations \
+#		$$(kubectl get validatingwebhookconfigurations -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E 'nginx|prometheus') \
+#		--ignore-not-found 2>/dev/null || true
+
+	@echo "🔍 正在檢查基礎設施 Webhook 安全防禦狀態..."
+	@#if kubectl get validatingwebhookconfigurations ingress-nginx-homelab-test-admission >/dev/null 2>&1; then \
+#		CABUNDLE=$$(kubectl get validatingwebhookconfigurations ingress-nginx-homelab-test-admission -o jsonpath='{.webhooks[0].clientConfig.caBundle}' 2>/dev/null); \
+#		if [ -z "$$CABUNDLE" ]; then \
+#			echo "⚠️ 偵測到 Nginx Webhook 處於憑證空白空窗期（會引發 x509 報錯）！"; \
+#			echo "🧹 主動清除過渡期空殼 Webhook，確保 ArgoCD 順暢通行..."; \
+#			kubectl delete validatingwebhookconfigurations \
+#				$$(kubectl get validatingwebhookconfigurations -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E 'nginx|prometheus') \
+#				--ignore-not-found 2>/dev/null || true; \
+#		else \
+#			echo "✅ Nginx Webhook 憑證 (caBundle) 已就緒，跳過清理流程。"; \
+#		fi \
+#	fi
+
+	@if kubectl get validatingwebhookconfigurations ingress-nginx-homelab-test-admission >/dev/null 2>&1; then \
+		CABUNDLE=$$(kubectl get validatingwebhookconfigurations ingress-nginx-homelab-test-admission -o jsonpath='{.webhooks[0].clientConfig.caBundle}' 2>/dev/null); \
+		if [ -z "$$CABUNDLE" ]; then \
+			echo "⚠️ 偵測到 Nginx Webhook 憑證空白！ 主動清除過渡期空殼（會引發 x509 報錯）"; \
+			echo "1. 主動清除過渡期空殼 Webhook，確保 ArgoCD 順暢通行 ..."; \
+			kubectl delete validatingwebhookconfigurations \
+				$$(kubectl get validatingwebhookconfigurations -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E 'nginx|prometheus') \
+				--ignore-not-found 2>/dev/null || true; \
+			echo "2. 強制重新觸發 Helm 自帶的憑證生成 Job ..."; \
+			kubectl -n ingress-nginx-homelab-test create job --from=cronjob/ingress-nginx-homelab-test-admission-patch admission-patch-manual-$$(date +%s) 2>/dev/null || \
+			kubectl get pods -n ingress-nginx-homelab-test -l app.kubernetes.io/component=admission-webhook -o name | xargs kubectl delete 2>/dev/null || true; \
+		else \
+			echo "✅ Nginx Webhook 憑證 (caBundle) 已就緒，跳過清理流程。"; \
+		fi \
+	fi
+
+	@echo "📦 正在套用根入口宣告並開啟自動剪枝 ..."
+	@kubectl apply -f "$(ROOT_APP_DIR)"
+	@kubectl patch application homelab-root -n argocd --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","ServerSideApply=true","PruneLast=true"]}}}' 2>/dev/null || true
 
 	# refresh=hard 能強制 Argo CD 丟棄 Git 快取，重新解析 Kustomization 的註解開關
 	@echo "🔄 強制 Argo CD 丟棄快取並精準對齊 (Hard Refresh) ..."
-	kubectl annotate application homelab-root -n argocd argocd.argoproj.io/refresh=hard --overwrite
+	@kubectl annotate application homelab-root -n argocd argocd.argoproj.io/refresh=hard --overwrite
 
-	@echo "⏳ 正在執行同步與舊資源剪枝 (Prune)，請稍候 ..."
-	kubectl wait --for=jsonpath='{.status.sync.status}'=Synced application/homelab-root -n argocd --timeout=90s || true
+	@echo "⏳ 正在執行同步與舊資源剪枝 (Prune) 請稍候 ..."
+	@kubectl wait --for=jsonpath='{.status.sync.status}'=Synced application/homelab-root -n argocd --timeout=90s || true
 
 	@echo "✅ <make root-app> done."
 

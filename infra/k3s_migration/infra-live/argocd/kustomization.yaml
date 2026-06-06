@@ -7,7 +7,7 @@ resources:
   - applications/observability/loki-appset.yaml
   - applications/observability/prometheus-stack-appset.yaml
   - applications/observability/promtail-appset.yaml
-#  - applications/observability/tempo-appset.yaml
+  - applications/observability/tempo-appset.yaml
 #  - applications/pg-apps/cp-appset.yaml
 #  - applications/pg-apps/inst-appset.yaml
   - applications/platform/ingress-nginx-appset.yaml

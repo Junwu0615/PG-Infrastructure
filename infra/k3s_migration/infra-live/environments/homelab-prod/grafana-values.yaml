@@ -1,5 +1,5 @@
 grafana:
-  namespaceOverride: "homelab-prod"
+  namespaceOverride: "grafana-homelab-prod"
 
   replicas: 2
   adminPassword: prod-password

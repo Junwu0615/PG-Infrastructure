@@ -1,5 +1,5 @@
 grafana:
-  namespaceOverride: "homelab-stage"
+  namespaceOverride: "grafana-homelab-stage"
 
   replicas: 1
   adminPassword: stage-password

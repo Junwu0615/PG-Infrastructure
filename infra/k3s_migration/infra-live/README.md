@@ -302,26 +302,26 @@ cd infra/docker-compose
 
 
 # ✅ 啟動 K3s Cluster
-    1. 手動初始化 bootstrap
-    make init-gitops
-    
-    ⭐ 2. 初始化/更新 Chart 依賴包
-    make helm-chart-build
-    
-    ⭐ 3. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
-    # 切換環境: 透過 appset/*/app.ymal 調整環境 (註解)
-    make root-app
-    
-    4. 初始化/更新 標籤設定 ( 親合/反親合 )
+    1. 初始化/更新 標籤設定 ( 親合/反親合 )
     make label-nodes
     
-    * 檢視 Secrets 明文 ( ex: homelab-test )
-    make init-secrets ENV=homelab-test
+    2. 手動初始化 bootstrap
+    make init-gitops
+    
+    ⭐ 3. 初始化/更新 Chart 依賴包
+    make helm-chart-build
+    
+    ⭐ 4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
+    # 切換環境: 透過 appset/*/app.ymal 調整環境 (註解)
+    make root-app
 
 
 # 其他
     * 啟動 ingress-nginx => 已將其加入正式定義 無須用此方式
     make upgrade-ingress
+    
+    * 檢視 Secrets 明文 ( ex: homelab-test )
+    make see-secrets ENV=homelab-test
 
     * 更新 k9s 最愛設定
         - 備份原先設定
@@ -727,71 +727,20 @@ kubectl get deploy ingress-nginx-controller \
     git remote add origin \
     http://192.168.0.15:8090/pg/infra-live.git
 
-
-# Applications/Observability
-    # 用 git 推 infra 至 gitlab 來觸法 gitops 更新後續驅動
     git add .
-    git commit -m "feat: add grafana app"
+    git commit -m "feat: update infra-live tree"
     git push
     
-    
-⚠️ 確認 argocd 狀態: kubectl get applications -n argocd -w
-NAME                SYNC STATUS   HEALTH STATUS
-grafana             Unknown       Healthy
-homelab-root        Synced        Healthy
-homelab-test-root   OutOfSync     Healthy
-observability       Synced        Healthy
-pg-apps             Unknown       Unknown
-platform            Unknown       Unknown
-security            Unknown       Unknown
-
-    # 檢視 argocd 細節 (homelab-root)
-    kubectl describe application homelab-root -n argocd
-    kubectl describe application homelab-test-root -n argocd
-    kubectl describe application observability -n argocd
-    kubectl describe application grafana -n argocd
-    
-    # 懶人更新
-    make init-gitops
-    
-    # 檢查 repo 是否已註冊
-    kubectl get secrets -n argocd
-    
-    # 強制刷快取問題
-    kubectl annotate application grafana \
-        -n argocd \
-        argocd.argoproj.io/refresh=hard --overwrite
-    
-    # 確認是否新增 ingress: kubectl get ingress -A
-    NAMESPACE   NAME            CLASS   HOSTS               ADDRESS                            PORTS   AGE
-    argocd      argocd-server   nginx   argo-cd.k8s.local   10.88.0.20,10.88.0.21,10.88.0.22   80      25h
-    grafana     grafana         nginx   grafana.k8s.local   10.88.0.20,10.88.0.21,10.88.0.22   80      29s
-     
-    # 測試是否連通
-    curl -v -H "Host: grafana.k8s.local" http://10.88.0.20:30547
-    curl -v -H "Host: argo-cd.k8s.local" http://10.88.0.20:30547
-    
-    * 移除初始點 ( 移除 homelab-root  )
-    kubectl delete application homelab-root -n argocd
-    
-    NAME                SYNC STATUS   HEALTH STATUS
-    grafana             Unknown       Healthy
-    homelab-test-root   OutOfSync     Healthy
-    observability       Synced        Healthy
-    pg-apps             Unknown       Unknown
-    platform            Unknown       Unknown
-    security            Unknown       Unknown
-    
 ------
+
 ⚠️ Helm Wrapper Chart ( Helm-first GitOps )
-   # 依賴 Helm 依賴包 不全部自己維護
 
     ArgoCD
         ↓
-    Helm Chart
+    Helm Chart # 依賴 Helm 依賴包 不全部自己維護
         ↓
     values/values.yaml
-    
+
 
 初始化 Chart 依賴包 ( ./charts )    
     # 手動 ( 在 App 根目錄執行  )
@@ -961,7 +910,7 @@ Level 4. 集群環境層級 => 刪除業務 Namespace
         kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n <namespace>
     
         * 暴力強制移除法（直接抹除該 Namespace 的 Finalizers 阻擋）
-        kubectl get ns <namespace> -o json | jq '.spec.finalizers = []' | kubectl replace --raw /api/v1/namespaces/<namespace>/finalize -f -
+        kubectl get ns <namespace> -o json | jq '.spec.finalizers = []' | kubectl replace --raw "/api/v1/namespaces/<namespace>/finalize" -f -
     
     2. 刪除 namespace ( 連同內部資源一起刪除 )
     kubectl delete namespace <namespace>
@@ -985,7 +934,10 @@ Level 5. 基礎設施層級 => 卸載 ArgoCD 叢集全面大洗地
         # 利用 Namespace 級聯特性蒸發所有 cm, secret, pvc, ingress 全都會陪葬
         kubectl delete ns $(kubectl get ns -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -vE '^(kube-system|kube-public|kube-node-lease|default)$') --force --grace-period=0
     
-    Step 3. 清理全域殘留（掃除殘留的 Cluster 級別資源）
+    Step 3. 清理全域殘留
+        # 針對所有非原生 CRD 結構
+        kubectl delete crd $(kubectl get crd -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -vE '(\.k8s\.io|\.kubernetes\.io|\.k3s\.io|local-path)') --force --grace-period=0 2>/dev/null || true
+        
         # 針對全叢集，只要是帶有 Helm 標籤的殘留全域物件，一律強制超渡
         kubectl delete all,configmaps,secrets,ingresses,clusterroles,clusterrolebindings -A -l "app.kubernetes.io/managed-by=Helm" --force --grace-period=0
     
@@ -1032,36 +984,36 @@ K3s Cluster: 3 Nodes ( 1 Master + 2 Worker )
 
 $ kubectl get appproject -A
 NAMESPACE   NAME            AGE
-argocd      databases       35h
-argocd      default         35h
-argocd      observability   35h
-argocd      pg-apps         35h
-argocd      platform        35h
-argocd      security        35h
-argocd      storage         13h
+argocd      databases       5m24s
+argocd      default         8m48s
+argocd      observability   5m24s
+argocd      pg-apps         5m24s
+argocd      platform        5m24s
+argocd      security        5m24s
+argocd      storage         5m24s
+
+
+$ kubectl get appset -A
+NAMESPACE   NAME                   AGE
+argocd      grafana-appset            6m12s
+argocd      ingress-nginx-appset      12m
+argocd      loki-appset               6m12s
+argocd      postgresql-appset         12m
+argocd      prometheus-stack-appset   6m12s
+argocd      promtail-appset           6m12s
+argocd      tempo-appset              6m12s
 
 
 $ kubectl get app -A
 NAMESPACE   NAME                            SYNC STATUS   HEALTH STATUS
-argocd      grafana-homelab-test            Synced        Healthy
+argocd      grafana-homelab-test            OutOfSync     Healthy
 argocd      homelab-root                    Synced        Healthy
 argocd      ingress-nginx-homelab-test      Synced        Healthy
 argocd      loki-homelab-test               Synced        Healthy
 argocd      postgresql-homelab-test         Synced        Healthy
 argocd      prometheus-stack-homelab-test   Unknown       Healthy
-argocd      promtail-homelab-test           Synced        Healthy
+argocd      promtail-homelab-test           Synced        Progressing
 argocd      tempo-homelab-test              Synced        Healthy
-
-
-$ kubectl get appset -A
-NAMESPACE   NAME                   AGE
-argocd      grafana-appset            13h
-argocd      ingress-nginx-appset      14h
-argocd      loki-appset               13h
-argocd      postgresql-appset         14h
-argocd      prometheus-stack-appset   13h
-argocd      promtail-appset           13h
-argocd      tempo-appset              13h
 ```
 
 <br>
