@@ -83,8 +83,18 @@ $(CHART_DIRS):
 	fi
 
 root-app:
-	kubectl apply -f "${ROOT_APP_DIR}"
-	@echo "✅  <make apply_root> done."
+	@echo "🚀 開始同步 GitOps 根應用 ..."
+	kubectl apply -f "$(ROOT_APP_DIR)"
+	kubectl patch application homelab-root -n argocd --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","ServerSideApply=true","PruneLast=true"]}}}' 2>/dev/null || true
+
+	# refresh=hard 能強制 Argo CD 丟棄 Git 快取，重新解析 Kustomization 的註解開關
+	@echo "🔄 強制 Argo CD 丟棄快取並精準對齊 (Hard Refresh) ..."
+	kubectl annotate application homelab-root -n argocd argocd.argoproj.io/refresh=hard --overwrite
+
+	@echo "⏳ 正在執行同步與舊資源剪枝 (Prune)，請稍候 ..."
+	kubectl wait --for=jsonpath='{.status.sync.status}'=Synced application/homelab-root -n argocd --timeout=90s || true
+
+	@echo "✅ <make root-app> done."
 
 upgrade-ingress:
 	@echo "* 初始化/更新 ingress-nginx"
@@ -118,6 +128,8 @@ see-secrets:
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.password}" | base64 -d && echo && echo
 	@echo "* [5] postgresql-credentials => replication-password"
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.replication-password}" | base64 -d && echo && echo
+	@#echo "* [6] Grafana UI 密碼"
+	#kubectl get secret grafana-$(ENV) -n grafana-$(ENV) -o jsonpath="{.data.adminPassword}" | base64 -d && echo && echo
 	@echo "✅  <make init-secrets> done."
 
 k9s-fav:

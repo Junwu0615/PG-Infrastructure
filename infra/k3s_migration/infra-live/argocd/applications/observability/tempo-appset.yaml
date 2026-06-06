@@ -48,5 +48,5 @@ spec:
           - CreateNamespace=true
           - ServerSideApply=true
           - SkipDryRunOnFields=true
-      #      - Replace=true
-      #      - PruneLast=true
+#          - Replace=true
+#          - PruneLast=true

@@ -11,7 +11,7 @@
         - Application
         - ApplicationSet
     - 遇到 OOM 問題 => 折衷改為 Docker Compose + K3s 混合架構
-    - Helm Values 渲染坑 => search: 逆向渲染大法
+    - Helm Values 渲染坑 => search: 渲染大法
     - 原生服務遷移坑 => 無法由 compose 先行體驗 而是直用 k8s 架起 => 注意力易發散
     - 各類狀況如何 DEBUG
         - configmap 設定檔
@@ -493,7 +493,12 @@ cd infra/docker-compose
     
 * --- Applications: Helm + Values 分離 --- *
 
-    applications/observability/visualization/grafana
+    applications/observability/
+    ├── Kustomize
+    ├── ...
+    └── visualization
+     
+    applications/observability/visualization/grafana/
     ├── charts/    # Helm Wrapper Chart ( Helm-first GitOps )
     ├── values/                     ⚠️ Environment Overlay
     ├── app.yaml   # ArgoCD Application 定義
@@ -714,66 +719,6 @@ kubectl get deploy ingress-nginx-controller \
 <ul>
 
 ```
-# 應用類部署
-    * 手動建立專案
-    kubectl apply -f infra-live/environments/homelab/test/root-app.yaml
-    kubectl apply -f infra-live/environments/homelab/test/databases.yaml
-    
-    ⭐ 強制讓 Argo CD 重新載入該 Application ( root-app.yaml ) # 前置作業要先 push 到 gitlab
-    kubectl annotate application homelab-test-root -n argocd argocd.argoproj.io/refresh=normal --overwrite
-    
-    $ kubectl get appproject -n argocd
-    NAME            AGE
-    databases       3m14s
-    default         5d3h
-    observability   4d3h
-    pg-apps         23s
-    platform        23s
-    security        23s
-
-
-# root-app.yaml 不同層級用途差異
-    # [初始一次] 讓 ArgoCD 開始接管 GitOps
-    bootstrap/cluster/argocd/root-app.yaml
-    
-    # [日常 GitOps 的 root]
-    environments/homelab/test/root-app.yaml
-    environments/homelab/stage/root-app.yaml
-    environments/homelab/prod/root-app.yaml
-    
-# test/root-app.yaml 管理
-    - observability.yaml
-    - platform.yaml
-    - security.yaml
-    - pg-apps.yaml
-    
-Bootstrap Root App
-    ↓
-Environment Root App
-    ↓
-Layer Apps
-    ├── observability
-    ├── platform
-    ├── security
-    └── pg-apps
-    ↓
-Applications (observability)
-    ├── grafana
-    ├── prometheus
-    ├── ...
-    └── loki
-    
-------
-
-# Hybrid Pattern ( Application 內包 Helm )
-
-    Application
-        ↓
-    Kustomize
-        ↓
-    Helm Chart
-
-------
 ⭐ Git Repo = Desired State
 ⭐ ArgoCD = Reconciliation Engine
 
@@ -880,38 +825,38 @@ DEBUG
     helm show values charts/prometheus-27.39.0.tgz > values-reference.yaml
     
     * [ 部分應用渲染需要帶 values 驗證 否則直接報錯 ] helm 渲染 ( 渲染後的 output.yaml 可用來檢視實際部署內容 )
-    helm template . \
-      -f values/common.yaml \
-      -f values/test.yaml > output.yaml
-      
-    * 不帶參數
-    helm template . > output.yaml
+        # 帶參數
+        helm template . \
+          -f values/common.yaml \
+          -f values/test.yaml > output.yaml
+          
+        # 不帶參數
+        helm template . > output.yaml
     
     * 找關鍵字
     [1] cat output.yaml | grep "image: "
     [2] grep "image: " output.yaml
     
-    ⭐ 渲染路徑查找 ( 找搞怪目標: replication_factor )
-        # 單指 output.yaml
-        grep -rn "replication_factor" output.yaml
+    ⭐ 渲染大法
+        * 執行本地渲染 # 帶上所有 values # 無法確實輸出就是初步渲染都失敗
+        helm template . -f values/common.yaml > output.yaml
         
-        # 該目錄開始所有目標
-        grep -rn "replication_factor" .
-    
-        # 解讀方式
-        ex: ./official-values.yaml:1226:        replication_factor: {{ .Values.ingester.config.replication_factor }}
-        Values 檔案中 ingester.config.replication_factor 這個參數會被套用到 Chart 中的 replication_factor 位置
-    
-    ⭐ 逆向渲染大法
-        * 原廠變數精準定位
+        * 產出的實體檔案中尋找該參數，驗證是否成功變更
         grep -rn "目標參數關鍵字" .
+        grep -rn "目標參數關鍵字" output.yaml
         
-        * 沙盒地獄渲染驗證
-        # 1. 執行本地渲染 # 帶上所有 values # 無法確實輸出就是初步渲染都失敗
-        helm template . -f values/common.yaml -f values/test.yaml > output.yaml
+        ⭐ 一定要產出設定檔 => 更準 ( set + grep )
         
-        # 2. 直接在產出的實體檔案中尋找該參數，驗證是否成功變更
-        grep -n "目標參數關鍵字" output.yaml
+        ex: tempo
+        helm template . -f values/common.yaml --set namespaceOverride=homelab-test > output.yaml
+        grep -rn "homelab" output.yaml
+        
+        ex: grafana (退到根目錄 因為無法倒退路徑)
+        [X] helm template . -f values/common.yaml -f ../../../../environments/homelab-test/grafana-values.yaml --set namespaceOverride=homelab-test > output.yaml
+        [O] 
+            helm template charts/observability/grafana -f charts/observability/grafana/values/common.yaml -f environments/homelab-test/grafana-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/observability/tempo -f charts/observability/tempo/values/common.yaml -f environments/homelab-test/tempo-values.yaml --set namespaceOverride=homelab-test > output.yaml
+        grep -rn "homelab" output.yaml
         
     
     * 確認 Chart 是否真的載入到 dependency
@@ -931,16 +876,7 @@ DEBUG
         helm template charts/loki -f values/common.yaml
     
 ------
-⭐ 刪除孤兒做法 當 argocd 已消失名單 但 pod 還在 ... ( prometheus )
-1. 先檢查 kubectl get application -n argocd
 
-⚠️ 2. 查所有相關服務 因為前置設定已綁 -n prometheus
-kubectl get all -n prometheus
-
-⚠️ 3. 直接砍域名
-kubectl delete namespace prometheus
-
-------
 Chart 版本號查詢 ( grafana/loki )
 
 dependencies:
@@ -953,7 +889,8 @@ helm repo list
 helm search repo grafana/loki --versions | head -30
 
 ------
-ingress-nginx 建立多個 namespaces 遇到 ValidatingWebhookConfiguration 衝突問題
+
+⚠️ ingress-nginx 建立多個 namespaces 遇到 ValidatingWebhookConfiguration 衝突問題
 
 $ kubectl get ingress -A => 只出現一個
 NAMESPACE   NAME            CLASS   HOSTS               ADDRESS        PORTS   AGE
@@ -980,12 +917,82 @@ tempo-homelab-test              tempo                                   nginx   
 </ul>
 </details>
 
+
+<details>
+<summary><b><i>　VII.　管理 K8s GitOps 優先級問題 </i></b></summary>
+<ul>
+
+```
+⭐ 強制重製: --force --grace-period=0
+
+Level 1. 應用層級 => 日常重啟或強制重製
+    * 優雅作法
+    kubectl rollout restart deployment/<deployment-name> -n <namespace>
+    
+    * 強制作法
+    kubectl delete pod <pod-name> -n <namespace> --force --grace-period=0
+
+
+Level 2. ArgoCD 應用層級 => 安全解除綁定
+    1. 檢查並安全移除 ArgoCD 的級聯刪除保護
+    kubectl patch app -n argocd <app-name> -p '{"metadata":{"finalizers":null}}' --type merge
+    
+    2. 正常刪除 Application
+    kubectl delete -n argocd app <app-name> 
+    
+    3. 若卡死在 Terminating 超過 2 分鐘，才強制抹除
+    kubectl delete -n argocd app <app-name> --force --grace-period=0
+
+
+Level 3. 範本與架構層級 => 刪除 AppSet 與 AppProject
+    1. 先確認關聯的 Application 死透 ( 依賴問題 需先刪除 application )
+    kubectl get app -n argocd
+    
+    2. 刪除控制器範本
+    kubectl delete -n argocd appset <appset-name>
+    
+    3. 刪除專案環境控制（Project 通常沒什麼依賴，可以直接刪除）
+    kubectl delete -n argocd appproject <project-name>
+
+
+Level 4. 集群環境層級 => 刪除業務 Namespace
+    1. 排查 ...
+        * 標準安全排查法： 找出到底是誰卡住 Namespace
+        kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n <namespace>
+    
+        * 暴力強制移除法（直接抹除該 Namespace 的 Finalizers 阻擋）
+        kubectl get ns <namespace> -o json | jq '.spec.finalizers = []' | kubectl replace --raw /api/v1/namespaces/<namespace>/finalize -f -
+    
+    2. 刪除 namespace ( 連同內部資源一起刪除 )
+    kubectl delete namespace <namespace>
+
+
+Level 5. 基礎設施層級 => 卸載 ArgoCD
+    ⚠️ 嚴重警告： 絕對不要使用 kubectl delete namespace argocd --force --grace-period=0
+    
+    ⭐ 唯一正確 ArgoCD 卸載方式： ArgoCD 官方提供的清單進行反向刪除，它會按照精準的拓撲順序，
+       從 Role、CRD 到 Deployment 一步步安全卸載，最後才刪除 namespace
+    kubectl delete -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+
+⚠️ * 查所有相關服務
+kubectl get all -n <namespace>
+
+* 懶人查詢
+kubectl get app,appset,appproject -A
+```
+
+</ul>
+</details>
+
+
 </ul>
 </details>
 
 <br>
 
 ### *D.　遷移狀態確認*
+![PNG](../../../assets/k9s.png)
 ```
 $ watch -d -n 2 free -hw
                total        used        free      shared     buffers       cache   available

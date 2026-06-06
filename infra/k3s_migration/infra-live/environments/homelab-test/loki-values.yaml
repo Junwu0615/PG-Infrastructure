@@ -1,4 +1,6 @@
 loki:
+  namespaceOverride: "homelab-test"
+
   loki:
     # 限制日後寫入速度，防止測試環境壓測時把節點撐爆
     limits_config:

@@ -1,5 +1,8 @@
 tempo-distributed:
+  # 強制覆蓋 Tempo Chart 的 Namespace 拼接邏輯
   namespaceOverride: "tempo-homelab-test"
+  # 有些版本的 Tempo Chart 是用這個欄位，保險起見一起加上：
+  fullnameOverride: "tempo"
 
   ingester:
     replicas: 1
