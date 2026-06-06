@@ -80,8 +80,8 @@ curl -sS https://webinstall.dev/k9s | bash
 # 找系統位置 => (Context Configs: /home/pc/.local/share/k9s/clusters)
 k9s info
 
-# 修改 Namespace 列表 最愛清單 ( 參考 k3s_migration/archive/k9s/k9s-fav.yaml )
-make k9s-fav
+# 修改 Namespace 列表 最愛清單 ( 參考 k3s_migration/archive/k9s/* )
+make k9s-fav ENV=homelab-test
 
 ------
 : ：輸入命令（ 例如 :pod 看 Pod, :node 看節點 ）

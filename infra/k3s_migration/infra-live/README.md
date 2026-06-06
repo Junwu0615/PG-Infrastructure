@@ -11,6 +11,7 @@
         - Application
         - ApplicationSet
     - 遇到 OOM 問題 => 折衷改為 Docker Compose + K3s 混合架構
+    - Argo 同步機制坑 ( CRD / validatingwebhookconfigurations )
     - Helm Values 渲染坑 => search: 渲染大法
     - 原生服務遷移坑 => 無法由 compose 先行體驗 而是直用 k8s 架起 => 注意力易發散
     - 各類狀況如何 DEBUG
@@ -965,9 +966,6 @@ kubectl get app,appset,appproject -A
 ![PNG](../../../assets/k9s.png)
 ```
 $ watch -d -n 2 free -hw
-               total        used        free      shared     buffers       cache   available
-Mem:            31Gi        14Gi        10Gi        61Mi        61Mi       6.1Gi        16Gi
-Swap:          8.0Gi       780Ki       8.0Gi
 
 
 Docker Compose: gitlab + portainer
@@ -984,35 +982,35 @@ K3s Cluster: 3 Nodes ( 1 Master + 2 Worker )
 
 $ kubectl get appproject -A
 NAMESPACE   NAME            AGE
-argocd      databases       5m24s
-argocd      default         8m48s
-argocd      observability   5m24s
-argocd      pg-apps         5m24s
-argocd      platform        5m24s
-argocd      security        5m24s
-argocd      storage         5m24s
+argocd      databases       77m
+argocd      default         80m
+argocd      observability   77m
+argocd      pg-apps         77m
+argocd      platform        77m
+argocd      security        77m
+argocd      storage         77m
 
 
 $ kubectl get appset -A
 NAMESPACE   NAME                   AGE
-argocd      grafana-appset            6m12s
-argocd      ingress-nginx-appset      12m
-argocd      loki-appset               6m12s
-argocd      postgresql-appset         12m
-argocd      prometheus-stack-appset   6m12s
-argocd      promtail-appset           6m12s
-argocd      tempo-appset              6m12s
+argocd      grafana-appset            77m
+argocd      ingress-nginx-appset      77m
+argocd      loki-appset               77m
+argocd      postgresql-appset         77m
+argocd      prometheus-stack-appset   77m
+argocd      promtail-appset           77m
+argocd      tempo-appset              77m
 
 
 $ kubectl get app -A
 NAMESPACE   NAME                            SYNC STATUS   HEALTH STATUS
-argocd      grafana-homelab-test            OutOfSync     Healthy
+argocd      grafana-homelab-test            Synced        Healthy
 argocd      homelab-root                    Synced        Healthy
 argocd      ingress-nginx-homelab-test      Synced        Healthy
 argocd      loki-homelab-test               Synced        Healthy
 argocd      postgresql-homelab-test         Synced        Healthy
-argocd      prometheus-stack-homelab-test   Unknown       Healthy
-argocd      promtail-homelab-test           Synced        Progressing
+argocd      prometheus-stack-homelab-test   Synced        Healthy
+argocd      promtail-homelab-test           Synced        Healthy
 argocd      tempo-homelab-test              Synced        Healthy
 ```
 
