@@ -342,7 +342,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
 | **Jenkins** | `Continuous Delivery` | X | X | X |
 | **ArgoCD** | `Continuous Delivery`<br>`Deployment Controller` | X | [8080](http://argo-cd.k8s.local:8080) | O/X |
 | **Harbor** | Replace `Docker Registry` | X | - | O |
-| **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | [8080](http://docker-registry.k8s.local:8080) | O |
+| **Docker Registry** | `Private Image Repository` | [5100](http://127.0.0.1:5100/v2/_catalog) | [8080](http://docker-registry.k8s.local:8080/v2/_catalog) | O |
 | **Docker Registry UI** | for `Docker Registry` | X | X | X |
 | **Portainer** | `Container Management` UI | [9000](http://127.0.0.1:9000) | △ | X |
 | **HashiCorp Vault** | `KMS` Advanced Secret & Key Management | `TBD` | [8080](http://hashicorp-vault.k8s.local:8080) | O |

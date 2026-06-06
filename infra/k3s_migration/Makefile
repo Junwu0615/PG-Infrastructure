@@ -176,7 +176,8 @@ label-nodes:
 			# 🎯 後半段的 Agent 作為高 I/O 有狀態資料庫專區 \
 			echo "   📍 角色指派 -> [高 I/O 有狀態資料庫區] (Stateful & High-IO)"; \
 			kubectl label nodes $$node workload-class=stateful --overwrite >/dev/null 2>&1; \
-			kubectl label nodes $$node hardware-type=high-io --overwrite >/dev/null 2>&1; \
+#			kubectl label nodes $$node hardware-type=high-io --overwrite >/dev/null 2>&1; \
+			kubectl label nodes $$node hardware-type- --overwrite >/dev/null 2>&1; \
 			kubectl label nodes $$node traffic-zone- --overwrite >/dev/null 2>&1; \
 		fi; \
 		INDEX=$$((INDEX + 1)); \
