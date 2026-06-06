@@ -20,8 +20,13 @@ variable "net_segment_start" {
   default = 20
 }
 
-variable "node_count" {
-  description = "生成節點總數"
+variable "master_count" {
+  description = "生成 Master 節點總數"
+  default = 3
+}
+
+variable "agent_count" {
+  description = "生成 Agent 節點總數"
   default = 3
 }
 
@@ -32,8 +37,12 @@ variable "node_config" {
     vcpu   = number
   }))
   default = {
-    "k3s-node-0" = { memory = 4096, vcpu = 2 }
-    "default"    = { memory = 6144, vcpu = 4 }
+    "default"     = { memory = 2048, vcpu = 2 }
+    "k3s-master-0"= { memory = 2048, vcpu = 2 }
+    "k3s-master-1"= { memory = 2048, vcpu = 2 }
+    "k3s-master-2"= { memory = 2048, vcpu = 2 }
+    "k3s-agent-0" = { memory = 6144, vcpu = 4 }
+    "k3s-agent-1" = { memory = 6144, vcpu = 4 }
+    "k3s-agent-2" = { memory = 6144, vcpu = 4 }
   }
 }
-

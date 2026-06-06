@@ -1,10 +1,12 @@
 # terraform/inventory.tftpl
 
 [masters]
-${master_ip} ansible_user=${user}
+%{ for ip in masters ~}
+${ip} ansible_user=${user}
+%{ endfor ~}
 
 [agents]
-%{ for ip in agent_ips ~}
+%{ for ip in agents ~}
 ${ip} ansible_user=${user}
 %{ endfor ~}
 

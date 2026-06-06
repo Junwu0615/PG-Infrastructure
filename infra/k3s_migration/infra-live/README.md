@@ -318,6 +318,9 @@ cd infra/docker-compose
 
 
 # 其他
+    * 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
+    make k-top
+    
     * 啟動 ingress-nginx => 已將其加入正式定義 無須用此方式
     make upgrade-ingress
     
@@ -967,17 +970,13 @@ kubectl get app,appset,appproject -A
 ```
 $ watch -n 2 -d free -hw
 $ watch -n 2 -d "kubectl top nodes --sort-by=memory"
+$ make k-top
 
-
-Docker Compose: gitlab + portainer
-
-K3s Cluster: 3 Nodes ( 1 Master + 2 Worker )
-    - observability: grafana + prometheus + loki + promtail + tempo
-    - databases:
-    - pg-apps:
-    - platform: argocd
-    - security:
-    - storage:
+================== [ 叢集硬體算力消耗狀態 ] ==================
+NAME         CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
+k3s-node-0   178m         8%       2691Mi          68%
+k3s-node-2   128m         3%       1977Mi          33%
+k3s-node-1   113m         2%       1722Mi          29%
 
 ------
 

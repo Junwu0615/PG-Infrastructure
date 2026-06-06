@@ -10,41 +10,81 @@
         path: /usr/local/bin/k3s
       register: k3s_installed
 
-    - name: Install K3s on First Node ( Only if not present )
+    # 1. 只有 masters 群組裡的第一台機器 (index 0) 負責初始化 cluster-init
+    - name: Initialize K3s Cluster on First Master
       shell: >
         curl -sfL https://get.k3s.io |
         sh -s - server
         --cluster-init
         --disable traefik
 #        --disable servicelb
-      when: not k3s_installed.stat.exists
+      when:
+        - not k3s_installed.stat.exists
+        - inventory_hostname == groups['masters'][0]
 
-    - name: Get Existing Node Token
+    # 2. 獲取第一台 Master 的 Token（供後續所有人使用）
+    - name: Get K3s Token from First Master
       command: cat /var/lib/rancher/k3s/server/node-token
       register: k3s_token
       changed_when: false
+      delegate_to: "{{ groups['masters'][0] }}"
+
+    # 3. 如果有第 2、3 台 Master，以 '--server' 模式加入，而不是 '--cluster-init'
+    - name: Join Additional Masters to Cluster
+      shell: >
+        curl -sfL https://get.k3s.io |
+        K3S_TOKEN="{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
+        sh -s - server
+        --server https://{{ groups['masters'][0] }}:6443
+        --disable traefik
+      when:
+        - not k3s_installed.stat.exists
+        - inventory_hostname != groups['masters'][0]
 
 
-- name: Install K3s Agents
+#- name: Install K3s Agents
+#  hosts: agents
+#  become: yes
+#  vars:
+#    server_ip: "{{ hostvars[groups['masters'][0]]['ansible_host'] | default(groups['masters'][0]) }}"
+#    token: "{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
+#  tasks:
+#    - name: Check if K3s Agent is already installed
+#      stat:
+#        path: /etc/systemd/system/k3s-agent.service
+#      register: agent_installed
+#
+#    - name: Join Cluster ( Only new nodes )
+#      shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ server_ip }}:6443 K3S_TOKEN={{ token }} sh -s - agent"
+#      when: not agent_installed.stat.exists
+
+
+- name: Configure K3s Agents
   hosts: agents
   become: yes
-  vars:
-    server_ip: "{{ hostvars[groups['masters'][0]]['ansible_host'] | default(groups['masters'][0]) }}"
-    token: "{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
   tasks:
     - name: Check if K3s Agent is already installed
       stat:
         path: /etc/systemd/system/k3s-agent.service
       register: agent_installed
 
-    - name: Join Cluster ( Only new nodes )
-      shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ server_ip }}:6443 K3S_TOKEN={{ token }} sh -s - agent"
+    # 4. Agent 節點一律向第一台 Master 註冊加入
+    - name: Join Agents to Cluster
+      shell: >
+        curl -sfL https://get.k3s.io |
+        K3S_URL=https://{{ groups['masters'][0] }}:6443
+        K3S_TOKEN="{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
+        sh -s - agent
       when: not agent_installed.stat.exists
 
 
 - name: Setup local kubectl access
   hosts: masters
   become: yes
+
+  # 只需要從第一台健康的 Master 抓一份 kubeconfig 即可
+  run_once: true
+
   tasks:
     - name: Wait for K3s config
       wait_for:
@@ -63,4 +103,5 @@
       replace:
         path: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
         regexp: 'server: https://.*:6443'
-        replace: "server: https://{{ inventory_hostname }}:6443"
+#        replace: "server: https://{{ inventory_hostname }}:6443"
+        replace: "server: https://{{ groups['masters'][0] }}:6443"
