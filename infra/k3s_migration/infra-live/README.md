@@ -895,6 +895,8 @@ Level 3. 範本與架構層級 → 刪除 AppSet 與 AppProject
     
     3. 刪除專案環境控制（Project 通常沒什麼依賴，可以直接刪除）
     kubectl delete -n argocd appproject <project-name>
+    
+    ⭐ 實踐後發現最好搭配註解 argocd/kustomization.yaml + 手動同步 => 否則資源一直重生
 
 
 Level 4. 集群環境層級 → 刪除業務 Namespace

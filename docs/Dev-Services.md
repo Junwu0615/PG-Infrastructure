@@ -72,8 +72,8 @@
   
   
   3.1. 測試連線: 容器 ( password123 )
-  kubectl exec -it postgresql-0  -n databases \
-    -- psql -U pg-user -d pgdatabase
+  kubectl exec -it postgresql-homelab-test-0  -n postgresql-homelab-test \
+    -- psql -U pg_user -d pgdatabase
   
   
   3.2. 測試連線: 確認外部可連上
