@@ -9,7 +9,6 @@ spec:
 
   rules:
     - host: portainer.k8s.local
-
       http:
         paths:
           - path: /

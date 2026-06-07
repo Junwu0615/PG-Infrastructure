@@ -175,7 +175,7 @@ vm-power:
 		exit 1; \
 	fi
 
-	@bash scripts/vm-power.sh $(action)
+	@bash archive/scripts/vm-power.sh $(action)
 
 	@echo "✅  <make vm-power> done."
 
