@@ -1,4 +1,6 @@
 postgresql:
+  namespaceOverride: "postgresql-homelab-prod"
+
   architecture: replication
 
   # 核心：啟用多個唯讀副本以分攤流量與提高可用性

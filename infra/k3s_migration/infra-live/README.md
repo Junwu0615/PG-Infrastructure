@@ -791,7 +791,7 @@ DEBUG
             helm template charts/observability/prometheus-stack -f charts/observability/prometheus-stack/values/common.yaml -f environments/homelab-test/prometheus-stack-values.yaml --set namespaceOverride=homelab-test > output.yaml
             helm template charts/observability/promtail -f charts/observability/promtail/values/common.yaml -f environments/homelab-test/promtail-values.yaml --set namespaceOverride=homelab-test > output.yaml
             
-            helm template charts/databases/postgresql -f charts/databases/postgresql/values/common.yaml -f environments/homelab-test/postgresql-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/databases/postgresql -f charts/databases/postgresql/values/common.yaml -f environments/homelab-test/postgresql-values.yaml --set namespaceOverride=postgresql-homelab-test > output.yaml
             
             helm template charts/platform/ingress-nginx -f charts/platform/ingress-nginx/values/common.yaml -f environments/homelab-test/ingress-nginx-values.yaml --set namespaceOverride=homelab-test > output.yaml
             helm template charts/platform/ingress-nginx -f charts/platform/harbor/values/common.yaml -f environments/homelab-test/harbor-values.yaml --set namespaceOverride=homelab-test > output.yaml

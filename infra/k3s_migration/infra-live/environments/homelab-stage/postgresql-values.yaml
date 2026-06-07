@@ -1,4 +1,6 @@
 postgresql:
+  namespaceOverride: "postgresql-homelab-stage"
+
   architecture: standalone # 測試環境單節點即可，節省資源
 
   # 資源配額最佳實踐：明確設定限制防止佔滿 OOM Kill

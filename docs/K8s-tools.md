@@ -250,6 +250,11 @@ kubectl logs -f -l app=python-app --tail=5
     # 同個域名 + 過篩標籤 + 指定字串
     kubectl logs -n loki -l app.kubernetes.io/component=read --tail=50 | grep "error"
     kubectl logs -n tempo -l app.kubernetes.io/component=query-frontend --tail=50 | grep "error"
+    
+    ⭐ 當容器一直死去 想抓日誌 但呈現空白時 ... 
+    * -p 能撈上一個死掉的容器日誌
+    * -c 是 --container 的縮寫
+    kubectl logs postgresql-homelab-test-0 -n postgresql-homelab-test -c postgresql -p
 
 ⭐ [ 僅開發 ] 將 k8s 服務映射到外部 方便外部系統開發 ; 命令列狀態會常駐，除非退出
 kubectl port-forward svc/postgres-service 5432:5432
