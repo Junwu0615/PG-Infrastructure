@@ -1,7 +1,12 @@
 ## *K8s Tools*
 
+<br>
 
-### *A.　Install K9s*
+<details>
+<summary><b><i>　A.　K9s </i></b></summary>
+<ul>
+
+#### *I.　安裝方式*
 ```
 curl -sS https://webinstall.dev/k9s | bash
 
@@ -9,8 +14,7 @@ curl -sS https://webinstall.dev/k9s | bash
 [2] 或輸入 source ~/.config/envman/PATH.env 即可生效
 ```
     
-#### *>>　使用方式*
-
+#### *II.　使用方式*
 ```
 # 可以搭配工具看記憶體損耗
     # MEM (含 Cache)
@@ -93,9 +97,16 @@ l ：Logs（ 查看日誌 ）
 esc ：返回上一層
 ```
   
+</ul>
+</details>
+
 <br>
 
-### *B.　Install kubectl*
+<details>
+<summary><b><i>　B.　kubectl </i></b></summary>
+<ul>
+
+#### *I.　安裝方式*
 ```
 # 1. 下載最新穩定版
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -109,7 +120,8 @@ rm kubectl
 # 4. 驗證
 kubectl version --client
 ```
-#### *>>　使用方式*
+
+#### *II.　使用方式*
 ```
 # 檢視 kubectl 目前生效的最終設定
 kubectl config view
@@ -314,9 +326,16 @@ kubectl delete node <node name>
     curl -kvI https://gitlab.k8s.local
 ```
   
+</ul>
+</details>
+
 <br>
 
-### *C.　Install Helm*
+<details>
+<summary><b><i>　C.　Helm </i></b></summary>
+<ul>
+
+#### *I.　安裝方式*
 ```
 # 透過管道把下載下來的腳本內容，直接丟給 bash 直譯器去執行，而不在硬碟留下 .sh 檔案
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -325,7 +344,7 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 which helm
 ```
   
-#### *>>　使用方式*
+#### *II.　使用方式*
 ```
 # 部署方式 ( 啟動/更新/移除 )
     ⭐ [1] 啟動/更新 Helm 部署 ( DEV 設置 ) + 外部傳入設定: image tags
@@ -347,9 +366,16 @@ helm list
 helm uninstall my-dev-release
 ```
 
+</ul>
+</details>
+
 <br>
 
-### *D.　Install MiniKube*
+<details>
+<summary><b><i>　D.　MiniKube </i></b></summary>
+<ul>
+
+#### *I.　安裝方式*
 ```
 # 1. 下載最新版的 MiniKube 二進位檔
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
@@ -364,7 +390,7 @@ rm minikube-linux-amd64
 minikube version
 ```
 
-#### *>>　使用方式*
+#### *II.　使用方式*
 ```
 # 若要訪問對外開口的應用
     # 1. 確認取得 minikube ip
@@ -374,25 +400,45 @@ minikube version
     curl -H "Host: myapp.local" $(minikube ip)
 ```
 
+</ul>
+</details>
+
 <br>
 
-### *E.　Install K3d*
+<details>
+<summary><b><i>　E.　K3d </i></b></summary>
+<ul>
+
+#### *I.　安裝方式*
 ```
 安裝 + 驗證
 wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 k3d --version
 ```
 
+</ul>
+</details>
+
 <br>
 
-### *F.　Install K3s*
+<details>
+<summary><b><i>　F.　K3s </i></b></summary>
+<ul>
+
 ```
 參考說明文件 docs/K3s.md
 ```
 
+</ul>
+</details>
+
 <br>
 
-### *G.　WSL2 ENV. Startup VM*
+<details>
+<summary><b><i>　G.　WSL2 ENV. Startup VM </i></b></summary>
+<ul>
+
+#### *I.　使用方式*
 ```
 # [手動] VM 網路
     # 1. 初始化  (k3s_net)
@@ -474,5 +520,8 @@ sudo virsh net-edit default
     sudo virsh destroy k3s-node-0 || true
     sudo virsh undefine k3s-node-0 || true
 ```
+
+</ul>
+</details>
 
 <br><br><br>
