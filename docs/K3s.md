@@ -33,7 +33,7 @@ k3d => k3s
 <summary><b><i> b.1.　Manual </i></b></summary>
 <ul>
 
-### *準備 VM 環境*
+#### *準備 VM 環境*
 ```
 選擇 VM 工具
     >> ✅ Oracle VirtualBox ( 開源; 支援 Windows、Linux、macOS )
@@ -216,7 +216,7 @@ sudo hostnamectl set-hostname worker3
 
 <br>
 
-### *Master / Worker*
+#### *Master / Worker*
 ```
 * 可直接透過 "外部開發機" 用 SSH 依序進入設定配對
 
@@ -254,7 +254,7 @@ sudo hostnamectl set-hostname worker3
 
 <br>
 
-### *外部開發機 ( Ansible )*
+#### *外部開發機 ( Ansible )*
 ```
 # ⚠️ SSH KEY 傳入
     # 對四台機器執行 (只需執行一次)
@@ -336,7 +336,7 @@ kubectl logs -f -l app=python-app --tail=5
 <summary><b><i> b.2.　Auto </i></b></summary>
 <ul>
 
-### *Terraform*
+#### *Terraform*
 ```
 * 腳本動作
     >> Terraform 會下載 Debian 鏡像 
