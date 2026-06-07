@@ -11,7 +11,7 @@
 ------
 
 k8s-manifests : 原始部署方式
-helm : 進階抽象部署方式 => ⚠️ 優先體驗
+helm : 進階抽象部署方式 → ⚠️ 優先體驗
 
 # [ Con't Makefile ] 進入虛擬環境
 eval $(minikube docker-env)
@@ -139,11 +139,11 @@ make clean
 
 
 👁️ 測試 3: 滾動更新 ( Rolling Update )
-    ☄️ helm => 版本控制指揮官
+    ☄️ helm → 版本控制指揮官
     1. 觀察映像檔使用狀態
         docker images | grep "my-python-app"
 
-    2. 改動 Images => 觀察 k8s 是否有熱重啟 ( 透過 logs 檢視 )
+    2. 改動 Images → 觀察 k8s 是否有熱重啟 ( 透過 logs 檢視 )
         make build ver=v2
 
     3. 更新配置
@@ -156,7 +156,7 @@ make clean
 
 
 👁️ 測試 4： 錯誤與回滾 ( Rollback )
-    ☄️ helm => 版本控制指揮官
+    ☄️ helm → 版本控制指揮官
     1. 查看 Helm 歷史紀錄 ( 確認上一個穩定的 Revision )
         helm history my-dev-release
 
@@ -185,17 +185,17 @@ make clean
         載入當前配置
         kubectl get configmap app-config -o yaml
         
-        修改一個連線字串或環境變數 => 測試
+        修改一個連線字串或環境變數 → 測試
         [1] 指令: kubectl edit configmap app-config
         [2] 直接: helm/app-stack/templates/configmap.yaml
-        更動 APP_MODE: "dev" => "stage"
+        更動 APP_MODE: "dev" → "stage"
 
-    4. 重新更新版本 ( 指令為幕等性 => 異動才會重啟服務 )
+    4. 重新更新版本 ( 指令為幕等性 → 異動才會重啟服務 )
         make deploy ver=v4
 
     5. [持續觀察] 整體 pods ( 含 RESTART 欄位 )
         kubectl get pods -w
-        會發現 Pod 觸發了 Rolling Update => 證明了配置聯動更新成功
+        會發現 Pod 觸發了 Rolling Update → 證明了配置聯動更新成功
 
     6. 確認環境變被更動
         kubectl exec -it $(kubectl get pods -l app=python-app -o name) -- env | grep "APP_MODE"

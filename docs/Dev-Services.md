@@ -22,7 +22,7 @@
   SHOW work_mem;
   SHOW synchronous_commit; -- 用 python client 控制設定 off
 
-  -- 確認 Monitoring 角色 ( has_pg_monitor => true, has_read_stats => true )
+  -- 確認 Monitoring 角色 ( has_pg_monitor → true, has_read_stats → true )
   SELECT
       r.rolname,
       m.rolname as member_of,
@@ -44,7 +44,7 @@
   
 - #### *c.　k3s 集群 secret 設定*
   ```
-  # ! 無須手動 => gitops 直接建立 => 後續由 vault 管理密碼，並自動更新 k3s secret
+  # ! 無須手動 → gitops 直接建立 → 後續由 vault 管理密碼，並自動更新 k3s secret
     # 一次設定 3 組密碼
       # 管理員強密碼: postgres-password123
       # 一般使用者密碼: password123
@@ -65,7 +65,7 @@
   
 - #### *d.　k3s 集群 ingress 設定*
   ```
-  * 無法同先前用 nginx 轉進內部 ( Kind: Ingress ) => 嘗試用 HTTP 規則包裝 TCP 流量，會導致連線失敗
+  * 無法同先前用 nginx 轉進內部 ( Kind: Ingress ) → 嘗試用 HTTP 規則包裝 TCP 流量，會導致連線失敗
   * 參考: k3s_migration/README.md ( V.　重新校正 ingress-nginx 位置 )
   
   
@@ -295,10 +295,10 @@
 
 - #### *b.　[ MQTT ] 測試 Broker 是否認得帳密*
   ```
-  # 故意不用密碼 => 失敗
+  # 故意不用密碼 → 失敗
   docker exec -it pg-cluster-mqtt-1  mosquitto_sub -t "test/topic"
   
-  # 使用帳號密碼 => 成功，進入等待訊息狀態
+  # 使用帳號密碼 → 成功，進入等待訊息狀態
   docker exec -it pg-cluster-mqtt-1  mosquitto_sub -t "test/topic" -u admin -P 123456789
   ```
   
@@ -347,7 +347,7 @@
 
 - #### *a.　settings*
   ```
-  # vm.max_map_count => Linux 核心（Kernel）的參數，用來限制一個進程可以擁有的虛擬記憶體區域（VMA）的最大數量
+  # vm.max_map_count → Linux 核心（Kernel）的參數，用來限制一個進程可以擁有的虛擬記憶體區域（VMA）的最大數量
   # 預設值通常是 65530，但對於像 Elasticsearch 這樣需要大量記憶體映射的應用來說，可能會不夠用，導致啟動失敗或性能問題
   
   # [暫時性]
@@ -383,7 +383,7 @@
   http://127.0.0.1:9200/_cat/indices?v
   
   # 查看 Logstash 的實時日誌輸出，確認是否有錯誤或警告訊息
-  # 因為有設置: stdout { codec => rubydebug }
+  # 因為有設置: stdout { codec → rubydebug }
   docker logs -f pg-cluster-logstash-1
   ```
   
@@ -466,7 +466,7 @@
     # [除錯] 驗證指定 runner
     sudo gitlab-runner verify
     
-    # 事物完成 => 生效
+    # 事物完成 → 生效
     sudo systemctl restart gitlab-runner
     
     
@@ -538,7 +538,7 @@
   ```
   # 推本地映像檔到庫
   
-    # 指令本地映像檔(含標籤) => 映射到庫的設定
+    # 指令本地映像檔(含標籤) → 映射到庫的設定
     docker tag pg-python-cp:v1 127.0.0.1:5100/pg-python-cp:v1
     
     # 推庫
@@ -564,7 +564,7 @@
     # [過濾] 創建時間 + 硬體架構
     skopeo inspect --tls-verify=false docker://127.0.0.1:5100/pg-python-cp:v1 | jq '{Created, Architecture, RepoTags}'
     
-    # [過濾] 比對 Digest => airflow-dags:latest vs. airflow-dags:cad1040a
+    # [過濾] 比對 Digest → airflow-dags:latest vs. airflow-dags:cad1040a
     skopeo inspect --tls-verify=false docker://127.0.0.1:5100/airflow-dags:latest | jq '.Digest'
     skopeo inspect --tls-verify=false docker://127.0.0.1:5100/airflow-dags:cad1040a | jq '.Digest'
     
@@ -719,7 +719,7 @@
   
   # 新增 Prometheus datasource: http:127.0.0.1:9090
   
-  # 快速導入 Dashboard ( Dashboards => New => Import )
+  # 快速導入 Dashboard ( Dashboards → New → Import )
   - Import via grafana.com :
     - PostgreSQL: 9628 ( TPS, Transactions, Locks, Cache hit, Connections, Database size )
     - Node Exporter: 1860 ( CPU, RAM, Disk IO, Disk usage, Network, Load average )
@@ -775,14 +775,14 @@
     ```
     ```
     壓測觀察重點： 
-    預期 : 逐漸上升 => 穩定
+    預期 : 逐漸上升 → 穩定
     非預期 : TPS 上升 → 突然下降
-      - WAL Flush => Disk IO Saturation
-      - Lock Contention => Transaction Locks
-      - CPU Saturation => Transaction waiting for CPU
-      - Memory Saturation => Transaction waiting for Memory
-      - Network Saturation => Transaction waiting for Network
-      - Checkpoint => Checkpoint Frequency too High
+      - WAL Flush → Disk IO Saturation
+      - Lock Contention → Transaction Locks
+      - CPU Saturation → Transaction waiting for CPU
+      - Memory Saturation → Transaction waiting for Memory
+      - Network Saturation → Transaction waiting for Network
+      - Checkpoint → Checkpoint Frequency too High
     ```
   - #### *⭐ c.2.　WAL Rate*
     ```
@@ -805,7 +805,7 @@
     ```
     壓測觀察重點： IO Wait
     預期 : None
-    非預期 : IO Full => TPS 突然下降
+    非預期 : IO Full → TPS 突然下降
     ```
   - #### *⭐ c.4.　Lock Contention*
   - ![PNG](../assets/grafana_04.PNG)
@@ -818,10 +818,10 @@
     壓測觀察重點： 
     預期 : None
     非預期 :
-        - Update Contention => 多 Transaction 更新同 Row
-        - Index Page Lock => 多 Transaction 更新同 Index Page
-        - DDL Lock => Schema Change
-        - OLAP Query => AccessShareLock
+        - Update Contention → 多 Transaction 更新同 Row
+        - Index Page Lock → 多 Transaction 更新同 Index Page
+        - DDL Lock → Schema Change
+        - OLAP Query → AccessShareLock
     ```
   - #### *c.5.　Connections*
   - ![PNG](../assets/grafana_05.PNG)
@@ -834,9 +834,9 @@
     壓測觀察重點： 
     預期 : Connections 穩定
     非預期 : Connections 持續上升
-        - Connection Leak => Client Connections Not Being Released
-        - Connection Storm => Sudden Surge in Connection Attempts
-        - Pool Misconfiguration => Connection Pooling Exploded
+        - Connection Leak → Client Connections Not Being Released
+        - Connection Storm → Sudden Surge in Connection Attempts
+        - Pool Misconfiguration → Connection Pooling Exploded
     ```
   - #### *⭐ c.6.　Cache Hit Ratio*
   - ![PNG](../assets/grafana_06.PNG)
@@ -861,7 +861,7 @@
     壓測觀察重點： 
     預期 : None
     非預期 :
-      - checkpoints_req => WAL segment filled up => max_wal_size too small
+      - checkpoints_req → WAL segment filled up → max_wal_size too small
     ```
     
   - #### *c.8.　...*

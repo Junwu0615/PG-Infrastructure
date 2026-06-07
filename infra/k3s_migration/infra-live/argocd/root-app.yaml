@@ -15,7 +15,7 @@ spec:
     targetRevision: main
     path: argocd
 #    directory:
-#       遞迴 => 自動帶起 projects/ 與 applications/
+#       遞迴 → 自動帶起 projects/ 與 applications/
 #      recurse: true
 
   destination:

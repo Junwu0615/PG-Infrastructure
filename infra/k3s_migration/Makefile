@@ -137,7 +137,7 @@ upgrade-ingress:
 	@echo "✅  <make upgrade-ingress> done."
 
 label-nodes:
-	@echo "* 動態初始化/更新 K3s 節點 => 按比例注入群組標籤 ( 親合/反親合/汙點防禦 )" && echo
+	@echo "* 動態初始化/更新 K3s 節點 → 按比例注入群組標籤 ( 親合/反親合/汙點防禦 )" && echo
 
 	# 獲取當前叢集中所有的 Agent 節點清單並排序
 	$(eval AGENTS := $(shell kubectl get nodes -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep 'agent' | sort))
@@ -201,11 +201,11 @@ see-secrets:
 	kubectl get secret gitlab-repo-secret -n argocd -o jsonpath='{.data.url}' | base64 -d && echo && echo
 	kubectl get secret gitlab-repo-secret -n argocd -o jsonpath='{.data.username}' | base64 -d && echo && echo
 	kubectl get secret gitlab-repo-secret -n argocd -o jsonpath='{.data.password}' | base64 -d && echo && echo
-	@echo "* [3] postgresql-credentials => postgres-password"
+	@echo "* [3] postgresql-credentials → postgres-password"
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.postgres-password}" | base64 -d && echo && echo
-	@echo "* [4] postgresql-credentials => password"
+	@echo "* [4] postgresql-credentials → password"
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.password}" | base64 -d && echo && echo
-	@echo "* [5] postgresql-credentials => replication-password"
+	@echo "* [5] postgresql-credentials → replication-password"
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.replication-password}" | base64 -d && echo && echo
 	@#echo "* [6] Grafana UI 密碼"
 	#kubectl get secret grafana-$(ENV) -n grafana-$(ENV) -o jsonpath="{.data.adminPassword}" | base64 -d && echo && echo
@@ -309,7 +309,7 @@ rollback:
 		echo "Error: 必須指定服務名稱，ex: make redeploy ver=v1"; \
 		exit 1; \
 	fi
-	@echo "* 當前設定錯誤 => 進行回滾"
+	@echo "* 當前設定錯誤 → 進行回滾"
 	helm rollback $(RELEASE_NAME) $(ver)
 	@echo "✅  <make rollback> done."
 

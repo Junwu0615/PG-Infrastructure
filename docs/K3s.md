@@ -17,7 +17,7 @@
     - K8s 本身：一旦機器開著，K8s 服務就是常駐的（ Daemon ），不再需要手動 start 它
     
 
-k3d => k3s
+k3d → k3s
 * K3d： 適合開發、測試 Helm 邏輯、練習節點調度
 * K3s： 適合部署在 VM 或實體機（ 如 Raspberry Pi ）上
 * 差異點：
@@ -51,7 +51,7 @@ k3d => k3s
     >> ✅ Debian ISO ( 穩定版 Debian 12; 比 Ubuntu 更輕量，適合當 K3s 節點 )
         - https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.4.0-amd64-netinst.iso
 
-資源設置 ⚠️ [ 人工 => Terraform + Ansiable ]
+資源設置 ⚠️ [ 人工 → Terraform + Ansiable ]
     >> 3 台虛擬機: OS: Debian ISO ( 無 GUI 版本，節省資源 )
     >> 硬體分配：
             [1] Master 節點： 2 vCPU, 2GB RAM, 磁碟大小 40GB
@@ -138,7 +138,7 @@ Windows SSH 公鑰傳進 VM ( 免密碼登入 )
 # 確認設定檔布林
 cat /etc/NetworkManager/NetworkManager.conf
 確認欄位 managed
-    # 若是 False ... false => true
+    # 若是 False ... false → true
     sudo nano /etc/NetworkManager/NetworkManager.conf
     # 重啟服務
     sudo systemctl restart NetworkManager
@@ -232,14 +232,14 @@ sudo hostnamectl set-hostname worker3
     curl -sfL https://get.k3s.io | K3S_URL=https://192.168.0.17:6443 K3S_TOKEN=<Worker TOKEN> sh -
 
 
-2. 打通外部主機 kubectl ( Windows / WSL2 => VM)
+2. 打通外部主機 kubectl ( Windows / WSL2 → VM)
     # [Master] 手動複製配置
     sudo cat /var/lib/rancher/k3s/server/k3s.yaml
     
-    # [外部開發機] 貼上配置 | 小調整 https://127.0.0.1:6443 => https://192.168.0.17:6443
+    # [外部開發機] 貼上配置 | 小調整 https://127.0.0.1:6443 → https://192.168.0.17:6443
     nano ~/.kube/config-k3s-vm
 
-    # 獲取存取權限 => 當前使用者可以操作 kubectl
+    # 獲取存取權限 → 當前使用者可以操作 kubectl
     # 設定 kubectl 識別的 k8s 設定 ( 改為 k3s )
         [短期]
         export KUBECONFIG=~/.kube/config-k3s-vm
@@ -267,7 +267,7 @@ sudo hostnamectl set-hostname worker3
 ansible all -i ./ansible/inventory.ini -m ping
 
 ------
-✅ 手動運維 => 代碼定義基礎設施 (IaC) 領域
+✅ 手動運維 → 代碼定義基礎設施 (IaC) 領域
 
 
 # 1. 系統健康檢查與環境初始化
@@ -475,7 +475,7 @@ Terraform:
     # 初始化 terraform 配置
     make init
     
-    # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
+    # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) → SSH 無密碼登入
     make apply VAR_FILE=./terraform.tfvars
     
     # 拆除 VM 環境

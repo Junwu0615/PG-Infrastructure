@@ -27,7 +27,7 @@ resource "docker_network" "portainer" {
 # ----- 基礎設施層： Volume -----
 # resource + lifecycle 模式: 在此定義清楚，但必須宣告誤刪除 !
 # data source 模式: 僅引用
-  # TODO 只引用已建立的 volume 怕被暴力誤刪 => 目前做法: 不定義，由軟體層建立並持續使用
+  # TODO 只引用已建立的 volume 怕被暴力誤刪 → 目前做法: 不定義，由軟體層建立並持續使用
 # bind mount 模式: 掛載硬碟目錄
 
 

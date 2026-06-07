@@ -79,7 +79,7 @@ rollback:
 		echo "Error: 必須指定服務名稱，ex: make redeploy ver=v1"; \
 		exit 1; \
 	fi
-	@echo "* 當前設定錯誤 => 進行回滾"
+	@echo "* 當前設定錯誤 → 進行回滾"
 	helm rollback $(RELEASE_NAME) $(ver)
 	@echo "✅  <make rollback> done."
 

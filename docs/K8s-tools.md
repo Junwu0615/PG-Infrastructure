@@ -33,7 +33,7 @@ curl -sS https://webinstall.dev/k9s | bash
         
         # 核心觀念
         # 1. total ≈ used + available (實體 RAM 內部的兩大陣營)
-        # 2. 當 available = 0 且 swap 用盡時 = 系統觸發 OOM 崩潰
+        # 2. 當 available = 0 且 swap 用盡時 = 系統觸發 OOM Kill 崩潰
 
     # 前 10 名行程損耗
     ps aux --sort=-%mem | head -n 11
@@ -79,7 +79,7 @@ curl -sS https://webinstall.dev/k9s | bash
     node
 
 ------
-# 找系統位置 => (Context Configs: /home/pc/.local/share/k9s/clusters)
+# 找系統位置 → (Context Configs: /home/pc/.local/share/k9s/clusters)
 k9s info
 
 # 修改 Namespace 列表 最愛清單 ( 參考 k3s_migration/archive/k9s/* )
@@ -176,7 +176,7 @@ kubectl get namespaces
     1. 刪除該 Namespace 下所有的 ReplicaSet
     kubectl delete rs --all -n ingress-nginx --force --grace-period=0
     
-    2. 直接移除 Namespace 的 finalizers => 強制將其刪除
+    2. 直接移除 Namespace 的 finalizers → 強制將其刪除
     kubectl patch namespace ingress-nginx -p '{"metadata":{"finalizers":[]}}' --type=merge
     
     3. 確認 Namespace 已被刪除
@@ -216,7 +216,7 @@ kubectl get app -A
     kubectl get app observability -n argocd -o jsonpath='{.spec.source.path}'
 
 # 大類查詢 ( 用標籤型式跨 namespace 查詢 )
-    # 1 pod -A => 要個別針對支援的欄位 太麻煩
+    # 1 pod -A → 要個別針對支援的欄位 太麻煩
         
     ⭐ 2 app -n argocd
     kubectl get app -n argocd \
@@ -235,9 +235,13 @@ kubectl get pods,pvc,svc,ingress,cm,nodes
 ⭐ 確認 log ( 可用虛擬化名稱 )
 kubectl logs -f -l app=python-app --tail=5
 
+    # 同個域名 + 過篩標籤 + 指定字串
+    kubectl logs -n loki -l app.kubernetes.io/component=read --tail=50 | grep "error"
+    kubectl logs -n tempo -l app.kubernetes.io/component=query-frontend --tail=50 | grep "error"
+
 ⭐ [ 僅開發 ] 將 k8s 服務映射到外部 方便外部系統開發 ; 命令列狀態會常駐，除非退出
 kubectl port-forward svc/postgres-service 5432:5432
-    # 內部一律採用 postgres-service 來解偶位置不同問題 ; 因為 k8s 的 IP 會浮動 => 高可用性
+    # 內部一律採用 postgres-service 來解偶位置不同問題 ; 因為 k8s 的 IP 會浮動 → 高可用性
 
 ⭐ 進入 pod 內部
     kubectl exec -it pod/python-app-fd66fdf4c-s4kxv -- bash

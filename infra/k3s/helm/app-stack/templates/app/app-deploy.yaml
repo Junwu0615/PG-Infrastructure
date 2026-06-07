@@ -41,7 +41,7 @@ spec:
                       - app
 
       nodeSelector:
-        service-type: app # 強制 Pod => 指定標籤節點
+        service-type: app # 強制 Pod → 指定標籤節點
       containers:
       - name: python-worker
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

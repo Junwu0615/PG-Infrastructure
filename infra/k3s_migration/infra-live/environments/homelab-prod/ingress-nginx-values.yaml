@@ -14,7 +14,7 @@ ingress-nginx:
           image: ingress-nginx/kube-webhook-certgen
           tag: v1.4.0
       service:
-        # 名稱不是預設 => 可指定
+        # 名稱不是預設 → 可指定
         name: ingress-nginx-controller-admission
         namespace: ingress-nginx-homelab-prod
 

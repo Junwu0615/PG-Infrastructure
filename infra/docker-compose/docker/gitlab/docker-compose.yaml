@@ -49,7 +49,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 8G  # 硬限制：容器最高可使用的 RAM，超過會被系統強制砍掉 (OOM)
+          memory: 8G  # 硬限制：容器最高可使用的 RAM，超過會被系統強制砍掉 (OOM Kill)
         reservations:
           memory: 4G  # 軟限制：啟動時保證分配的 RAM
 

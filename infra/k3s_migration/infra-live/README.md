@@ -5,15 +5,15 @@
 # Evolution: MiniKube -> K3d -> K3s -> ✅ K3s Migration -> Kubeadm -> GKE
 
 # Summary:
-    - GitOps 架構 需極嚴謹考量 ( 包括: 服務依賴 / 環境切換 / 後期維運 / ... ) => 期間重構 3 次結構樹
+    - GitOps 架構 需極嚴謹考量 ( 包括: 服務依賴 / 環境切換 / 後期維運 / ... ) → 期間重構 3 次結構樹
         - Namespace
         - AppProject
         - Application
         - ApplicationSet
-    - 遇到 OOM 問題 => 折衷改為 Docker Compose + K3s 混合架構
+    - 遇到 OOM Kill 問題 → 折衷改為 Docker Compose + K3s 混合架構
     - Argo 同步機制坑 ( CRD / validatingwebhookconfigurations )
-    - Helm Chart「諸侯割據」踩雷現象 => search: 渲染大法
-    - 原生服務遷移坑 => 無法由 compose 先行體驗 而是直用 k8s 架起 => 注意力易發散
+    - Helm Chart「諸侯割據」踩雷現象 → search: 渲染大法
+    - 原生服務遷移坑 → 無法由 compose 先行體驗 而是直用 k8s 架起 → 注意力易發散
     - 各類狀況如何 DEBUG
         - configmap 設定檔
         - pod describe 病歷表
@@ -31,7 +31,7 @@ Terraform:
     # 初始化配置
     make init
     
-    # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) => SSH 無密碼登入
+    # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) → SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/homelab-test.tfvars
     
     # 拆除 VM 環境
@@ -86,10 +86,10 @@ helm repo update
 ```
 * --- 建立命名空間 --- *
 
-kubectl create namespace infra-data       # => Postgres, Kafka, Airflow
-kubectl create namespace infra-monitor    # => Prometheus, Grafana, ELK
-kubectl create namespace infra-tools      # => GitLab, Portainer, Vault
-kubectl create namespace dev-apps         # => 自定義業務服務: cp, inst 
+kubectl create namespace infra-data       # → Postgres, Kafka, Airflow
+kubectl create namespace infra-monitor    # → Prometheus, Grafana, ELK
+kubectl create namespace infra-tools      # → GitLab, Portainer, Vault
+kubectl create namespace dev-apps         # → 自定義業務服務: cp, inst 
 ```
 
 ```
@@ -244,7 +244,7 @@ helm upgrade gitlab-infra gitlab/gitlab \
     kubectl logs -n kube-system -l app.kubernetes.io/name=traefik -f
 
 # [X] 5. 啟動 airflow
-=> ⚠️ 遇到 OOMKilled => 折衷改為 Docker Compose
+→ ⚠️ 遇到 OOMKilled → 折衷改為 Docker Compose
 ```
 
 ```
@@ -284,7 +284,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 
 
 <details open>
-<summary><b><i>　c.2.　混合架構 ( 避免 OOM ) </i></b></summary>
+<summary><b><i>　c.2.　混合架構 ( 避免 OOM Kill ) </i></b></summary>
 <ul>
 
 <br>
@@ -323,7 +323,7 @@ cd infra/docker-compose
     # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
     make k-top
     
-    # 啟動 ingress-nginx => 已將其加入正式定義 無須用此方式
+    # 啟動 ingress-nginx → 已將其加入正式定義 無須用此方式
     make upgrade-ingress
     
     # 檢視 Secrets 明文 ( ex: homelab-test )
@@ -652,10 +652,10 @@ curl http://10.88.0.20:443
 
 
 5.2. 測試: 確認 WSL2 能否打進 VM 內部 ( HTTP / TCP 適用 )
-nc -zv 10.88.0.20 80 => Connection to 10.88.0.20 80 port [tcp/http] succeeded!
-nc -zv 10.88.0.20 443 => Connection to 10.88.0.20 443 port [tcp/https] succeeded!
-nc -zv 10.88.0.20 5432 => Connection to 10.88.0.20 5432 port [tcp/postgresql] succeeded!
-nc -zv 10.88.0.20 9001 => Connection to 10.88.0.20 9001 port [tcp/*] succeeded!
+nc -zv 10.88.0.20 80 → Connection to 10.88.0.20 80 port [tcp/http] succeeded!
+nc -zv 10.88.0.20 443 → Connection to 10.88.0.20 443 port [tcp/https] succeeded!
+nc -zv 10.88.0.20 5432 → Connection to 10.88.0.20 5432 port [tcp/postgresql] succeeded!
+nc -zv 10.88.0.20 9001 → Connection to 10.88.0.20 9001 port [tcp/*] succeeded!
 
 
 5.3. 測試: WSL2 HTTPS / HTTP 連線是否能打進 ingress-nginx
@@ -751,7 +751,7 @@ DEBUG
     helm lint .
     helm lint . -f values/common.yaml
     
-    ⭐ 輸出 values 範例 => 檢視內部參數方式
+    ⭐ 輸出 values 範例 → 檢視內部參數方式
     helm show values charts/observability/prometheus/charts/prometheus-27.39.0.tgz > official-values.yaml
     helm show values charts/observability/loki/charts/loki > official-values.yaml
     
@@ -776,7 +776,7 @@ DEBUG
         grep -rn "目標參數關鍵字" .
         grep -rn "目標參數關鍵字" output.yaml
         
-        ⭐ 一定要產出設定檔 => 更準 ( set + grep )
+        ⭐ 一定要產出設定檔 → 更準 ( set + grep )
         
         ex: tempo
         helm template . -f values/common.yaml --set namespaceOverride=homelab-test > output.yaml
@@ -834,7 +834,7 @@ helm search repo grafana/loki --versions | head -30
 
 ⚠️ ingress-nginx 建立多個 namespaces 遇到 ValidatingWebhookConfiguration 衝突問題
 
-$ kubectl get ingress -A => 只出現一個
+$ kubectl get ingress -A → 只出現一個
 NAMESPACE   NAME            CLASS   HOSTS               ADDRESS        PORTS   AGE
 argocd      argocd-server   nginx   argo-cd.k8s.local   10.43.176.15   80      23h
 
@@ -848,7 +848,7 @@ prometheus-stack-homelab-t-admission   2          47m
 $ kubectl delete validatingwebhookconfiguration ingress-nginx-admission
 validatingwebhookconfiguration.admissionregistration.k8s.io "ingress-nginx-admission" deleted
 
-$ kubectl get ingress -A => 其他的冒出
+$ kubectl get ingress -A → 其他的冒出
 NAMESPACE                       NAME                                    CLASS   HOSTS                  ADDRESS        PORTS   AGE
 argocd                          argocd-server                           nginx   argo-cd.k8s.local      10.43.176.15   80      23h
 grafana-homelab-test            grafana-homelab-test                    nginx   grafana.k8s.local      10.43.176.15   80      21m
@@ -867,7 +867,7 @@ tempo-homelab-test              tempo                                   nginx   
 ```
 ⭐ 強制重製: --force --grace-period=0
 
-Level 1. 應用層級 => 日常重啟或強制重製
+Level 1. 應用層級 → 日常重啟或強制重製
     * 優雅作法
     kubectl rollout restart deployment/<deployment-name> -n <namespace>
     
@@ -875,7 +875,7 @@ Level 1. 應用層級 => 日常重啟或強制重製
     kubectl delete pod <pod-name> -n <namespace> --force --grace-period=0
 
 
-Level 2. ArgoCD 應用層級 => 安全解除綁定
+Level 2. ArgoCD 應用層級 → 安全解除綁定
     1. 檢查並安全移除 ArgoCD 的級聯刪除保護
     kubectl patch app -n argocd <app-name> -p '{"metadata":{"finalizers":null}}' --type merge
     
@@ -886,7 +886,7 @@ Level 2. ArgoCD 應用層級 => 安全解除綁定
     kubectl delete -n argocd app <app-name> --force --grace-period=0
 
 
-Level 3. 範本與架構層級 => 刪除 AppSet 與 AppProject
+Level 3. 範本與架構層級 → 刪除 AppSet 與 AppProject
     1. 先確認關聯的 Application 死透 ( 依賴問題 需先刪除 application )
     kubectl get app -n argocd
     
@@ -897,7 +897,7 @@ Level 3. 範本與架構層級 => 刪除 AppSet 與 AppProject
     kubectl delete -n argocd appproject <project-name>
 
 
-Level 4. 集群環境層級 => 刪除業務 Namespace
+Level 4. 集群環境層級 → 刪除業務 Namespace
     1. 排查 ...
         * 標準安全排查法： 找出到底是誰卡住 Namespace
         kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n <namespace>
@@ -909,7 +909,7 @@ Level 4. 集群環境層級 => 刪除業務 Namespace
     kubectl delete namespace <namespace>
 
 
-Level 5. 基礎設施層級 => 卸載 ArgoCD 叢集全面大洗地
+Level 5. 基礎設施層級 → 卸載 ArgoCD 叢集全面大洗地
     ⚠️ 嚴重警告： 絕對不要使用 kubectl delete namespace argocd --force --grace-period=0
     
     ⭐ 無腦 make destroy 另說 ... 正常流程如下 :
@@ -1083,8 +1083,7 @@ argocd      tempo-homelab-test              Synced        Healthy
 ### *E.　收斂階段*
 - [K8s - 基礎設施高可用性測試](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/HA.md)
 - [K8s - CI/CD](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/CI-CD.md)
-- [K8s - 日誌統一收集與發送](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Logging.md)
-- [K8s - 可觀測性](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability.md)
+- [K8s - 可觀測性平台](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability-Platform.md)
 - [K8s - Vault 分發密鑰](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)
 
 <br><br><br>

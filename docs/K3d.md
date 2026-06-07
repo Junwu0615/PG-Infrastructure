@@ -29,7 +29,7 @@ k3d cluster list
 
 ### *B.　測試前準備*
 ```
-1. 獲取存取權限 => 當前使用者可以操作 kubectl
+1. 獲取存取權限 → 當前使用者可以操作 kubectl
 # ⚠️ 若先前用 k3s 改動設定則 ...
     unset KUBECONFIG
     刪除底部設定的 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
@@ -92,7 +92,7 @@ kubectl logs -f -l app=python-app --tail=5
         # [ 動態創建的名稱很醜 ] 標記 agent-2 為 Portainer 節點 ( service-type=management )
         kubectl label nodes k3d-new-worker-0 service-type=management --overwrite
         
-        # ⭐ 刪除標籤方式 一個減號 => ${{標籤}}-
+        # ⭐ 刪除標籤方式 一個減號 → ${{標籤}}-
         kubectl label nodes k3d-mycluster-agent-0 service-type-
     
     ⭐ 2. 修改配置
@@ -104,7 +104,7 @@ kubectl logs -f -l app=python-app --tail=5
     docker stop k3d-mycluster-agent-1
     
     2. 中途發生的事... ( ⚠️ 有容錯等待期 )
-    python 從 agent-1 => agent-0
+    python 從 agent-1 → agent-0
     
     3. 恢復節點
     docker start k3d-mycluster-agent-1
@@ -118,7 +118,7 @@ kubectl logs -f -l app=python-app --tail=5
     
     2. 在 Pod 裡面測試連線（ 跨越 agent-1 到 agent-0 ）
     python3 -c "import socket; s = socket.socket(); s.settimeout(5); print(s.connect_ex(('postgres-service', 5432)) == 0)"
-    => True ( 成功 )
+    → True ( 成功 )
     
 
 👁️ 測試 13： 自動摘除與恢復
@@ -135,7 +135,7 @@ kubectl logs -f -l app=python-app --tail=5
     
     4. 觀察是否恢復狀態 ?
     * python-app-848d7b7889-wgk6w  0/1 Running
-        => DB 消失 → Python 腳本連不上 DB → 腳本刪除 /tmp/healthy → 
+        → DB 消失 → Python 腳本連不上 DB → 腳本刪除 /tmp/healthy → 
            K8s 發現檔案沒了 → 把這個 Pod 標記為 Unready (0/1)
     
     * 最後自動復原 ...
