@@ -185,7 +185,7 @@ label-nodes:
 
 	@echo && echo && echo " ================== [ 節點專屬維運標籤一覽 ] =================="
 	@#kubectl get nodes -l node-role.kubernetes.io/worker=worker -L workload-class -L hardware-type -L traffic-zone
-	@kubectl get nodes -L workload-class -L hardware-type -L traffic-zone
+	@kubectl get nodes -L workload-class -L hardware-type -L traffic-zone -L kubernetes.io/hostname
 
 	@echo "✅  <make label-nodes> done."
 

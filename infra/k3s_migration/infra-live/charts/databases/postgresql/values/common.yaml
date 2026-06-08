@@ -2,16 +2,11 @@ postgresql:
   auth:
     username: pg_user
     database: pgdatabase
-
     existingSecret: postgresql-credentials
     secretKeys:
       adminPasswordKey: postgres-password
-      userPasswordKey: password
+      userPasswordKey: postgres-password
       replicationPasswordKey: replication-password
-
-  postgresqlUsername: pg_user
-  postgresqlDatabase: pgdatabase
-  existingSecret: postgresql-credentials
 
   global:
     security:
@@ -31,14 +26,25 @@ postgresql:
 #  sharedPreloadLibraries: "pgaudit, pg_stat_statements, pg_wait_sampling"
 
   primary:
+    extraEnvVars:
+      - name: POSTGRESQL_USERNAME
+        value: "pg_user"
+      - name: POSTGRESQL_DATABASE
+        value: "pgdatabase"
+      - name: POSTGRESQL_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: postgresql-credentials
+            key: postgres-password
+
 #    extendedConfiguration: |
 #      shared_preload_libraries = 'pg_stat_statements, pg_wait_sampling'
 
     # 掛載資料庫初始化 ConfigMap
-    extraVolumes:
-      - name: custom-init-scripts
-        configMap:
-          name: postgres-init-configmap
+#    extraVolumes:
+#      - name: custom-init-scripts
+#        configMap:
+#          name: postgres-init-configmap
 
     pgHbaConfiguration: |-
       # TYPE  DATABASE        USER            ADDRESS                 METHOD
@@ -51,8 +57,17 @@ postgresql:
       size: 20Gi
       # K3s 內建的本地硬碟驅動
       storageClassName: local-path
+      accessModes:
+        # RWO 單節點讀寫: 該磁碟只能被單一個 Node 掛載為讀寫模式。同一個 Node 上的多個 Pod 可以共享它，但跨 Node 就不行
+        - ReadWriteOnce
+        # ROX 多節點唯讀: 該磁碟可以同時被多個不同的 Node 共同掛載，但所有節點都只有唯讀（Read-Only）權限
+#        - ReadOnlyMany
+        # RWX 多節點讀寫: 該磁碟可以同時被多個不同的 Node 共同掛載，且所有節點都能自由讀寫
+#        - ReadWriteMany
+        # RWOP: 單 Pod 獨佔讀寫: 整個叢集中只能有一個 Pod 掛載此磁碟。即便在同一個 Node 裡，其他 Pod 也完全無法染指。
+#        - ReadWriteOncePod
       mountPath: /bitnami/postgresql
-      subPath: "v2-data"
+      subPath: "v5-data"
 
     resources:
       requests:
@@ -63,6 +78,7 @@ postgresql:
         memory: "1Gi"
 
     nodeSelector:
+      kubernetes.io/hostname: "k3s-agent-2"
       workload-class: stateful
 #      hardware-type: high-io
 
