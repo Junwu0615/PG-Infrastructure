@@ -13,8 +13,7 @@ postgresql:
         cpu: 250m
         memory: 512Mi
 
-    # 儲存配置
     persistence:
       enabled: true
-      storageClass: "local-path"
       size: 10Gi
+      storageClass: local-path

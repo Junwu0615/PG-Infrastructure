@@ -898,6 +898,7 @@ Level 3. 範本與架構層級 → 刪除 AppSet 與 AppProject
     
     ⭐ 實踐後發現直接註解 argocd/kustomization.yaml 即可 資源就被連帶銷毀 => 否則資源一直重生
         - 尚須手動移除部分: pvc
+        - 確認有無殘留資源: k get -n <namespace> cm,pv,pvc,sts,secret,service,ingress
 
 Level 4. 集群環境層級 → 刪除業務 Namespace
     1. 排查 ...

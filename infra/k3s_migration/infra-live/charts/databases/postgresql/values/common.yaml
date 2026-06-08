@@ -1,19 +1,16 @@
 postgresql:
+  global:
+    security:
+      allowInsecureImages: true
+
   auth:
-    username: pg_user
+    username: pguser
     database: pgdatabase
     existingSecret: postgresql-credentials
     secretKeys:
       adminPasswordKey: postgres-password
       userPasswordKey: postgres-password
       replicationPasswordKey: replication-password
-
-  global:
-    security:
-      allowInsecureImages: true
-
-  # 使用架構：預設單節點（可在特定環境覆蓋為 primary-readReplica）
-  architecture: replication
 
   # 建議在 GitOps 中固定 Image Tag，避免自動浮動
   image:
@@ -26,25 +23,14 @@ postgresql:
 #  sharedPreloadLibraries: "pgaudit, pg_stat_statements, pg_wait_sampling"
 
   primary:
-    extraEnvVars:
-      - name: POSTGRESQL_USERNAME
-        value: "pg_user"
-      - name: POSTGRESQL_DATABASE
-        value: "pgdatabase"
-      - name: POSTGRESQL_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: postgresql-credentials
-            key: postgres-password
-
 #    extendedConfiguration: |
 #      shared_preload_libraries = 'pg_stat_statements, pg_wait_sampling'
 
     # 掛載資料庫初始化 ConfigMap
-#    extraVolumes:
-#      - name: custom-init-scripts
-#        configMap:
-#          name: postgres-init-configmap
+    extraVolumes:
+      - name: custom-init-scripts
+        configMap:
+          name: postgres-init-configmap
 
     pgHbaConfiguration: |-
       # TYPE  DATABASE        USER            ADDRESS                 METHOD

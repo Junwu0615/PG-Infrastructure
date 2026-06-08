@@ -13,10 +13,11 @@ postgresql:
       requests:
         cpu: "1"
         memory: 2Gi
+
     persistence:
       enabled: true
-      storageClass: "local-path" # 推薦使用高 IOPS 的 SSD 雲端硬碟
-      size: 50Gi
+      size: 30Gi
+      storageClass: local-path
 
   primary:
     resources:
