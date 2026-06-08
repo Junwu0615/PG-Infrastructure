@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: {{ .Release.Name }}
+
+spec:
+
+  replicas: {{ .Values.registry.replicaCount }}
+
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+
+    spec:
+
+{{- with .Values.registry.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | nindent 8 }}
+{{- end }}
+
+      containers:
+        - name: registry
+          image: "{{ .Values.registry.image.repository }}:{{ .Values.registry.image.tag }}"
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 5000
+
+          env:
+            - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+              value: /var/lib/registry
+
+          resources:
+{{ toYaml .Values.registry.resources | nindent 12 }}
+
+          volumeMounts:
+            - name: registry-storage
+              mountPath: /var/lib/registry
+
+      volumes:
+        - name: registry-storage
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}

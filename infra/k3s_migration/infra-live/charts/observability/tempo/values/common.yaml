@@ -1,0 +1,107 @@
+tempo-distributed:
+  # --- 全域設定 ---
+  global:
+    image:
+      tag: "2.5.0"
+    cluster:
+      replicationFactor: 1
+
+  traces:
+    otlp:
+      http:
+        enabled: true
+      grpc:
+        enabled: true
+    jaeger:
+      thriftHttp:
+        enabled: true
+
+
+  # --- 基礎儲存與多租戶 ---
+  multitenancy:
+    # 關閉多租戶嚴格認證，但在微服務架構下內部依然走單一租戶 (fake) 邏輯
+    enabled: false
+
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      blocklist_poll_interval: 5m
+
+
+  # --- 接收器設定 ---
+  distributor:
+    service:
+      enabled: true
+      ports:
+        - name: otlp-http
+          port: 4318
+          targetPort: 4318
+        - name: jaeger-http
+          port: 14268
+          targetPort: 14268
+
+    config:
+      receivers:
+        otlp:
+          protocols:
+            http: { endpoint: 0.0.0.0:4318 }
+            grpc: { endpoint: 0.0.0.0:4317 }
+        jaeger:
+          protocols:
+            thrift_http: { endpoint: 0.0.0.0:14268 }
+            grpc: { endpoint: 0.0.0.0:14250 }
+
+    resources:
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: 200m, memory: 512Mi }
+
+
+  # 防止單一 Pod 佔用過多 CPU/Memory 導致 Node 崩潰
+  ingester:
+    config:
+      replication_factor: 1
+
+    nodeSelector:
+      workload-class: stateful
+#      hardware-type: high-io
+
+    affinity: |
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: workload-class
+                  operator: In
+                  values:
+                    - stateful
+#                - key: hardware-type
+#                  operator: In
+#                  values:
+#                    - high-io
+
+    resources:
+      requests: { cpu: 100m, memory: 256Mi }
+      limits: { cpu: 500m, memory: 1Gi }
+
+
+  # --- Ingress 設定 (Query Frontend) ---
+  queryFrontend:
+    nodeSelector:
+      workload-class: stateless
+      traffic-zone: internal-only
+
+    ingress:
+      enabled: true
+      ingressClassName: "nginx"
+      annotations:
+        # 若有使用 cert-manager 可啟用自動證書
+        # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+        nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      hosts:
+        - host: tempo.k8s.local
+          paths:
+            - path: /
+              pathType: Prefix
+      tls: [ ]

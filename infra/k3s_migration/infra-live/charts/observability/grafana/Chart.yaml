@@ -1,0 +1,12 @@
+apiVersion: v2
+name: grafana-wrapper
+description: A Helm Chart for Grafana GitOps
+type: application
+version: 0.1.0
+appVersion: "2026.05"
+
+dependencies:
+  # values 第一層 Key 必須與此 name 一致，才能正確套用 values 設定
+  - name: grafana
+    version: 9.3.0
+    repository: https://grafana.github.io/helm-charts

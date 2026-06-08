@@ -1,0 +1,176 @@
+harbor:
+  expose:
+    type: ingress
+    tls:
+      enabled: true
+      certSource: secret
+      secret:
+        secretName: harbor-tls
+
+    ingress:
+      className: nginx
+      hosts:
+        core: harbor.k8s.local
+
+      annotations:
+        nginx.ingress.kubernetes.io/proxy-body-size: "0"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+        nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+
+#  externalURL: https://harbor.example.com
+
+  harborAdminPassword: "ChangeMe"
+
+  persistence:
+    enabled: true
+    persistentVolumeClaim:
+      registry:
+        storageClass: nfs-client
+        accessMode: ReadWriteOnce
+        size: 10Gi
+
+#      chartmuseum:
+#        storageClass: nfs-client
+#        accessMode: ReadWriteOnce
+#        size: 10Gi
+
+      jobservice:
+        jobLog:
+          storageClass: nfs-client
+          accessMode: ReadWriteOnce
+          size: 1Gi
+
+      database:
+        storageClass: nfs-client
+        accessMode: ReadWriteOnce
+        size: 5Gi
+
+      redis:
+        storageClass: nfs-client
+        accessMode: ReadWriteOnce
+        size: 5Gi
+
+#      trivy:
+#        storageClass: nfs-client
+#        accessMode: ReadWriteOnce
+#        size: 20Gi
+
+  database:
+    type: internal
+    internal:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+  redis:
+    type: internal
+    internal:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 200m
+          memory: 128Mi
+
+  trivy:
+    enabled: false
+
+  chartmuseum:
+    enabled: false
+
+  portal:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+    nodeSelector:
+      workload-class: stateful
+
+#    affinity:
+#      podAntiAffinity:
+#        preferredDuringSchedulingIgnoredDuringExecution:
+#          - weight: 100
+#            podAffinityTerm:
+#              topologyKey: nodeSelector
+#              labelSelector:
+#                matchLabels:
+#                  component: stateful
+
+  core:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    nodeSelector:
+      workload-class: stateful
+
+#    affinity:
+#      podAntiAffinity:
+#        preferredDuringSchedulingIgnoredDuringExecution:
+#          - weight: 100
+#            podAffinityTerm:
+#              topologyKey: workload-class
+#              labelSelector:
+#                matchLabels:
+#                  component: stateful
+
+  jobservice:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+
+    nodeSelector:
+      workload-class: stateful
+
+#    affinity:
+#      podAntiAffinity:
+#        preferredDuringSchedulingIgnoredDuringExecution:
+#          - weight: 100
+#            podAffinityTerm:
+#              topologyKey: workload-class
+#              labelSelector:
+#                matchLabels:
+#                  component: stateful
+
+  registry:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    nodeSelector:
+      workload-class: stateful
+
+#    affinity:
+#      podAntiAffinity:
+#        preferredDuringSchedulingIgnoredDuringExecution:
+#          - weight: 100
+#            podAffinityTerm:
+#              topologyKey: workload-class
+#              labelSelector:
+#                matchLabels:
+#                  component: stateful

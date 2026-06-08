@@ -1,0 +1,128 @@
+kube-prometheus-stack:
+  prometheus:
+    service:
+      type: ClusterIP
+
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      hosts:
+        - prometheus.k8s.local
+
+    prometheusSpec:
+      nodeSelector:
+        workload-class: stateful
+#        hardware-type: high-io
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: workload-class
+                    operator: In
+                    values:
+                      - stateful
+#                  - key: hardware-type
+#                    operator: In
+#                    values:
+#                      - high-io
+
+      # 強制加入此欄位以對齊叢集狀態
+      trackTimestampsStaleness: true
+
+      # 因應 trackTimestampsStaleness 不同步問題
+      serviceMonitorSelectorNilUsesHelmValues: false
+
+      image:
+        registry: quay.io
+        repository: prometheus/prometheus
+        tag: "v2.50.1"
+
+      replicas: 1
+      retention: 15d
+
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 5Gi
+
+  alertmanager:
+    enabled: true
+    alertmanagerSpec:
+      replicas: 1
+
+      nodeSelector:
+        workload-class: stateful
+#        hardware-type: high-io
+
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 250m
+          memory: 256Mi
+
+      storage:
+        volumeClaimTemplate:
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 2Gi
+
+
+  # 以下維持不變 (外圍的 Operator、Exporter 與 Metrics 預設留在普通無狀態節點即可)
+  defaultRules:
+    create: true
+
+  grafana:
+    enabled: false
+
+  kubeStateMetrics:
+    enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+
+      limits:
+        cpu: 250m
+        memory: 256Mi
+
+  nodeExporter:
+    enabled: true
+    image:
+      registry: quay.io
+      repository: prometheus/node-exporter
+      tag: "v1.7.0"
+
+  prometheusOperator:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+  prometheus-pushgateway:
+    enabled: false
+
+  crds:
+    enabled: true

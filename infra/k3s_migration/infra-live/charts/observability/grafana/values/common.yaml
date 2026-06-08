@@ -1,0 +1,48 @@
+grafana:
+  replicas: 1
+  adminUser: admin
+  adminPassword: admin123
+
+  global:
+    image:
+      tag: "10.4.1"
+
+  service:
+    type: ClusterIP
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.k8s.local
+
+  nodeSelector:
+    workload-class: stateless
+    traffic-zone: internal-only
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: workload-class
+                operator: In
+                values:
+                  - stateless
+              - key: traffic-zone
+                operator: In
+                values:
+                  - internal-only
+
+  persistence:
+    enabled: true
+    size: 5Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+    limits:
+      cpu: 500m
+      memory: 512Mi

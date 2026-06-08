@@ -1,0 +1,83 @@
+loki:
+  global:
+    image:
+      tag: "2.9.11"
+
+  deploymentMode: SingleBinary
+
+  singleBinary:
+    replicas: 1
+
+    nodeSelector:
+      workload-class: stateful
+#      hardware-type: high-io
+
+    affinity: |
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: workload-class
+                  operator: In
+                  values:
+                    - stateful
+#                - key: hardware-type
+#                  operator: In
+#                  values:
+#                    - high-io
+
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - loki.k8s.local
+
+  loki:
+    gateway:
+      enabled: false
+
+    auth_enabled: false
+    structuredConfig:
+      auth_enabled: false
+      server:
+        http_listen_port: 3100
+        grpc_listen_port: 9095
+      common:
+        path_prefix: /var/loki
+        replication_factor: 1
+
+      schema_config:
+        configs:
+          - from: "2024-01-01"
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: index_
+              period: 24h
+
+       # 新增此區塊來明確定義儲存路徑
+      storage_config:
+        filesystem:
+          directory: /var/loki/chunks
+
+  # 關閉微服務組件
+  read:
+    replicas: 0
+
+  write:
+    replicas: 0
+
+  backend:
+    replicas: 0

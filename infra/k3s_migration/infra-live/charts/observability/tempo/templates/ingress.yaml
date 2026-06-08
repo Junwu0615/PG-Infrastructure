@@ -1,0 +1,47 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: tempo
+  namespace: {{ .Values.namespaceOverride | default .Release.Namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+    # 如果後端接收器對路徑有嚴格要求，可嘗試開啟下行
+    # nginx.ingress.kubernetes.io/use-regex: "true"
+
+    # 關鍵：告訴 Argo CD 如果發現舊的同名資源（比如 Chart 殘留的），請直接替換掉它
+    argocd.argoproj.io/sync-options: Replace=true
+
+spec:
+  ingressClassName: "nginx"
+  rules:
+  - host: tempo.k8s.local
+    http:
+      paths:
+      # 1. 前端查詢介面 (Grafana 呼叫用)
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.namespaceOverride | default .Release.Namespace }}-query-frontend
+            port:
+              number: 3100
+
+      # 2. OTLP HTTP 接收器
+      - path: /v1/traces
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.namespaceOverride | default .Release.Namespace }}-distributor
+            port:
+              number: 4318
+
+      # 3. Jaeger Thrift HTTP 接收器
+      - path: /api/traces
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.namespaceOverride | default .Release.Namespace }}-distributor
+            port:
+              number: 14268

@@ -1,0 +1,26 @@
+promtail:
+  daemonset:
+    enabled: true
+
+  tolerations:
+    - operator: Exists
+      effect: NoSchedule
+    - operator: Exists
+      effect: NoExecute
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  serviceMonitor:
+    enabled: true
+
+
+  global:
+    image:
+      tag: "2.9.11"

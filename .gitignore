@@ -13,7 +13,8 @@ logs
 .terraform
 
 *Chart.lock
-*charts
+#*charts
+#*charts
 
 *official-values.yaml
 *values-reference.yaml
@@ -39,3 +40,4 @@ infra/docker-compose/docker/gitlab/logs
 
 infra/k3s/bootstrap/ansible/inventory.ini
 infra/k3s_migration/bootstrap/ansible/inventory.ini
+infra/k3s_migration/infra-live/*/*/*/charts

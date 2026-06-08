@@ -102,6 +102,9 @@
   
   3.5. 測試連線: 連線字串
   jdbc:postgresql://postgresql.k8s.local:5432/pgdatabase
+  
+  3.6. 用 預設管理戶 檢視當前有哪些用戶
+  kubectl exec -it postgresql-homelab-test-0 -n postgresql-homelab-test -- psql -U postgres -d postgres -c "\du"
   ```
   ![PNG](../assets/conn_postgresql.png)
 

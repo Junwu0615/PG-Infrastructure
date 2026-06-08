@@ -1,0 +1,14 @@
+apiVersion: v2
+# 自訂名稱，與 Helm Chart 官方名稱無關，但建議與目標應用相關，以便識別
+name: loki-wrapper
+description: A Helm Chart for Loki GitOps
+type: application
+version: 0.1.0
+appVersion: "2026.05"
+
+dependencies:
+  # values 第一層 Key 必須與此 name 一致，才能正確套用 values 設定
+  # 必須是官方 Chart 名稱，不能是自訂名稱
+  - name: loki
+    version: 5.47.2
+    repository: https://grafana.github.io/helm-charts

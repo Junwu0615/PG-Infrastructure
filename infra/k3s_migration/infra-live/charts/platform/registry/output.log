@@ -1,0 +1,122 @@
+install.go:225: 2026-06-07 03:47:45.361270234 +0800 CST m=+0.381643204 [debug] Original chart version: ""
+install.go:242: 2026-06-07 03:47:45.361331175 +0800 CST m=+0.381704138 [debug] CHART PATH: /home/pc/git_project/PG-Infrastructure/infra/k3s_migration/infra-live/charts/platform/registry
+
+---
+# Source: registry-wrapper/templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+  name: registry-test
+
+spec:
+
+  accessModes:
+    - ReadWriteOnce
+
+  storageClassName: nfs-client
+
+  resources:
+    requests:
+      storage: 30Gi
+---
+# Source: registry-wrapper/templates/service.yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: registry-test
+
+spec:
+  type: ClusterIP
+  selector:
+    app: registry-test
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+---
+# Source: registry-wrapper/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: registry-test
+
+spec:
+
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: registry-test
+
+  template:
+    metadata:
+      labels:
+        app: registry-test
+
+    spec:
+      nodeSelector:
+
+        workload-class: stateful
+
+      containers:
+        - name: registry
+          image: "registry:3"
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 5000
+
+          env:
+            - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+              value: /var/lib/registry
+
+          resources:
+
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 50m
+              memory: 128Mi
+
+          volumeMounts:
+            - name: registry-storage
+              mountPath: /var/lib/registry
+
+      volumes:
+        - name: registry-storage
+          persistentVolumeClaim:
+            claimName: registry-test
+---
+# Source: registry-wrapper/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: registry-test
+
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+
+spec:
+  ingressClassName: nginx
+
+  tls:
+    - hosts:
+        - docker-registry.k8s.local
+      secretName: docker-registry-tls
+
+  rules:
+    - host: docker-registry.k8s.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: registry-test
+                port:
+                  number: 5000

@@ -1,0 +1,39 @@
+registry:
+  image:
+    repository: registry
+    tag: "3"
+
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 5000
+
+  persistence:
+    enabled: true
+    size: 20Gi
+#    storageClass: nfs-client
+    storageClass: local-path
+    accessMode: ReadWriteOnce
+
+  ingress:
+    enabled: true
+    className: nginx
+    host: docker-registry.k8s.local
+
+#    tls: []
+    tls:
+      enabled: true
+      secretName: docker-registry-tls
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  nodeSelector:
+    workload-class: stateful
