@@ -47,11 +47,10 @@
 x-airflow-common:
   &airflow-common
 
-  #  image: apache/airflow:${AIRFLOW_VERSION:-latest}
+  image: apache/airflow:${AIRFLOW_VERSION:-latest}
 
-  # 指定 CI 打包好的私有 Registry 映像檔
-  #  image: host.docker.internal:5100/airflow-dags:latest
-  image: 192.168.0.15:5100/airflow-dags:latest
+  # 指定 CI 打包好的私有 Registry 映像檔 ; 若無預設抓官方鏡像檔
+#  image: ${CUSTOM_REGISTRY}/airflow-dags:latest
   pull_policy: always
 
   environment:
