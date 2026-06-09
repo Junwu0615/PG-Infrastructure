@@ -32,6 +32,10 @@ postgresql:
         configMap:
           name: postgres-init-configmap
 
+    extraVolumeMounts:
+      - name: custom-init-scripts
+        mountPath: /docker-entrypoint-initdb.d/
+
     pgHbaConfiguration: |-
       # TYPE  DATABASE        USER            ADDRESS                 METHOD
       local   all             all                                     trust
@@ -53,7 +57,7 @@ postgresql:
         # RWOP: 單 Pod 獨佔讀寫: 整個叢集中只能有一個 Pod 掛載此磁碟。即便在同一個 Node 裡，其他 Pod 也完全無法染指。
 #        - ReadWriteOncePod
       mountPath: /bitnami/postgresql
-      subPath: "v5-data"
+      subPath: "v7-data"
 
     resources:
       requests:
@@ -130,6 +134,12 @@ postgresql:
         memory: "512Mi"
 
   # 安全最佳實踐：不使用預設的非 root 權限，明確指定 UID
+#  containerSecurityContext:
+#    enabled: true
+#    runAsUser: 1001
+
   containerSecurityContext:
-    enabled: true
-    runAsUser: 1001
+    enabled: false
+
+  podSecurityContext:
+    enabled: false

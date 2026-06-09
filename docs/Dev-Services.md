@@ -71,16 +71,14 @@
   * 參考: k3s_migration/README.md ( V.　重新校正 ingress-nginx 位置 )
   
   
-  3.1. 測試連線: 容器 ( password123 )
+  1.1. 測試連線: 容器 ( password123 )
   kubectl exec -it postgresql-homelab-test-0  -n postgresql-homelab-test \
     -- psql -U pg_user -d pgdatabase
-  
-  
-  3.2. 測試連線: 確認外部可連上
+
+  1.2. 測試連線: 確認外部可連上
   kubectl port-forward svc/postgresql -n databases 5432:5432
-  
-  
-  3.3. 設定 socat 轉發
+
+  1.3. 設定 socat 轉發
   * k3s_migration/archive/ingress-settings/postgresql-proxy.service
   
     * 設定
@@ -97,17 +95,34 @@
     * 確認是否開始監聽
     sudo ss -ltnp | grep :5432
   
-  3.4. 測試連線: 檢查埠號是否回應 WIN 端
+  1.4. 測試連線: 檢查埠號是否回應 WIN 端
   Test-NetConnection -ComputerName postgresql.k8s.local -Port 5432
   
-  3.5. 測試連線: 連線字串
+  1.5. 測試連線: 連線字串
   jdbc:postgresql://postgresql.k8s.local:5432/pgdatabase
   
-  3.6. 用 預設超級權限戶 檢視當前有哪些用戶
+  1.6. 用 預設超級權限戶 檢視當前有哪些用戶
   kubectl exec -it postgresql-homelab-test-0 -n postgresql-homelab-test -- psql -U postgres -d postgres -c "\du"
   
-  3.7. 用 自定義超級權限戶 檢視當前有哪些用戶
-  kubectl exec -it postgresql-homelab-test-0 -n postgresql-homelab-test -- psql -U pg_user -d pgdatabase -c "\du"
+  1.7. 用 自定義超級權限戶 檢視當前有哪些用戶
+  kubectl exec -it postgresql-homelab-test-0 -n postgresql-homelab-test -- psql -U pguser -d pgdatabase -c "\du"
+
+  
+  2.1. 確認是否正確執行初始化腳本
+  kubectl logs postgresql-homelab-test-0 -n postgresql-homelab-test -c postgresql
+  
+  2.2. 查看日誌
+  kubectl exec -it postgresql-homelab-test-0 -n postgresql-homelab-test -c postgresql -- bash
+    # PostgreSQL 核心的啟動日誌
+    kubectl exec -it postgresql-homelab-test-0 -n postgresql-homelab-test -c postgresql -- cat /tmp/init_sql_debug.log
+  
+    # 初始化腳本內容
+    kubectl exec -it postgresql-homelab-test-0 -n postgresql-homelab-test -c postgresql -- cat /docker-entrypoint-initdb.d/init.sql
+  
+  * 期間常用試錯語法:
+  k delete pvc data-postgresql-homelab-test-0  -n postgresql-homelab-test
+  k get -n postgresql-homelab-test cm,pv,pvc,sts,secret,service,ingress
+  kubectl logs postgresql-homelab-test-0 -n postgresql-homelab-test -c postgresql
   ```
   ![PNG](../assets/conn_postgresql.png)
 

@@ -7,6 +7,10 @@ metadata:
 
 data:
   init.sql: |
+    -- 強制將後續的所有輸出與報錯，導向到容器內保證可寫的 tmp 目錄
+    \o /tmp/init_sql_debug.log
+    \c pgdatabase postgres
+
     -- ==========================================================
     -- * 安裝擴充功能 (Extensions)
     -- ==========================================================
@@ -23,13 +27,7 @@ data:
     -- 針對 32 核高併發環境，採樣並診斷「鎖等待 (Wait Events)」的來源
     CREATE EXTENSION IF NOT EXISTS pg_wait_sampling;
 
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 安裝擴充功能 ---'; END $$;
-
-    -- ==========================================================
-    -- * FROM K8s 延伸異動 ( 資料庫建立 + 角色權限 + Extension 對齊 + 設定全域時區 )
-    -- ==========================================================
-
-    -- DO $$ BEGIN RAISE NOTICE '--- [FINISH] FROM K8s 延伸異動 ( 資料庫建立 + 角色權限 + Extension 對齊 + 設定全域時區 ) ---'; END $$;
+    SELECT '--- [FINISH] 1. 安裝擴充功能 ---';
 
     -- ==========================================================
     -- * 建立 Schema Mode
@@ -41,58 +39,62 @@ data:
     -- 建立 Schema Mode：olap 用於分析系統
     CREATE SCHEMA IF NOT EXISTS olap;
 
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 建立 Schema Mode ---'; END $$;
+    SELECT '--- [FINISH] 2. 建立 Schema Mode ---';
 
     -- ==========================================================
     -- * 建立帳號
     -- ==========================================================
-    DO $$
-    BEGIN
-        -- 監控專用帳號： postgres_exporter ( Grafana/Prometheus )
-        IF NOT EXISTS (SELECT FROM pg_catalog.pguser WHERE usename = 'postgres_exporter') THEN
-            CREATE USER postgres_exporter WITH PASSWORD 'exporter';
-        END IF;
+    -- 監控專用帳號： postgres_exporter ( Grafana/Prometheus )
+    SELECT 'Creating user: postgres_exporter';
+    DROP ROLE IF EXISTS postgres_exporter;
+    CREATE USER postgres_exporter WITH PASSWORD 'exporter';
 
-        -- oltp_owner: 擁有者權限 + 不允許登入
-        IF NOT EXISTS (SELECT FROM pg_catalog.pguser WHERE usename = 'oltp_owner') THEN
-            CREATE ROLE oltp_owner NOLOGIN;
-        END IF;
+    -- OLTP 角色與用戶
+    -- oltp_owner: 擁有者權限 + 不允許登入
+    -- oltp_user: 讀/寫權限
+    SELECT 'Creating OLTP roles';
+    DROP ROLE IF EXISTS oltp_user;
+    DROP ROLE IF EXISTS oltp_owner;
+    CREATE ROLE oltp_owner NOLOGIN;
+    CREATE ROLE oltp_user LOGIN PASSWORD 'oltp_pwd';
 
-        -- oltp_user: 讀/寫權限
-        IF NOT EXISTS (SELECT FROM pg_catalog.pguser WHERE usename = 'oltp_user') THEN
-            CREATE ROLE oltp_user LOGIN PASSWORD 'oltp_pwd';
-        END IF;
+    -- OLAP 角色與用戶
+    -- olap_owner: 擁有者權限 + 不允許登入
+    -- olap_user: 只讀權限
+    SELECT 'Creating OLAP roles';
+    DROP ROLE IF EXISTS olap_user;
+    DROP ROLE IF EXISTS olap_owner;
+    CREATE ROLE olap_owner NOLOGIN;
+    CREATE ROLE olap_user LOGIN PASSWORD 'olap_pwd';
 
-        -- olap_owner: 擁有者權限 + 不允許登入
-        IF NOT EXISTS (SELECT FROM pg_catalog.pguser WHERE usename = 'olap_owner') THEN
-            CREATE ROLE olap_owner NOLOGIN;
-        END IF;
+    -- Migration 用戶
+    -- migration_user: 允許使用 owner 權限
+    SELECT 'Creating migration_user';
+    DROP ROLE IF EXISTS migration_user;
+    CREATE ROLE migration_user LOGIN PASSWORD 'migration_pwd';
 
-        -- olap_user: 只讀權限
-        IF NOT EXISTS (SELECT FROM pg_catalog.pguser WHERE usename = 'olap_user') THEN
-            CREATE ROLE olap_user LOGIN PASSWORD 'olap_pwd';
-        END IF;
-
-        -- migration_user: 允許使用 owner 權限
-        IF NOT EXISTS (SELECT FROM pg_catalog.pguser WHERE usename = 'migration_user') THEN
-            CREATE ROLE migration_user LOGIN PASSWORD 'migration_pwd';
-        END IF;
-    END
-    $$;
-
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 建立帳號 ---'; END $$;
+    SELECT '--- [FINISH] 3. 建立帳號與角色 ---';
 
     -- ==========================================================
     -- * 設定 Schema 權限
     -- ==========================================================
-    -- * 授予 pg_monitor 核心權限：使其能讀取 pg_stat_statements 與系統活動狀態，而不需超級用戶權限
+    -- [ 補充 ] 確保所有功能帳號都能連入目標資料庫
+    GRANT CONNECT ON DATABASE pgdatabase TO oltp_user;
+    GRANT CONNECT ON DATABASE pgdatabase TO olap_user;
+    GRANT CONNECT ON DATABASE pgdatabase TO migration_user;
+    GRANT CONNECT ON DATABASE pgdatabase TO postgres_exporter;
+
+    -- [ 補充 ] 只有 migration_user 可以在資料庫內建立新的 Schema
+    GRANT CREATE ON DATABASE pgdatabase TO migration_user;
+    SELECT '--- [FINISH] 4.0 所有功能帳號 ... ---';
+
+
+    -- 授予 pg_monitor 核心權限：使其能讀取 pg_stat_statements 與系統活動狀態，而不需超級用戶權限
     GRANT pg_monitor TO postgres_exporter;
-
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 授予 pg_monitor TO postgres_exporter 核心權限 ---'; END $$;
-
+    SELECT '--- [FINISH] 4.1 授予 pg_monitor TO postgres_exporter 核心權限 ---';
 
 
-    -- * 針對 oltp Schema 的權限設定：
+    -- OLTP 權限配置
     -- 1. 確保 oltp_owner 為 oltp schema 擁有者
     ALTER SCHEMA oltp OWNER TO oltp_owner;
 
@@ -111,11 +113,10 @@ data:
     ALTER DEFAULT PRIVILEGES FOR ROLE oltp_owner IN SCHEMA oltp
     GRANT USAGE, SELECT ON SEQUENCES TO oltp_user;
 
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 授予 OLTP Role 權限 ---'; END $$;
+    SELECT '--- [FINISH] 4.2 [FINISH] 授予 OLTP Role 權限 ---';
 
 
-
-    -- * 針對 olap Schema 的權限設定：
+    -- OLAP 權限配置
     -- 1. 確保 olap_owner 為 olap schema 擁有者
     ALTER SCHEMA olap OWNER TO olap_owner;
 
@@ -141,11 +142,10 @@ data:
     ALTER DEFAULT PRIVILEGES FOR ROLE oltp_owner IN SCHEMA oltp
     GRANT SELECT ON TABLES TO olap_user;
 
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 授予 OLAP Role 權限 ---'; END $$;
+    SELECT '--- [FINISH] 4.3 [FINISH] 授予 OLAP Role 權限 ---';
 
 
-
-    -- * Migration Role 權限設定：
+    -- Migration 權限配置
     -- 1. 角色關係與繼承
     GRANT oltp_owner TO migration_user;
     GRANT olap_owner TO migration_user;
@@ -185,17 +185,15 @@ data:
     ALTER DEFAULT PRIVILEGES FOR ROLE migration_user IN SCHEMA oltp
     GRANT SELECT ON TABLES TO olap_user;
 
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 授予 Migration Role 權限 ---'; END $$;
+    SELECT '--- [FINISH] 4.4 [FINISH] 授予 Migration Role 權限 ---';
 
 
-
-    -- * Remove 預設權限：撤銷 PUBLIC 角色在 schema 上的權限，確保只有特定角色能存取
+    -- Remove 預設權限：撤銷 PUBLIC 角色在 schema 上的權限，確保只有特定角色能存取
     REVOKE ALL ON SCHEMA oltp FROM PUBLIC;
     REVOKE ALL ON SCHEMA olap FROM PUBLIC;
     REVOKE ALL ON SCHEMA public FROM PUBLIC; -- 怕有用戶亂塞東西進來
 
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] Remove Public Role ---'; END $$;
-
+    SELECT '--- [FINISH] 5. [FINISH] Remove Public Role ---';
 
     -- ==========================================================
     -- * 設定 Default Schema 與時區
@@ -206,8 +204,7 @@ data:
     ALTER ROLE olap_user SET search_path = olap;
     ALTER ROLE migration_user SET search_path = oltp, olap;
 
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 設定 Default Schema ---'; END $$;
-
+    SELECT '--- [FINISH] 6. [FINISH] 設定 Default Schema ---';
 
     -- ==========================================================
     -- * 設定使用時區
@@ -223,7 +220,7 @@ data:
     ALTER ROLE oltp_user SET timezone TO 'Asia/Taipei';
     ALTER ROLE olap_user SET timezone TO 'Asia/Taipei';
 
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 設定使用時區 ---'; END $$;
+    SELECT '--- [FINISH] 7. [FINISH] 設定使用時區 ---';
 
 
     -- ==========================================================
@@ -260,7 +257,8 @@ data:
 
 
     -- 7. temp file 限制
-    ALTER ROLE oltp_user SET temp_file_limit = '0.5GB';
+    ALTER ROLE oltp_user SET temp_file_limit = '512MB';
     ALTER ROLE olap_user SET temp_file_limit = '2GB';
 
-    DO $$ BEGIN RAISE NOTICE '--- [FINISH] 設定資源使用上限 ---'; END $$;
+    SELECT '--- [FINISH] 8. [FINISH] 設定資源使用上限 ---';
+    \o
