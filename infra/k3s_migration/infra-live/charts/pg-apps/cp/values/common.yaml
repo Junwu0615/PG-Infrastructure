@@ -1,0 +1,57 @@
+cp:
+  replicaCount: 1
+
+  image:
+    repository: docker-registry.k8s.local/pg-python-cp
+    pullPolicy: IfNotPresent
+    # 預設 tag，生產環境會在環境 values 中覆蓋
+#    tag: "latest"
+    tag: "v1"
+
+  # 依據你 K3s 叢集是否需要認證，設定 Pull Secret
+#  imagePullSecrets:
+#    - name: harbor-registry-secret
+
+  # 預設環境變數（非敏感資訊）
+  env:
+    APP_ENV: "DEV"
+    IS_KUBERNETES: "true"
+    YAML_VERSION: "v2"
+
+#    LOGSTASH_HOST: "host.docker.internal"
+#    LOGSTASH_PORT: "5000"
+#    LOKI_HOST: "host.docker.internal"
+#    LOKI_PORT: "3100"
+
+    MQTT_HOST: "host.docker.internal"
+    MQTT_PORT: "1883"
+    MQTT_USER: "admin"
+    MQTT_PWD: "123456789"
+
+    POSTGRES_HOST: "postgresql-homelab-test.postgresql-homelab-test.svc.cluster.local"
+    POSTGRES_PORT: "5432"
+    POSTGRES_DATABASE: "pgdatabase"
+    POSTGRES_USER: "oltp_user"
+    POSTGRES_PWD: "oltp_pwd"
+
+
+  # 敏感資訊連動 Secret 或 SealedSecret 名稱
+#  secrets:
+#    existingSecretName: "postgresql-credentials"
+#    dbPasswordKey: "postgres-password"
+
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+
+  # postgresql 明確指定非 root 的 UID
+#  containerSecurityContext:
+#    enabled: true
+#    runAsUser: 1001
+#    runAsGroup: 1001

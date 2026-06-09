@@ -796,6 +796,9 @@ DEBUG
             helm template charts/platform/ingress-nginx -f charts/platform/ingress-nginx/values/common.yaml -f environments/homelab-test/ingress-nginx-values.yaml --set namespaceOverride=homelab-test > output.yaml
             helm template charts/platform/ingress-nginx -f charts/platform/harbor/values/common.yaml -f environments/homelab-test/harbor-values.yaml --set namespaceOverride=homelab-test > output.yaml
             helm template charts/platform/ingress-nginx -f charts/platform/registry/values/common.yaml -f environments/homelab-test/registry-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            
+            helm template charts/pg-apps/cp -f charts/pg-apps/cp/values/common.yaml -f environments/homelab-test/cp-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/pg-apps/inst -f charts/pg-apps/inst/values/common.yaml -f environments/homelab-test/inst-values.yaml --set namespaceOverride=homelab-test > output.yaml
         
         grep -rn "homelab" output.yaml
         grep -rn "key" output.yaml

@@ -563,9 +563,11 @@
   
     # 指令本地映像檔(含標籤) → 映射到庫的設定
     docker tag pg-python-cp:v1 127.0.0.1:5100/pg-python-cp:v1
+    docker tag pg-python-cp:v1 docker-registry.k8s.local/pg-python-cp:v1
     
     # 推庫
     docker push 127.0.0.1:5100/pg-python-cp:v1
+    docker push docker-registry.k8s.local/pg-python-cp:v1
     
   # 實用查詢
     # 已建立映像庫
