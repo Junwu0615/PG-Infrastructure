@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+    kubernetes.io/change-cause: "Deploying version {{ .Values.cp.image.tag }}"
+
+spec:
+  replicas: {{ .Values.cp.replicaCount | default 1 }}
+  strategy:
+    # 關鍵：先殺後建，防止單一實例邏輯衝突
+    type: Recreate
+
+  selector:
+    matchLabels:
+      app: pg-python-cp
+
+  template:
+    metadata:
+      labels:
+        app: pg-python-cp
+
+    spec:
+      containers:
+      - name: pg-python-cp
+        image: "{{ .Values.cp.image.repository }}:{{ .Values.cp.image.tag }}"
+        command: ["python", "main.py"]
+
+        env:
+        {{- range $key, $val := .Values.cp.env }}
+        - name: {{ $key }}
+          value: {{ $val | quote }}
+        {{- end }}
+
+{{/*        {{- if .Values.cp.secrets }}*/}}
+{{/*        - name: POSTGRES_PWD*/}}
+{{/*          valueFrom:*/}}
+{{/*            secretKeyRef:*/}}
+{{/*              name: {{ .Values.cp.secrets.existingSecretName }}*/}}
+{{/*              key: {{ .Values.cp.secrets.dbPasswordKey }}*/}}
+{{/*        {{- end }}*/}}
+
+        resources:
+          {{- toYaml .Values.cp.resources | nindent 10 }}
+
+        # 健康檢查
+          # HTTP Get：看網頁路徑是否回傳 200
+          # TCP Socket：看某個 Port 有沒有開
+          # [ 目前簡易腳本 ] Exec Command：在容器內執行一個指令，回傳 0 就算成功
+        readinessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 5 # 給 Python 啟動的一點緩衝時間
+          periodSeconds: 5       # 每 5 秒檢查一次
+
+      # 節點調度配置動態化
+      {{- with .Values.cp.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.cp.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

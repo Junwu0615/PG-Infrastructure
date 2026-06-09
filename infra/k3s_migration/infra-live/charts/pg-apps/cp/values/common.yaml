@@ -2,7 +2,8 @@ cp:
   replicaCount: 1
 
   image:
-    repository: docker-registry.k8s.local/pg-python-cp
+#    repository: docker-registry.k8s.local/pg-python-cp
+    repository: registry-homelab-test.registry-homelab-test.svc.cluster.local:5000/pg-python-cp
     pullPolicy: IfNotPresent
     # 預設 tag，生產環境會在環境 values 中覆蓋
 #    tag: "latest"
@@ -34,12 +35,18 @@ cp:
     POSTGRES_USER: "oltp_user"
     POSTGRES_PWD: "oltp_pwd"
 
+  nodeSelector:
+    workload-class: stateful
 
-  # 敏感資訊連動 Secret 或 SealedSecret 名稱
-#  secrets:
-#    existingSecretName: "postgresql-credentials"
-#    dbPasswordKey: "postgres-password"
-
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: workload-class
+                operator: In
+                values:
+                  - stateful
 
   resources:
     requests:
@@ -49,6 +56,11 @@ cp:
       cpu: "500m"
       memory: "512Mi"
 
+
+  # 敏感資訊連動 Secret 或 SealedSecret 名稱
+#  secrets:
+#    existingSecretName: "postgresql-credentials"
+#    dbPasswordKey: "postgres-password"
 
   # postgresql 明確指定非 root 的 UID
 #  containerSecurityContext:
