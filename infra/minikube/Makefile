@@ -71,4 +71,3 @@ prune:
 	eval $(minikube docker-env) && \
 	docker system prune -a --volumes -f
 	@echo "✅  <make prune> done."
-

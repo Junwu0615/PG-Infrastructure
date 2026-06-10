@@ -8,6 +8,7 @@ metadata:
 
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 
 spec:
   ingressClassName: {{ .Values.registry.ingress.className }}

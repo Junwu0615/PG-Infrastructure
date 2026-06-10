@@ -35,3 +35,46 @@
       loop:
         - net.ipv4.ip_forward
         - net.bridge.bridge-nf-call-iptables
+
+    - name: Ensure rancher directory exists
+      file:
+        path: /etc/rancher/k3s
+        state: directory
+        mode: "0755"
+      tags:
+        - registry
+
+    - name: Add registry host
+      lineinfile:
+        path: /etc/hosts
+        regexp: '.*docker-registry\.k8s\.local.*'
+        line: '{{ingress_path}} docker-registry.k8s.local'
+        state: present
+      tags:
+        - registry
+
+    - name: Create registries.yaml
+      template:
+        src: registries.yml.j2
+        dest: /etc/rancher/k3s/registries.yaml
+        owner: root
+        group: root
+        mode: "0644"
+      tags:
+        - registry
+      notify:
+        - Restart K3s Master
+        - Restart K3s Agent
+
+  handlers:
+    - name: Restart K3s Master
+      systemd:
+        name: k3s
+        state: restarted
+      when: inventory_hostname in groups['masters']
+
+    - name: Restart K3s Agent
+      systemd:
+        name: k3s-agent
+        state: restarted
+      when: inventory_hostname in groups['agents']

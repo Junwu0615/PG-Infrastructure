@@ -328,6 +328,9 @@ cd infra/docker-compose
     
     # 檢視 Secrets 明文 ( ex: homelab-test )
     make see-secrets ENV=homelab-test
+    
+    # 更新 VM Host 設定 => 可以拉取 registry images
+    make update-vm-host
 
     # 更新 k9s 最愛設定
         - 備份原先設定

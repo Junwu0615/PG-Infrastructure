@@ -17,3 +17,7 @@ api_port: 6443
 # Ansible SSH 設定 ( 與 Terraform 中的設定保持一致 )
 ansible_user: debian
 ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+
+# 註冊 host 變數清單
+ingress_path: 10.88.0.20
+registry_host: docker-registry.k8s.local

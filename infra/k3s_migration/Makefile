@@ -29,7 +29,7 @@ SHELL := /bin/bash
 .PHONY: rollback deploy clean build \
 init apply destroy output terraform-list \
 status k-top label-nodes vm-format vm-power \
-k9s-fav \
+k9s-fav update-vm-host \
 load-images save \
 root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
@@ -347,6 +347,11 @@ status:
 	@echo "* 檢查 k8s 狀態"
 	kubectl get nodes -o wide
 	kubectl get pods -A -o wide
+
+update-vm-host:
+	@echo "* 更新 VM Host 設定"
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/site.yml --tags registry
+	@echo "✅  <make update-vm-host> done."
 
 vm-power:
 	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"
