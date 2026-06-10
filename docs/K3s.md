@@ -623,7 +623,7 @@ Helm:
             # 先不用 80 改用 8080; 查詢目前是否有被占用; 若無直接往下; 若有進行排除或擇別的port
             netstat -ano | findstr :8080
         
-            # ip addr show eth0 ( 查詢得到: 172.28.113.34 )
+            ⭐ ip addr show eth0 ( 查詢得到: 172.28.113.34 )
             $ ip addr show eth0
             2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
                 link/ether 00:15:5d:92:5b:06 brd ff:ff:ff:ff:ff:ff
