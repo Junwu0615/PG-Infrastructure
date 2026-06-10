@@ -3,19 +3,14 @@ cp:
 
   image:
     repository: docker-registry.k8s.local/pg-python-cp
-#    repository: registry-homelab-test.registry-homelab-test.svc.cluster.local:5000/pg-python-cp
     pullPolicy: IfNotPresent
-    # 預設 tag，生產環境會在環境 values 中覆蓋
 #    tag: "latest"
     tag: "v1"
 
-  # 依據你 K3s 叢集是否需要認證，設定 Pull Secret
-#  imagePullSecrets:
-#    - name: harbor-registry-secret
 
   # 預設環境變數（非敏感資訊）
   env:
-    APP_ENV: "DEV"
+    APP_ENV: "TEST"
     IS_KUBERNETES: "true"
     YAML_VERSION: "v2"
 

@@ -11,7 +11,7 @@ resources:
   - applications/observability/tempo-appset.yaml
 
   - applications/pg-apps/cp-appset.yaml
-#  - applications/pg-apps/inst-appset.yaml
+  - applications/pg-apps/inst-appset.yaml
 
   - applications/platform/ingress-nginx-appset.yaml
   - applications/platform/registry-appset.yaml

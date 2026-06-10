@@ -6,45 +6,45 @@ metadata:
   namespace: {{ .Release.Namespace }}
   annotations:
     reloader.stakater.com/auto: "true"
-    kubernetes.io/change-cause: "Deploying version {{ .Values.cp.image.tag }}"
+    kubernetes.io/change-cause: "Deploying version {{ .Values.inst.image.tag }}"
 
 spec:
-  replicas: {{ .Values.cp.replicaCount | default 1 }}
+  replicas: {{ .Values.inst.replicaCount | default 1 }}
   strategy:
     # 關鍵：先殺後建，防止單一實例邏輯衝突
     type: Recreate
 
   selector:
     matchLabels:
-      app: pg-python-cp
+      app: pg-python-inst
 
   template:
     metadata:
       labels:
-        app: pg-python-cp
+        app: pg-python-inst
 
     spec:
       containers:
-      - name: pg-python-cp
-        image: "{{ .Values.cp.image.repository }}:{{ .Values.cp.image.tag }}"
-        command: ["python", "src/core/v2/cp/main.py"]
+      - name: pg-python-inst
+        image: "{{ .Values.inst.image.repository }}:{{ .Values.inst.image.tag }}"
+        command: ["python", "src/core/v2/inst/main.py"]
 
         env:
-        {{- range $key, $val := .Values.cp.env }}
+        {{- range $key, $val := .Values.inst.env }}
         - name: {{ $key }}
           value: {{ $val | quote }}
         {{- end }}
 
-{{/*        {{- if .Values.cp.secrets }}*/}}
+{{/*        {{- if .Values.inst.secrets }}*/}}
 {{/*        - name: POSTGRES_PWD*/}}
 {{/*          valueFrom:*/}}
 {{/*            secretKeyRef:*/}}
-{{/*              name: {{ .Values.cp.secrets.existingSecretName }}*/}}
-{{/*              key: {{ .Values.cp.secrets.dbPasswordKey }}*/}}
+{{/*              name: {{ .Values.inst.secrets.existingSecretName }}*/}}
+{{/*              key: {{ .Values.inst.secrets.dbPasswordKey }}*/}}
 {{/*        {{- end }}*/}}
 
         resources:
-          {{- toYaml .Values.cp.resources | nindent 10 }}
+          {{- toYaml .Values.inst.resources | nindent 10 }}
 
         # 健康檢查
           # HTTP Get：看網頁路徑是否回傳 200
@@ -59,12 +59,12 @@ spec:
 {{/*          periodSeconds: 5       # 每 5 秒檢查一次*/}}
 
       # 節點調度配置動態化
-      {{- with .Values.cp.nodeSelector }}
+      {{- with .Values.inst.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-      {{- with .Values.cp.affinity }}
+      {{- with .Values.inst.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
