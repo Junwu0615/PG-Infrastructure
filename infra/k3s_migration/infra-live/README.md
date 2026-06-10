@@ -238,6 +238,9 @@ helm upgrade gitlab-infra gitlab/gitlab \
     tracert 10.88.0.20
     
     # 訪問測試 3
+    nc -vz gitlab.k8s.local 8080
+    
+    # 訪問測試 4
     http://gitlab.k8s.local:8080
     
     # 確認是否確實收到請求

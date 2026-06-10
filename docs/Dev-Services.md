@@ -97,6 +97,7 @@
   
   1.4. 測試連線: 檢查埠號是否回應 WIN 端
   Test-NetConnection -ComputerName postgresql.k8s.local -Port 5432
+  nc -vz postgresql.k8s.local 5432
   
   1.5. 測試連線: 連線字串
   jdbc:postgresql://postgresql.k8s.local:5432/pgdatabase
@@ -106,7 +107,6 @@
   
   1.7. 用 自定義超級權限戶 檢視當前有哪些用戶
   kubectl exec -it postgresql-homelab-test-0 -n postgresql-homelab-test -- psql -U pguser -d pgdatabase -c "\du"
-
   
   2.1. 確認是否正確執行初始化腳本
   kubectl logs postgresql-homelab-test-0 -n postgresql-homelab-test -c postgresql
