@@ -1,7 +1,4 @@
 ingress-nginx:
-  tcp:
-    5432: "postgresql-homelab-test/postgresql-homelab-test:5432"
-
   controller:
     replicaCount: 1
     kind: Deployment
@@ -53,20 +50,20 @@ ingress-nginx:
       workload-class: stateless
       traffic-zone: edge-ingress
 
-    affinity:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-            # 若是新增多個 nodeSelectorTerm，代表條件之間是 OR 的關係
-            - matchExpressions:
-                # 條件 1
-                - key: workload-class
-                  operator: In
-                  # 設定多個值代表條件之間是 OR 的關係
-                  values:
-                    - stateless
-                # 條件 2 (代表 AND)
-                - key: traffic-zone
-                  operator: In
-                  values:
-                    - edge-ingress
+#    affinity:
+#      nodeAffinity:
+#        requiredDuringSchedulingIgnoredDuringExecution:
+#          nodeSelectorTerms:
+#            # 若是新增多個 nodeSelectorTerm，代表條件之間是 OR 的關係
+#            - matchExpressions:
+#                # 條件 1
+#                - key: workload-class
+#                  operator: In
+#                  # 設定多個值代表條件之間是 OR 的關係
+#                  values:
+#                    - stateless
+#                # 條件 2 (代表 AND)
+#                - key: traffic-zone
+#                  operator: In
+#                  values:
+#                    - edge-ingress

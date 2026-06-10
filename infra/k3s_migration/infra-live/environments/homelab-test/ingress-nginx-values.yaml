@@ -1,5 +1,7 @@
 ingress-nginx:
   tcp:
+    3100: "loki-homelab-test/loki-homelab-test:3100"
+    9095: "loki-homelab-test/loki-homelab-test:9095"
     5432: "postgresql-homelab-test/postgresql-homelab-test:5432"
 
   controller:
