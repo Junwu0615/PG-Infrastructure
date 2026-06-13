@@ -52,10 +52,12 @@ inst:
   # 進行 K8s Volume 掛載 => NFS 儲存機制 ( SQLite )
   volumeMounts:
     - name: sqlite-storage
+      # 容器內的應用程式讀寫路徑
       mountPath: /app/data
   volumes:
     - name: sqlite-storage
       persistentVolumeClaim:
+        # 對接 GitOps 產出的 PVC
         claimName: sqlite-nfs-pvc
 
 

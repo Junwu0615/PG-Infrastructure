@@ -868,13 +868,55 @@ tempo-homelab-test              tempo                                   nginx   
 
 ------
 
-[X] NFS 掛載測試
+⚠️ NFS 掛載測試
+
 make trigger-ansible src_type=storage
 $ kubectl get pvc -n pg-apps-homelab-test
+NAME             STATUS   VOLUME                            CAPACITY   ACCESS MODES   STORAGECLASS                                 VOLUMEATTRIBUTESCLASS   AGE
+sqlite-nfs-pvc   Bound    nfs-storage-homelab-test-nfs-pv   2Gi        RWO            nfs-storage-homelab-test-nfs-storage-class   <unset>                 83m
+
+
+[X] 腳本掛載測試
 $ kubectl apply -f archive/test/nfs-debug.yaml
 
 
-cd /data/nfs/test-sqlite
+# 手動 ( SSH 進入 10.88.0.10 )
+    # 安裝 NFS Server
+    sudo apt-get update && sudo apt-get install -y nfs-kernel-server
+    
+    # 建立實體目錄
+    sudo mkdir -p /data/nfs/test-sqlite
+    
+    # 給予讀寫權限
+        # 指定特定戶別 1001 (應用程式)： 
+        sudo chown -R 1001:1001 /data/nfs/test-sqlite
+        # 或者不指定特定戶別 => 廣義讀寫權限： 
+        sudo chmod 777 /data/nfs/test-sqlite
+    
+    # 編輯設定檔，允許整個 K3s 網段 (10.88.0.0/24) 連入讀寫
+    # sudo nano /etc/exports
+    # 加入以下這一行：
+    /data/nfs/test-sqlite 10.88.0.0/24(rw,sync,no_subtree_check,no_root_squash)
+    
+    # 重啟服務生效
+    sudo systemctl restart nfs-kernel-server
+    
+    # 確認服務狀態
+    sudo systemctl status nfs-kernel-server
+
+
+# 自動
+
+
+
+# 驗證是否出現持久化數據
+debian@k3s-master-0:~$ ls /data/nfs/test-sqlite/
+debian@k3s-master-0:~$ cat /data/nfs/test-sqlite/
+
+
+* 若變更設置需要重頭來過 => 刪除 pvc, pv
+$ kubectl delete pvc sqlite-nfs-pvc -n pg-apps-homelab-test
+$ kubectl delete pv nfs-storage-homelab-test-nfs-pv
 ```
 
 </ul>

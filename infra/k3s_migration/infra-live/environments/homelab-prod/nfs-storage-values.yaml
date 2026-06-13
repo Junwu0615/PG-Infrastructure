@@ -1,5 +1,5 @@
 nfs:
-  server: "172.28.113.34"
+  server: "10.88.0.10"
   path: "/data/nfs/prod-sqlite"
 
 storage:
