@@ -2,6 +2,15 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
+  # projects
+  - projects/databases.yaml
+  - projects/observability.yaml
+  - projects/pg-apps.yaml
+  - projects/platform.yaml
+  - projects/security.yaml
+  - projects/storage.yaml
+
+  # applications
   - applications/databases/postgresql-appset.yaml
 
   - applications/observability/grafana-appset.yaml
@@ -21,9 +30,3 @@ resources:
 
   - applications/storage/nfs-storage-appset.yaml
 
-  - projects/databases.yaml
-  - projects/observability.yaml
-  - projects/pg-apps.yaml
-  - projects/platform.yaml
-  - projects/security.yaml
-  - projects/storage.yaml

@@ -1,5 +1,6 @@
 tempo-distributed:
-  namespaceOverride: "tempo-homelab-test"
+#  namespaceOverride: "tempo-homelab-test"
+  namespaceOverride: "observability-homelab-test"
 
   ingester:
     replicas: 1

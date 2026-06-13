@@ -14,6 +14,7 @@ k9s:
       - platform-homelab-test
 #      - security-homelab-test
       - storage-homelab-test
+#      - other-homelab-test
   view:
     active: v1/pods all
   featureGates:

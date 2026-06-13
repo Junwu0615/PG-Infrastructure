@@ -1,0 +1,3 @@
+inst:
+  env:
+    APP_ENV: "STAGE"

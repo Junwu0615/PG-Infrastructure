@@ -1,5 +1,6 @@
 tempo-distributed:
-  namespaceOverride: "tempo-homelab-prod"
+#  namespaceOverride: "tempo-homelab-prod"
+  namespaceOverride: "observability-homelab-prod"
 
   ingester:
     replicas: 2 # 生產環境開雙副本維持 Ingestion 高可用

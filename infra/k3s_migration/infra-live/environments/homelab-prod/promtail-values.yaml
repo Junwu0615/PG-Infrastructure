@@ -1,7 +1,8 @@
 promtail:
   config:
     clients:
-      - url: http://loki.loki.svc.cluster.local:3100/loki/api/v1/push
+#      - url: http://loki.loki.svc.cluster.local:3100/loki/api/v1/push
+      - url: http://loki-homelab-prod.observability-homelab-prod.svc.cluster.local:3100/loki/api/v1/push
 
   resources:
     requests:

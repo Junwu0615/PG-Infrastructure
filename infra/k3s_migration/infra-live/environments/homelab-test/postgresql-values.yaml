@@ -1,5 +1,6 @@
 postgresql:
-  namespaceOverride: "postgresql-homelab-test"
+#  namespaceOverride: "postgresql-homelab-test"
+  namespaceOverride: "databases-homelab-test"
 
   architecture: standalone # 測試環境單節點即可，節省資源
 

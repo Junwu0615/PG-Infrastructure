@@ -1,5 +1,6 @@
 postgresql:
-  namespaceOverride: "postgresql-homelab-prod"
+#  namespaceOverride: "postgresql-homelab-prod"
+  namespaceOverride: "databases-homelab-prod"
 
   architecture: replication
 

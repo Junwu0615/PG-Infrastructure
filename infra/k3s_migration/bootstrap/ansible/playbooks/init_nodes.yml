@@ -88,10 +88,14 @@
       systemd:
         name: k3s
         state: restarted
-      when: inventory_hostname in groups['masters']
+      when:
+        - inventory_hostname in groups['masters']
+        - ansible_facts.services['k3s.service'] is defined
 
     - name: Restart K3s Agent
       systemd:
         name: k3s-agent
         state: restarted
-      when: inventory_hostname in groups['agents']
+      when:
+        - inventory_hostname in groups['agents']
+        - ansible_facts.services['k3s-agent.service'] is defined

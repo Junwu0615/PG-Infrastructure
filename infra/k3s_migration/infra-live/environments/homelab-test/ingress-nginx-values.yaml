@@ -1,8 +1,8 @@
 ingress-nginx:
   tcp:
-    3100: "loki-homelab-test/loki-homelab-test:3100"
-    9095: "loki-homelab-test/loki-homelab-test:9095"
-    5432: "postgresql-homelab-test/postgresql-homelab-test:5432"
+    3100: "observability-homelab-test/loki-homelab-test:3100"
+    9095: "observability-homelab-test/loki-homelab-test:9095"
+    5432: "databases-homelab-test/postgresql-homelab-test:5432"
 
   controller:
     replicaCount: 1
@@ -18,7 +18,8 @@ ingress-nginx:
       service:
         # 名稱不是預設 → 可指定
         name: ingress-nginx-controller-admission
-        namespace: ingress-nginx-homelab-test
+#        namespace: ingress-nginx-homelab-test
+        namespace: platform-homelab-test
 
     resources:
       requests:

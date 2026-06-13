@@ -1,0 +1,3 @@
+cp:
+  env:
+    APP_ENV: "STAGE"

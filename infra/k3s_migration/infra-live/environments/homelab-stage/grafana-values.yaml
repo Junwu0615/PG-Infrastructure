@@ -1,5 +1,6 @@
 grafana:
-  namespaceOverride: "grafana-homelab-stage"
+#  namespaceOverride: "grafana-homelab-stage"
+  namespaceOverride: "observability-homelab-stage"
 
   replicas: 1
   adminPassword: stage-password
@@ -8,7 +9,7 @@ grafana:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - grafana-stage.k8s.local
+      - grafana.k8s.local
 
   persistence:
     enabled: true
@@ -23,13 +24,13 @@ grafana:
         - name: Prometheus
           type: prometheus
           access: proxy
-          url: http://prometheus-stack-homelab-t-prometheus.prometheus-stack-homelab-stage.svc.cluster.local:9090
+          url: http://prometheus-stack-homelab-t-prometheus.observability-homelab-stage.svc.cluster.local:9090
           isDefault: true
 
         - name: Loki
           type: loki
           access: proxy
-          url: http://loki-homelab-stage.loki-homelab-stage.svc.cluster.local:3100
+          url: http://loki-homelab-stage.observability-homelab-stage.svc.cluster.local:3100
           # 明確指定內部讀取路徑的 API 根節點，繞過 Loki 5.x 讀取節點對根路徑的拒絕
           jsonData:
             httpHeaderName1: "X-Scope-OrgID"
@@ -41,7 +42,7 @@ grafana:
         - name: Tempo
           type: tempo
           access: proxy
-          url: http://tempo-homelab-stage-query-frontend.tempo-homelab-stage.svc.cluster.local:3100
+          url: http://tempo-homelab-stage-query-frontend.observability-homelab-stage.svc.cluster.local:3100
           jsonData:
             # 同步防禦 Loki 相同的 401 / no org id 潛在多租戶隔離限制
             httpHeaderName1: "X-Scope-OrgID"
