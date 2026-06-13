@@ -36,6 +36,23 @@
         - net.ipv4.ip_forward
         - net.bridge.bridge-nf-call-iptables
 
+    - name: Install NFS client for Debian/Ubuntu
+      apt:
+        name: nfs-common
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+      tags:
+        - storage
+
+    - name: Install NFS client for RedHat/CentOS/Rocky
+      dnf:
+        name: nfs-utils
+        state: present
+      when: ansible_os_family == "RedHat"
+      tags:
+        - storage
+
     - name: Ensure rancher directory exists
       file:
         path: /etc/rancher/k3s

@@ -33,6 +33,7 @@ inst:
     POSTGRES_PWD: "oltp_pwd"
 
     SQLITE_DB_NAME: "kafka_consumer_local.db"
+#    SQLITE_DB_NAME: "/data/sqlite/kafka_consumer_local.db"
 
     KAFKA_HOST: "172.28.113.34:9094"
     KAFKA_AUTO_OFFSET_RESET: "earliest"
@@ -46,6 +47,19 @@ inst:
     # 需事先查清楚
     MACH_ID: "67"
     MACH_NAME: "M-CNC-30"
+
+
+
+  # 進行 K8s Volume 掛載 => NFS 儲存機制 ( SQLite )
+#  volumeMounts:
+#    - name: sqlite-storage
+#      mountPath: /data/sqlite
+#  volumes:
+#    - name: sqlite-storage
+#      persistentVolumeClaim:
+#        claimName: sqlite-nfs-pvc
+
+
 
   nodeSelector:
     workload-class: stateful

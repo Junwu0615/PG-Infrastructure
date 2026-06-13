@@ -9,15 +9,14 @@ k9s:
       - argocd
 #      - portainer
       - ingress-nginx-homelab-test-test
-#      - grafana-homelab-test
+      - grafana-homelab-test
       - loki-homelab-test
       - tempo-homelab-test
       - promtail-homelab-test
       - prometheus-stack-homelab-test
 #      - postgresql-homelab-test
 #      - registry-homelab-test
-      - cp-homelab-test
-      - inst-homelab-test
+      - pg-apps-homelab-test
 #      - vault-homelab-test
   view:
     active: v1/pods all

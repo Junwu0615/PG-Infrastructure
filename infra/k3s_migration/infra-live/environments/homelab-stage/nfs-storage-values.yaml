@@ -1,0 +1,7 @@
+nfs:
+  server: "172.28.113.34"
+  path: "/data/nfs/stage-sqlite"
+
+storage:
+  size: "5Gi"
+  pvcName: "sqlite-nfs-pvc"

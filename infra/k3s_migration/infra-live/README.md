@@ -333,7 +333,7 @@ cd infra/docker-compose
     make see-secrets ENV=homelab-test
     
     # 更新 VM Host 設定 => 可以拉取 registry images
-    make update-vm-host
+    make trigger-ansible src_type=registry
 
     # 更新 k9s 最愛設定
         - 備份原先設定
@@ -805,6 +805,8 @@ DEBUG
             
             helm template charts/pg-apps/cp -f charts/pg-apps/cp/values/common.yaml -f environments/homelab-test/cp-values.yaml --set namespaceOverride=homelab-test > output.yaml
             helm template charts/pg-apps/inst -f charts/pg-apps/inst/values/common.yaml -f environments/homelab-test/inst-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            
+            helm template charts/storage/nfs-storage -f charts/storage/nfs-storage/values/common.yaml -f environments/homelab-test/nfs-storage-values.yaml --set namespaceOverride=homelab-test > output.yaml
         
         grep -rn "homelab" output.yaml
         grep -rn "key" output.yaml
@@ -863,6 +865,15 @@ argocd                          argocd-server                           nginx   
 grafana-homelab-test            grafana-homelab-test                    nginx   grafana.k8s.local      10.43.176.15   80      21m
 prometheus-stack-homelab-test   prometheus-stack-homelab-t-prometheus   nginx   prometheus.k8s.local   10.43.176.15   80      18m
 tempo-homelab-test              tempo                                   nginx   tempo.k8s.local        10.43.176.15   80      91s
+
+------
+
+NFS 掛載測試
+make trigger-ansible src_type=storage
+$ kubectl get pvc -n pg-apps-homelab-test
+
+
+kubectl apply -f archive/test/nfs-debug.yaml
 ```
 
 </ul>

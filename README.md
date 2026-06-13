@@ -229,8 +229,10 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
     │       │   │   │   ├── harbor-appset.yaml
     │       │   │   │   ├── ingress-nginx-appset.yaml
     │       │   │   │   └── registry-appset.yaml
-    │       │   │   └── security
-    │       │   │       └── kustomization.yaml
+    │       │   │   ├── security
+    │       │   │   │   └── kustomization.yaml
+    │       │   │   └── storage
+    │       │   │       └── nfs-storage-appset.yaml
     │       │   ├── kustomization.yaml
     │       │   ├── projects
     │       │   │   ├── databases.yaml
@@ -260,7 +262,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
     │       │           ├── namespace.yaml
     │       │           └── values.yaml
     │       │
-    │       ├── charts/ ⭐ ( classapp => app => Chart.yaml / templates / values )
+    │       ├── charts/ ⭐ ( classapp => app => [ Chart.yaml | templates/ | values/ ] )
     │       │   ├── databases
     │       │   │   └── postgresql
     │       │   ├── observability

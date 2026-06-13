@@ -19,6 +19,8 @@ resources:
 
 #  - applications/security/vault-appset.yaml
 
+  - applications/storage/nfs-storage-appset.yaml
+
   - projects/databases.yaml
   - projects/observability.yaml
   - projects/pg-apps.yaml

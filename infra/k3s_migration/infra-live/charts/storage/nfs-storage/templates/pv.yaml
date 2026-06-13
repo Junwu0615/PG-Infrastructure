@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-nfs-pv
+  labels:
+    type: nfs
+spec:
+  capacity:
+    storage: {{ .Values.storage.size | default "5Gi" }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce  # 針對 SQLite，嚴禁使用 ReadWriteMany 併發寫入
+  persistentVolumeReclaimPolicy: Retain # Pod/PVC 刪除時，保留 NFS 地端數據不清理
+  storageClassName: {{ .Release.Name }}-nfs-storage-class
+  nfs:
+    server: {{ .Values.nfs.server }}     # 地端 NFS 伺服器 IP (例如 172.28.113.34)
+    path: {{ .Values.nfs.path }}         # 地端 NFS 共享路徑 (例如 /mnt/nfs/sqlite)

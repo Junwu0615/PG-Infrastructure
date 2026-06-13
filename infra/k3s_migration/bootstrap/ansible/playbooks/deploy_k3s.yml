@@ -42,23 +42,6 @@
         - inventory_hostname != groups['masters'][0]
 
 
-#- name: Install K3s Agents
-#  hosts: agents
-#  become: yes
-#  vars:
-#    server_ip: "{{ hostvars[groups['masters'][0]]['ansible_host'] | default(groups['masters'][0]) }}"
-#    token: "{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
-#  tasks:
-#    - name: Check if K3s Agent is already installed
-#      stat:
-#        path: /etc/systemd/system/k3s-agent.service
-#      register: agent_installed
-#
-#    - name: Join Cluster ( Only new nodes )
-#      shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ server_ip }}:6443 K3S_TOKEN={{ token }} sh -s - agent"
-#      when: not agent_installed.stat.exists
-
-
 - name: Configure K3s Agents
   hosts: agents
   become: yes

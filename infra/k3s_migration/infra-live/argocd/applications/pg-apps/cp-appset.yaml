@@ -37,7 +37,7 @@ spec:
             - '../../../environments/{{env}}/cp-values.yaml'
       destination:
         server: '{{server}}'
-        namespace: 'cp-{{env}}'
+        namespace: 'pg-apps-{{env}}'
 
       syncPolicy:
         # prune: true → 務必確保 Chart 裡的 PVC 有設定 reclaimPolicy: Retain，防止 Git 誤刪導致硬碟暴斃

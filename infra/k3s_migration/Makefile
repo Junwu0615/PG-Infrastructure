@@ -26,11 +26,9 @@ FILTER_CHART_DIRS := \
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
 SHELL := /bin/bash
-.PHONY: rollback deploy clean build \
-init apply destroy output terraform-list \
+.PHONY: init apply destroy output terraform-list \
 status k-top label-nodes vm-format vm-power \
-k9s-fav update-vm-host \
-load-images save \
+k9s-fav trigger-ansible \
 root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
 
@@ -225,67 +223,6 @@ k9s-fav:
 
 	@echo "✅  <make k9s-fav> done."
 
-save:
-	@echo "* 導出映像檔至 $(TAR_FILE)"
-	@if [ -z "$(IMAGE_NAME)" ]; then \
-		echo "Error: 必須指定 IMAGE_NAME，ex: make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar"; \
-		exit 1; \
-	fi
-	@if [ -z "$(TAG)" ]; then \
-		echo "Error: 必須指定 TAG，ex: make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar"; \
-		exit 1; \
-	fi
-	@if [ -z "$(TAR_FILE)" ]; then \
-		echo "Error: 必須指定 TAR_FILE，ex: make save IMAGE_NAME=my-python-app TAG=v5 TAR_FILE=my-python-app.tar"; \
-		exit 1; \
-	fi
-	docker save $(IMAGE_NAME):$(TAG) > $(TAR_FILE)
-
-load-images:
-	@if [ -z "$(TAR_FILE)" ]; then \
-		echo "Error: 必須指定 TAR_FILE，ex: make load-images TAR_FILE=my-python-app.tar"; \
-		exit 1; \
-	fi
-	@for ip in $$(kubectl get nodes -l service-type=app -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}'); do \
-		echo "--------------------------------------------------"; \
-		echo "* 處理節點: $$ip"; \
-		echo "* 正在傳輸 $(TAR_FILE)..."; \
-		scp $(TAR_FILE) debian@$$ip:~; \
-		echo "* 正在匯入至 K3s containerd..."; \
-		ssh debian@$$ip "sudo k3s ctr images import ~/$(TAR_FILE)"; \
-		echo "* 清理遠端臨時檔案..."; \
-		ssh debian@$$ip "rm ~/$(TAR_FILE)"; \
-	done
-	@echo "* 移除本地 $(TAR_FILE)"
-	rm $(TAR_FILE)
-	@echo "✅  <make load-images> done."
-
-build:
-	@echo "1. 檢查是否有版本號且不為空"
-	@if [ -z "$(ver)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make build ver=v1"; \
-		exit 1; \
-	fi
-	@echo "* 2. 進入 app 目錄"
-	cd app && \
-	echo "* 3. Build Dockerfile" && \
-	docker build -t my-python-app:$(ver) -f ./dockerfile/Dockerfile.app . --no-cache && \
-	echo "* 4. Build Done" && \
-	docker images | grep my-python-app
-	@echo "✅  <make build> done."
-
-clean:
-	@echo "* 徹底清除"
-	@echo "1. 正在移除 Helm Release"
-	helm uninstall $(RELEASE_NAME) || true
-	@echo "2. 正在強制移除所有殘留資源 (ConfigMap/Secret/PVC)"
-	helm uninstall my-dev-release || true
-	kubectl delete configmap app-config --ignore-not-found
-	kubectl delete secret db-secret --ignore-not-found
-	kubectl delete pvc --all --ignore-not-found
-	kubectl delete cm,deployment,service,ingress --all
-	@echo "✅  <make clean> done."
-
 deploy:
 	@echo "1. 檢查是否有版本號且不為空"
 	@if [ -z "$(ver)" ]; then \
@@ -302,16 +239,6 @@ deploy:
 		--set image.tag=$(ver) \
 		--set 'annotations.changeCause=$(MSG)'
 	@echo "✅  <make deploy> done."
-
-rollback:
-	@echo "1. 檢查是否有版本號且不為空"
-	@if [ -z "$(ver)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make redeploy ver=v1"; \
-		exit 1; \
-	fi
-	@echo "* 當前設定錯誤 → 進行回滾"
-	helm rollback $(RELEASE_NAME) $(ver)
-	@echo "✅  <make rollback> done."
 
 init:
 	@echo "* [Terraform] 初始化配置"
@@ -348,10 +275,14 @@ status:
 	kubectl get nodes -o wide
 	kubectl get pods -A -o wide
 
-update-vm-host:
-	@echo "* 更新 VM Host 設定"
-	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/site.yml --tags registry
-	@echo "✅  <make update-vm-host> done."
+trigger-ansible:
+	@echo "* 觸發指定 Ansible 腳本 ..."
+	@if [ -z "$(src_type)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make trigger-ansible src_type=[registry/storage]"; \
+		exit 1; \
+	fi
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/site.yml --tags $(src_type)
+	@echo "✅  <make trigger-ansible --tags $(src_type)> done."
 
 vm-power:
 	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"

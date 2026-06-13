@@ -1,0 +1,7 @@
+nfs:
+  server: "172.28.113.34"
+  path: "/data/nfs/prod-sqlite"
+
+storage:
+  size: "10Gi"
+  pvcName: "sqlite-nfs-pvc"
