@@ -298,8 +298,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 
 ![PNG](../../../assets/label_nodes.png)
 ```
-* 啟動 Docker Compose
-cd infra/docker-compose
+* 啟動 Docker Compose ( 參考: docs/Docker-Compose.md )
     make gitlab action=up
     make portainer action=up
     make mqtt action=up
@@ -1202,9 +1201,10 @@ argocd      tempo-homelab-test              Synced        Healthy
 <br>
 
 ### *E.　收斂階段*
-- *[K8s - Feature Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Kubernetes-Feature-Validation.md)*
-- *[K8s - GitOps](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/CI-CD.md)*
+- *[K8s - Feature Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/K8s-Feature-Validation.md)*
+- *[K8s - CI/CD](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/CI-CD.md)*
 - *[K8s - Observability Platform](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability-Platform.md)*
-- *[K8s - Vault 分發密鑰](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)*
+- *[K8s - Vault Distribution Key](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)*
+- *[GitOps - Deployment Governance](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Deployment-Governance.md)*
 
 <br><br><br>
