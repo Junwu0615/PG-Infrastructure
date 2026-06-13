@@ -4,9 +4,8 @@ inst:
   image:
     repository: docker-registry.k8s.local/pg-python-inst
     pullPolicy: IfNotPresent
-#    tag: "latest"
-#    tag: "v1"
-    tag: "v6"
+    tag: "latest"
+#    tag: "v6"
 
 
   # 預設環境變數（非敏感資訊）

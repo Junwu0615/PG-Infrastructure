@@ -4,9 +4,8 @@ cp:
   image:
     repository: docker-registry.k8s.local/pg-python-cp
     pullPolicy: IfNotPresent
-#    tag: "latest"
-#    tag: "v1"
-    tag: "v2"
+    tag: "latest"
+#    tag: "v2"
 
 
   # 預設環境變數（非敏感資訊）
