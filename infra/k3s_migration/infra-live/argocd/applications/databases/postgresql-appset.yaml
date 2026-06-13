@@ -38,7 +38,7 @@ spec:
       destination:
         server: '{{server}}'
         # 自動帶入命名空間，讓不同環境的互相隔離
-        namespace: 'postgresql-{{env}}'
+        namespace: 'databases-{{env}}'
 
       syncPolicy:
         # prune: true → 務必確保 Chart 裡的 PVC 有設定 reclaimPolicy: Retain，防止 Git 誤刪導致硬碟暴斃

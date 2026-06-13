@@ -6,7 +6,7 @@ inst:
     pullPolicy: IfNotPresent
 #    tag: "latest"
 #    tag: "v1"
-    tag: "v2"
+    tag: "v6"
 
 
   # 預設環境變數（非敏感資訊）
@@ -32,8 +32,7 @@ inst:
     POSTGRES_USER: "oltp_user"
     POSTGRES_PWD: "oltp_pwd"
 
-    SQLITE_DB_NAME: "kafka_consumer_local.db"
-#    SQLITE_DB_NAME: "/data/sqlite/kafka_consumer_local.db"
+    SQLITE_DB_NAME: "./data/kafka_consumer_local.db"
 
     KAFKA_HOST: "172.28.113.34:9094"
     KAFKA_AUTO_OFFSET_RESET: "earliest"
@@ -51,13 +50,13 @@ inst:
 
 
   # 進行 K8s Volume 掛載 => NFS 儲存機制 ( SQLite )
-#  volumeMounts:
-#    - name: sqlite-storage
-#      mountPath: /data/sqlite
-#  volumes:
-#    - name: sqlite-storage
-#      persistentVolumeClaim:
-#        claimName: sqlite-nfs-pvc
+  volumeMounts:
+    - name: sqlite-storage
+      mountPath: /app/data
+  volumes:
+    - name: sqlite-storage
+      persistentVolumeClaim:
+        claimName: sqlite-nfs-pvc
 
 
 

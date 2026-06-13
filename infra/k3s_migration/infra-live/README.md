@@ -868,12 +868,13 @@ tempo-homelab-test              tempo                                   nginx   
 
 ------
 
-NFS 掛載測試
+[X] NFS 掛載測試
 make trigger-ansible src_type=storage
 $ kubectl get pvc -n pg-apps-homelab-test
+$ kubectl apply -f archive/test/nfs-debug.yaml
 
 
-kubectl apply -f archive/test/nfs-debug.yaml
+cd /data/nfs/test-sqlite
 ```
 
 </ul>
@@ -1072,16 +1073,17 @@ argocd      storage         3d14h
 
 $ kubectl get appset -A
 NAMESPACE   NAME                      AGE
-argocd      cp-appset                 3d12h
-argocd      grafana-appset            3d13h
-argocd      ingress-nginx-appset      3d14h
-argocd      inst-appset               2d15h
-argocd      loki-appset               3d13h
-argocd      postgresql-appset         3d13h
-argocd      prometheus-stack-appset   3d13h
-argocd      promtail-appset           3d13h
-argocd      registry-appset           3d13h
-argocd      tempo-appset              3d13h
+argocd      cp-appset                 70m
+argocd      grafana-appset            3d16h
+argocd      ingress-nginx-appset      3d18h
+argocd      inst-appset               70m
+argocd      loki-appset               3d16h
+argocd      nfs-storage-appset        70m
+argocd      postgresql-appset         3d16h
+argocd      prometheus-stack-appset   3d16h
+argocd      promtail-appset           3d16h
+argocd      registry-appset           3d16h
+argocd      tempo-appset              3d16h
 
 
 $ kubectl get app -A
@@ -1092,6 +1094,7 @@ argocd      homelab-root                    Synced        Healthy
 argocd      ingress-nginx-homelab-test      Synced        Healthy
 argocd      inst-homelab-test               Synced        Healthy
 argocd      loki-homelab-test               Synced        Healthy
+argocd      nfs-storage-homelab-test        Synced        Healthy
 argocd      postgresql-homelab-test         Synced        Healthy
 argocd      prometheus-stack-homelab-test   Synced        Healthy
 argocd      promtail-homelab-test           Synced        Healthy

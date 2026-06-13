@@ -37,7 +37,7 @@ spec:
             - '../../../environments/{{env}}/tempo-values.yaml'
       destination:
         server: '{{server}}'
-        namespace: 'tempo-{{env}}'
+        namespace: 'observability-{{env}}'
 
       syncPolicy:
         # prune: true → 務必確保 Chart 裡的 PVC 有設定 reclaimPolicy: Retain，防止 Git 誤刪導致硬碟暴斃
