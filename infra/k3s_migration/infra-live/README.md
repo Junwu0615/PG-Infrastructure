@@ -1162,9 +1162,9 @@ argocd      tempo-homelab-test              Synced        Healthy
 <br>
 
 ### *E.　收斂階段*
-- [K8s - 基礎設施高可用性測試](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/HA.md)
-- [K8s - CI/CD](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/CI-CD.md)
-- [K8s - 可觀測性平台](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability-Platform.md)
-- [K8s - Vault 分發密鑰](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)
+- *[K8s - Feature Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Kubernetes-Feature-Validation.md)*
+- *[K8s - GitOps](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/CI-CD.md)*
+- *[K8s - Observability Platform](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability-Platform.md)*
+- *[K8s - Vault 分發密鑰](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)*
 
 <br><br><br>
