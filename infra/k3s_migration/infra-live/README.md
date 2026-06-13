@@ -1050,27 +1050,27 @@ tempo-homelab-test              tempo-homelab-test-query-frontend-88759c5fc-s58r
 
 $ kubectl get appproject -A
 NAMESPACE   NAME            AGE
-argocd      databases       23h
-argocd      default         23h
-argocd      observability   23h
-argocd      pg-apps         23h
-argocd      platform        23h
-argocd      security        23h
-argocd      storage         23h
+argocd      databases       3d14h
+argocd      default         3d14h
+argocd      observability   3d14h
+argocd      pg-apps         3d14h
+argocd      platform        3d14h
+argocd      security        3d14h
+argocd      storage         3d14h
 
 
 $ kubectl get appset -A
 NAMESPACE   NAME                      AGE
-argocd      cp-appset                 21h
-argocd      grafana-appset            22h
-argocd      ingress-nginx-appset      23h
-argocd      inst-appset               11m
-argocd      loki-appset               22h
-argocd      postgresql-appset         22h
-argocd      prometheus-stack-appset   22h
-argocd      promtail-appset           22h
-argocd      registry-appset           22h
-argocd      tempo-appset              22h
+argocd      cp-appset                 3d12h
+argocd      grafana-appset            3d13h
+argocd      ingress-nginx-appset      3d14h
+argocd      inst-appset               2d15h
+argocd      loki-appset               3d13h
+argocd      postgresql-appset         3d13h
+argocd      prometheus-stack-appset   3d13h
+argocd      promtail-appset           3d13h
+argocd      registry-appset           3d13h
+argocd      tempo-appset              3d13h
 
 
 $ kubectl get app -A
