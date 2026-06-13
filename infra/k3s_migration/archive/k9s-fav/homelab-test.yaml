@@ -7,14 +7,18 @@ k9s:
       - all
       - kube-system
       - argocd
-      - portainer
-      - grafana-homelab-test
+#      - portainer
+      - ingress-nginx-homelab-test-test
+#      - grafana-homelab-test
       - loki-homelab-test
       - tempo-homelab-test
       - promtail-homelab-test
       - prometheus-stack-homelab-test
-      - ingress-nginx-homelab-test-test
-      - postgresql-homelab-test
+#      - postgresql-homelab-test
+#      - registry-homelab-test
+      - cp-homelab-test
+      - inst-homelab-test
+#      - vault-homelab-test
   view:
     active: v1/pods all
   featureGates:

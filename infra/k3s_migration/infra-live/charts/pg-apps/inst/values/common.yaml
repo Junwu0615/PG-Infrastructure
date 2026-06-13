@@ -33,7 +33,7 @@ inst:
 
     SQLITE_DB_NAME: "kafka_consumer_local.db"
 
-    KAFKA_HOST: "172.28.113.34:9092"
+    KAFKA_HOST: "172.28.113.34:9094"
     KAFKA_AUTO_OFFSET_RESET: "earliest"
     KAFKA_ENABLE_AUTO_COMMIT: "false"
     # schema-registry:8081

@@ -30,6 +30,12 @@ make elk
 make registry
 make gitlab
 [X] make jenkins
+
+# detail ( ex: kafka )
+make kafka action=up
+make kafka action=restart
+make kafka action=down
+make kafka action=down volume=-v
 ```
 </ul>
 </details>
