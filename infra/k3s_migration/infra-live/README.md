@@ -908,7 +908,7 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
     sudo systemctl status nfs-kernel-server
 
 
-[X] # 手動 2
+[X] # 手動 2 ( 懶 ... 待補 )
 make ...
 
 [X] # 自動 ( VM 初始化階段會一步到位 )
@@ -938,7 +938,7 @@ $ kubectl delete pv nfs-storage-homelab-test-nfs-pv
 </details>
 
 
-<details open>
+<details>
 <summary><b><i>　VI.　管理 K8s GitOps 優先級問題 </i></b></summary>
 <ul>
 
@@ -1036,8 +1036,6 @@ kubectl get app,appset,appproject -A
 <br>
 
 ### *D.　遷移狀態確認*
-![PNG](../../../assets/k9s.png)
-![PNG](../../../assets/k8s_edge_00.png)
 ```
 $ watch -n 2 -d free -hw
 $ watch -n 2 -d "kubectl top nodes"
@@ -1051,10 +1049,18 @@ k3s-agent-2    456m         11%      3020Mi          50%
 k3s-master-0   355m         17%      1362Mi          69%
 k3s-master-1   294m         14%      1070Mi          54%
 k3s-master-2   351m         17%      1642Mi          83%
+```
 
-------
+![PNG](../../../assets/k9s.png)
 
-$ kubectl get pod -A -o wide | grep "master"
+[//]: # (![PNG]&#40;../../../assets/k8s_edge_00.png&#41;)
+
+
+<details>
+<summary><b><i>　$ kubectl get pod -A -o wide | grep "master" </i></b></summary>
+<ul>
+
+```
 argocd                       argocd-applicationset-controller-75fccf79bc-6qkrm                 1/1     Running   0          91m   10.42.1.2    k3s-master-2   <none>           <none>
 argocd                       argocd-notifications-controller-747fb557df-nnmnr                  1/1     Running   0          91m   10.42.2.2    k3s-master-1   <none>           <none>
 kube-system                  coredns-8db54c48d-2442m                                           1/1     Running   0          96m   10.42.0.2    k3s-master-0   <none>           <none>
@@ -1072,9 +1078,17 @@ observability-homelab-test   prometheus-stack-homelab-test-prometheus-node-expor
 observability-homelab-test   promtail-homelab-test-48zqx                                       1/1     Running   0          68m   10.42.0.8    k3s-master-0   <none>           <none>
 observability-homelab-test   promtail-homelab-test-6pz9g                                       1/1     Running   0          67m   10.42.2.6    k3s-master-1   <none>           <none>
 observability-homelab-test   promtail-homelab-test-ckvqn                                       1/1     Running   0          69m   10.42.1.6    k3s-master-2   <none>           <none>
+```
+
+</ul>
+</details>
 
 
-$ kubectl get pod -A -o wide | grep "agent"
+<details>
+<summary><b><i>　$ kubectl get pod -A -o wide | grep "agent" </i></b></summary>
+<ul>
+
+```
 argocd                       argocd-application-controller-0                                   1/1     Running   0          92m   10.42.4.6    k3s-agent-2    <none>           <none>
 argocd                       argocd-redis-7858d89dd5-wvhn4                                     1/1     Running   0          92m   10.42.4.5    k3s-agent-2    <none>           <none>
 argocd                       argocd-repo-server-546f77b6cd-q4fr8                               1/1     Running   0          92m   10.42.5.4    k3s-agent-1    <none>           <none>
@@ -1114,10 +1128,17 @@ pg-apps-homelab-test         inst-homelab-test-66d69b4755-4kz62                 
 platform-homelab-test        ingress-nginx-homelab-test-controller-6757b9cbc8-45tdt            1/1     Running   0          80m   10.88.0.20   k3s-agent-0    <none>           <none>
 platform-homelab-test        registry-homelab-test-54cfb48b87-224p2                            1/1     Running   0          84m   10.42.4.10   k3s-agent-2    <none>           <none>
 sealed-secrets               sealed-secrets-controller-674596f4bf-tvqq6                        1/1     Running   0          92m   10.42.5.3    k3s-agent-1    <none>           <none>
+```
 
-------
+</ul>
+</details>
 
-$ kubectl get appproject -A
+
+<details>
+<summary><b><i>　$ kubectl get appproject -A </i></b></summary>
+<ul>
+
+```
 NAMESPACE   NAME            AGE
 argocd      databases       3d14h
 argocd      default         3d14h
@@ -1126,9 +1147,17 @@ argocd      pg-apps         3d14h
 argocd      platform        3d14h
 argocd      security        3d14h
 argocd      storage         3d14h
+```
+
+</ul>
+</details>
 
 
-$ kubectl get appset -A
+<details>
+<summary><b><i>　$ kubectl get appset -A </i></b></summary>
+<ul>
+
+```
 NAMESPACE   NAME                      AGE
 argocd      cp-appset                 70m
 argocd      grafana-appset            3d16h
@@ -1141,9 +1170,17 @@ argocd      prometheus-stack-appset   3d16h
 argocd      promtail-appset           3d16h
 argocd      registry-appset           3d16h
 argocd      tempo-appset              3d16h
+```
+
+</ul>
+</details>
 
 
-$ kubectl get app -A
+<details>
+<summary><b><i>　$ kubectl get app -A </i></b></summary>
+<ul>
+
+```
 NAMESPACE   NAME                            SYNC STATUS   HEALTH STATUS
 argocd      cp-homelab-test                 Synced        Healthy
 argocd      grafana-homelab-test            Synced        Healthy
@@ -1158,6 +1195,9 @@ argocd      promtail-homelab-test           Synced        Healthy
 argocd      registry-homelab-test           Synced        Healthy
 argocd      tempo-homelab-test              Synced        Healthy
 ```
+
+</ul>
+</details>
 
 <br>
 
