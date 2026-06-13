@@ -31,7 +31,7 @@ AIRFLOW_PATH = ./docker/airflow
 LOCAL_PATH = 127.0.0.1
 OUTSIDE_PATH = 192.168.0.15
 
-KAFKA_CONN_ALL_JSON := $(wildcard ./docker/iot-platform/config/connectors/source/*.json ./docker/iot-platform/config/connectors/sink/*.json)
+KAFKA_CONN_ALL_JSON := $(wildcard ./docker/iot-platform/config/connectors/source/*.json ./docker/iot-platform/config/connectors/$(sink_type)/*.json)
 TOPIC_FILTER := __consumer_offsets|docker-connect-configs|docker-connect-offsets|docker-connect-status
 SCHEMA_FILTER := template
 
@@ -403,6 +403,11 @@ graph:
 	cd $(TERRAFORM_PATH) && terraform graph
 
 kafka-connect-create:
+	@echo "* 依據指定路徑將 Kafka Connection 進行同步配置 ..."
+	@if [ -z "$(sink_type)" ]; then \
+		echo "Error: 必須指定 sink type ex: make kafka-connect-create sink_type=sink"; \
+		exit 1; \
+	fi
 	@echo "* 根據指定路徑將 Kafka Connection 進行創建設定 ..."
 	@for file in $(KAFKA_CONN_ALL_JSON); do \
   		NAME=$$(basename $$file .json); \
@@ -418,8 +423,12 @@ kafka-connect-create:
 
 kafka-connect-upsert:
 	@echo "* 依據指定路徑將 Kafka Connection 進行同步配置 ..."
+	@if [ -z "$(sink_type)" ]; then \
+		echo "Error: 必須指定 sink type ex: make kafka-connect-upsert sink_type=sink"; \
+		exit 1; \
+	fi
 	@for file in $(KAFKA_CONN_ALL_JSON); do \
-		NAME=$$(basename $$file .json); \
+  	  	NAME=$$(basename $$file .json); \
 		echo "\n# 上傳/同步配置: $$NAME"; \
 		cat $$file | jq '.config' | curl -s -X PUT -H "Content-Type: application/json" \
 			--data @- \

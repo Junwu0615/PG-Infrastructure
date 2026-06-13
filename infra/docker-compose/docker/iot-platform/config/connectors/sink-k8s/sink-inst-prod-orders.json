@@ -1,0 +1,28 @@
+{
+  "name": "sink-inst-prod-orders",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "connection.url": "jdbc:postgresql://172.28.113.34:5432/pgdatabase",
+    "connection.user": "oltp_user",
+    "connection.password": "oltp_pwd",
+    "auto.create": "false",
+    "auto.evolve": "false",
+
+    "tasks.max": "3",
+    "batch.size": "3000",
+    "linger.ms": "100",
+
+    "topics": "inst.prod-orders",
+    "table.name.format": "oltp.production_orders",
+    "table.types": "TABLE",
+
+    "insert.mode": "update",
+    "pk.mode": "record_value",
+    "pk.fields": "order_id",
+    "fields.whitelist": "order_id,start_at,end_at",
+
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://schema-registry:8081"
+  }
+}

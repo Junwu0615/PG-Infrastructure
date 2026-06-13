@@ -84,8 +84,12 @@ make config
 make reload
 
 # Kafka Connect
-make kafka-connect-create
-make kafka-connect-upsert
+make kafka-connect-create sink_type=sink
+make kafka-connect-create sink_type=sink-k8s
+
+make kafka-connect-upsert sink_type=sink
+make kafka-connect-upsert sink_type=sink-k8s
+
 make kafka-connect-status
 
 # Kafka Cleanup
