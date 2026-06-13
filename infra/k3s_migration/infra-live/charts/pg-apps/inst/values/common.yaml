@@ -32,7 +32,10 @@ inst:
     POSTGRES_USER: "oltp_user"
     POSTGRES_PWD: "oltp_pwd"
 
-    SQLITE_DB_NAME: "./data/kafka_consumer_local.db"
+    # Pod 被銷毀即遺失
+#    SQLITE_DB_NAME: "./data/kafka_consumer_local.db"
+    # NFS 持久化
+    SQLITE_DB_NAME: "/app/data/kafka_consumer_local.db"
 
     KAFKA_HOST: "172.28.113.34:9094"
     KAFKA_AUTO_OFFSET_RESET: "earliest"
@@ -49,16 +52,14 @@ inst:
 
 
 
-  # 進行 K8s Volume 掛載 => NFS 儲存機制 ( SQLite )
-  volumeMounts:
+  # 進行 K8s Volume 掛載 => NFS 儲存機制 ( SQLite ) => 自動渲染 deployment 設定
+  volumesSettings:
     - name: sqlite-storage
-      # 容器內的應用程式讀寫路徑
+      claimName: sqlite-nfs-pvc
+      # 不能使用相對路徑
+#      mountPath: ./data
+      # 容器內的應用程式讀寫路徑  => 絕對路徑才會生效
       mountPath: /app/data
-  volumes:
-    - name: sqlite-storage
-      persistentVolumeClaim:
-        # 對接 GitOps 產出的 PVC
-        claimName: sqlite-nfs-pvc
 
 
 

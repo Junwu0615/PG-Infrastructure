@@ -43,6 +43,13 @@ spec:
 {{/*              key: {{ .Values.inst.secrets.dbPasswordKey }}*/}}
 {{/*        {{- end }}*/}}
 
+        # volumeMounts 必須在 containers 底下
+        volumeMounts:
+          {{- range .Values.inst.volumesSettings }}
+          - name: {{ .name }}
+            mountPath: {{ .mountPath }}
+          {{- end }}
+
         resources:
           {{- toYaml .Values.inst.resources | nindent 10 }}
 
@@ -57,6 +64,14 @@ spec:
 {{/*            - /tmp/healthy*/}}
 {{/*          initialDelaySeconds: 5 # 給 Python 啟動的一點緩衝時間*/}}
 {{/*          periodSeconds: 5       # 每 5 秒檢查一次*/}}
+
+      # volumes 必須跟 containers 平級（在 spec 底下）
+      volumes:
+        {{- range .Values.inst.volumesSettings }}
+        - name: {{ .name }}
+          persistentVolumeClaim:
+            claimName: {{ .claimName }}
+        {{- end }}
 
       # 節點調度配置動態化
       {{- with .Values.inst.nodeSelector }}

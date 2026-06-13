@@ -888,15 +888,16 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
     sudo mkdir -p /data/nfs/test-sqlite
     
     # 給予讀寫權限
-        # 指定特定戶別 1001 (應用程式)： 
+        # 指定特定戶別 1001 (應用程式)
         sudo chown -R 1001:1001 /data/nfs/test-sqlite
-        # 或者不指定特定戶別 => 廣義讀寫權限： 
+        # 廣義讀寫權限
         sudo chmod 777 /data/nfs/test-sqlite
     
     # 編輯設定檔，允許整個 K3s 網段 (10.88.0.0/24) 連入讀寫
     # sudo nano /etc/exports
     # 加入以下這一行：
     /data/nfs/test-sqlite 10.88.0.0/24(rw,sync,no_subtree_check,no_root_squash)
+    /data/nfs/test-sqlite 10.88.0.0/24(rw,sync,no_subtree_check,no_root_squash,all_squash,anonuid=1001,anongid=1001)
     
     # 重啟服務生效
     sudo systemctl restart nfs-kernel-server
@@ -905,14 +906,26 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
     sudo systemctl status nfs-kernel-server
 
 
-# 手動 2
+[X] # 手動 2
 make ...
 
-# 自動 ( VM 初始化階段會一步到位 )
+[X] # 自動 ( VM 初始化階段會一步到位 )
 
-# 驗證是否出現持久化數據
-debian@k3s-master-0:~$ ls /data/nfs/test-sqlite/
-debian@k3s-master-0:~$ cat /data/nfs/test-sqlite/
+
+# 驗證
+    ⭐ 1. 掛載狀況 ( 進 inst 容器 => k9s 按 s 進入 shell )
+    mount | grep /app/data
+    10.88.0.10:/data/nfs/test-sqlite on /app/data type nfs4 (rw,relatime,vers=4.2,rsize=262144,wsize=262144,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=10.88.0.22,local_lock=none,addr=10.88.0.10)
+    
+    ⭐ 2. 是否出現持久化數據 ( 進入 k3s-master-0 )
+    debian@k3s-master-0:~$ ls -la /data/nfs/test-sqlite/
+    total 64
+    drwxrwxrwx 2 root root  4096 Jun 13 10:13 .
+    drwxr-xr-x 3 root root  4096 Jun 13 09:48 ..
+    -rw-r--r-- 1 root root  4096 Jun 13 10:13 kafka_consumer_local.db
+    -rw-r--r-- 1 root root 32768 Jun 13 10:13 kafka_consumer_local.db-shm
+    -rw-r--r-- 1 root root 16512 Jun 13 10:13 kafka_consumer_local.db-wal
+
 
 * 若變更設置需要重頭來過 => 刪除 pvc, pv
 $ kubectl delete pvc sqlite-nfs-pvc -n pg-apps-homelab-test

@@ -83,7 +83,7 @@ make infra
 make config
 make reload
 
-# Kafka Connect
+# Kafka Connect ( 若連線錯誤 => 把設定移除再次加入 # 可能是... 服務尚未存在 )
 make kafka-connect-create sink_type=sink
 make kafka-connect-create sink_type=sink-k8s
 
