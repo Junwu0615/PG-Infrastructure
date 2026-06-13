@@ -422,27 +422,25 @@
 - #### *a.　使用細節*
   ```
   # 管理員 初始帳密
-    # [ACC]
-    >> root
-    
-    # [PWD] docker exec pg-cluster-gitlab-1 cat /etc/gitlab/initial_root_password
-    >> eZxoOr7lTxSzI1SDLYiowVi70QsfIPitLYx3TM7Kl8c=
+    [acc] root
+    [pwd] docker exec pg-cluster-gitlab-1 cat /etc/gitlab/initial_root_password
+    eZxoOr7lTxSzI1SDLYiowVi70QsfIPitLYx3TM7Kl8c=
   
-  
-  # Secrets
-    docker exec pg-cluster-gitlab-1 cat /etc/gitlab/gitlab-secrets.json
-  
-  
+  # 查詢 Secrets
+  docker exec pg-cluster-gitlab-1 cat /etc/gitlab/gitlab-secrets.json
+
   # 測試
-    [USER 1]
+  [USER 1]
     pc_wu
     8Nr~y\n8QQ:!&SU'
     
-    [USER 2]
+  [USER 2]
     jun_wu
     r2p8(G&(nJETwM]N
-  
-  
+  ```
+
+- #### *b.　Gitlab Runner*
+  ```
   # Runner 工具檢查
     # 啟用 gitlab-runner 的開機自啟服務
     sudo systemctl enable gitlab-runner
@@ -458,7 +456,7 @@
     # 查詢已註冊清單
     sudo gitlab-runner list
     
-    # 註冊 Runner
+    ⭐ 註冊 Runner
     sudo gitlab-runner register
       # 1. 輸入 GitLab 伺服器 URL: http://127.0.0.1:8090/ (根據你的 GitLab 伺服器地址進行修改)
       # 2. 輸入註冊 Token (在 GitLab 專案的 Settings > CI/CD > Runners settings 中找到)
@@ -488,7 +486,15 @@
     
     # [除錯] 驗證指定 runner
     sudo gitlab-runner verify
-    
+
+    ⭐ 將 privileged 修改為 true
+    sudo nano /etc/gitlab-runner/config.toml
+    privileged = true
+  
+    ⭐ k8s ingress 轉發設定 寫死在 runner ( 參考: infra/docker-compose/gitlab-runner/config.toml )
+    sudo nano /etc/gitlab-runner/config.toml
+    extra_hosts = ["docker-registry.k8s.local:10.88.0.20"] 
+  
     # 事物完成 → 生效
     sudo systemctl restart gitlab-runner
     
