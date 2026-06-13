@@ -1,3 +1,4 @@
 inst:
   env:
     APP_ENV: "STAGE"
+    POSTGRES_HOST: "postgresql-homelab-stage.databases-homelab-stage.svc.cluster.local"

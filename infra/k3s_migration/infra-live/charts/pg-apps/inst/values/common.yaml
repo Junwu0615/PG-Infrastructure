@@ -26,7 +26,7 @@ inst:
     MQTT_USER: "admin"
     MQTT_PWD: "123456789"
 
-    POSTGRES_HOST: "postgresql-homelab-test.postgresql-homelab-test.svc.cluster.local"
+    POSTGRES_HOST: "postgresql-homelab-test.databases-homelab-test.svc.cluster.local"
     POSTGRES_PORT: "5432"
     POSTGRES_DATABASE: "pgdatabase"
     POSTGRES_USER: "oltp_user"

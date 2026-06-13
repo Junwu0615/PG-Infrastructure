@@ -880,7 +880,7 @@ sqlite-nfs-pvc   Bound    nfs-storage-homelab-test-nfs-pv   2Gi        RWO      
 $ kubectl apply -f archive/test/nfs-debug.yaml
 
 
-# 手動 ( SSH 進入 10.88.0.10 )
+# 手動 1 ( SSH 進入 10.88.0.10 )
     # 安裝 NFS Server
     sudo apt-get update && sudo apt-get install -y nfs-kernel-server
     
@@ -905,14 +905,14 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
     sudo systemctl status nfs-kernel-server
 
 
-# 自動
+# 手動 2
+make ...
 
-
+# 自動 ( VM 初始化階段會一步到位 )
 
 # 驗證是否出現持久化數據
 debian@k3s-master-0:~$ ls /data/nfs/test-sqlite/
 debian@k3s-master-0:~$ cat /data/nfs/test-sqlite/
-
 
 * 若變更設置需要重頭來過 => 刪除 pvc, pv
 $ kubectl delete pvc sqlite-nfs-pvc -n pg-apps-homelab-test

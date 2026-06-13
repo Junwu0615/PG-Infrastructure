@@ -5,6 +5,10 @@
   hosts: k3s_cluster
   become: yes
   tasks:
+    - name: Gather service facts
+      # 收集 systemd 服務 供後續判斷
+      ansible.builtin.service_facts:
+
     - name: Disable Swap in fstab
       mount:
         name: "{{ item }}"
@@ -90,6 +94,7 @@
         state: restarted
       when:
         - inventory_hostname in groups['masters']
+        # 檢查 systemd 服務檔案是否存在，不存在就跳過
         - ansible_facts.services['k3s.service'] is defined
 
     - name: Restart K3s Agent
@@ -98,4 +103,5 @@
         state: restarted
       when:
         - inventory_hostname in groups['agents']
+        # 檢查 systemd 服務檔案是否存在，不存在就跳過
         - ansible_facts.services['k3s-agent.service'] is defined

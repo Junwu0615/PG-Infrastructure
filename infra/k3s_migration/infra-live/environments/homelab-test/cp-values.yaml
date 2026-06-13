@@ -1,3 +1,4 @@
 cp:
   env:
     APP_ENV: "TEST"
+    POSTGRES_HOST: "postgresql-homelab-test.databases-homelab-test.svc.cluster.local"

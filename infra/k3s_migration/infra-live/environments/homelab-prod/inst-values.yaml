@@ -1,3 +1,4 @@
 inst:
   env:
     APP_ENV: "PROD"
+    POSTGRES_HOST: "postgresql-homelab-prod.databases-homelab-prod.svc.cluster.local"

@@ -1,9 +1,9 @@
 [wsl2]
-memory=32GB
+memory=36GB
 swap=4GB
 processors=24
 
-networkingMode=NAT
+networkingMode=nat
 #networkingMode=mirrored
 
 dnsTunneling=true
@@ -13,5 +13,4 @@ firewall=true
 [experimental]
 #autoMemoryReclaim=gradual
 autoMemoryReclaim=dropcache
-
 sparseVhd=true

@@ -89,6 +89,9 @@ make kafka-connect-create sink_type=sink-k8s
 
 make kafka-connect-upsert sink_type=sink
 make kafka-connect-upsert sink_type=sink-k8s
+  # 確認服務是否打開
+  nc -zv 10.88.0.20 5432
+  nc -zv 172.28.113.34 5432
 
 make kafka-connect-status
 
