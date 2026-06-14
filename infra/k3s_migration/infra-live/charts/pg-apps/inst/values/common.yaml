@@ -5,6 +5,7 @@ inst:
     repository: docker-registry.k8s.local/pg-python-inst
     pullPolicy: IfNotPresent
     tag: "latest"
+#    tag: "v99"
 #    tag: "v6"
 
 
@@ -35,6 +36,9 @@ inst:
 #    SQLITE_DB_NAME: "./data/kafka_consumer_local.db"
     # NFS 持久化
     SQLITE_DB_NAME: "/app/data/kafka_consumer_local.db"
+
+    # 健康檢查檔案位置
+    HEARTBEAT_FILE: "/app/tmp/heartbeat.txt"
 
     KAFKA_HOST: "172.28.113.34:9094"
     KAFKA_AUTO_OFFSET_RESET: "earliest"

@@ -27,6 +27,8 @@ spec:
       containers:
       - name: pg-python-cp
         image: "{{ .Values.cp.image.repository }}:{{ .Values.cp.image.tag }}"
+        # 強迫每次都拿最新打包的 image
+        imagePullPolicy: Always
         command: ["python", "src/core/v2/cp/main.py"]
 
         env:

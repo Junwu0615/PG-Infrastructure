@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   annotations:
     reloader.stakater.com/auto: "true"
-    kubernetes.io/change-cause: "Deploying version {{ .Values.inst.image.tag }}"
+    kubernetes.io/change-cause: "Deploying version || image: {{ .Values.inst.image.tag }} || APP_ENV: {{ .Values.inst.env.APP_ENV }}"
 
 spec:
   replicas: {{ .Values.inst.replicaCount | default 1 }}
@@ -38,6 +38,8 @@ spec:
       containers:
       - name: pg-python-inst
         image: "{{ .Values.inst.image.repository }}:{{ .Values.inst.image.tag }}"
+        # 強迫每次都拿最新打包的 image
+        imagePullPolicy: Always
         command: ["python", "src/core/v2/inst/main.py"]
 
         env:
@@ -64,17 +66,32 @@ spec:
         resources:
           {{- toYaml .Values.inst.resources | nindent 10 }}
 
-        # 健康檢查
-          # HTTP Get：看網頁路徑是否回傳 200
-          # TCP Socket：看某個 Port 有沒有開
-          # [ 目前簡易腳本 ] Exec Command：在容器內執行一個指令，回傳 0 就算成功 | python 腳本要搭配
+        # 健康檢查工具 1 ( 非必要 ) => 因為已有 livenessProbe 多它造成多餘 I/O
+        # 檢查失敗時的動作: 把這個 Pod 從 Service 的 Endpoints 中剔除。停止發送網路流量給它，但絕對不會重啟 Pod
+        # 【 就緒檢查 】 只在剛啟動時有用：確保檔案建好後，才顯示 READY 1/1
 {{/*        readinessProbe:*/}}
 {{/*          exec:*/}}
 {{/*            command:*/}}
 {{/*            - cat*/}}
-{{/*            - /tmp/healthy*/}}
-{{/*          initialDelaySeconds: 5 # 給 Python 啟動的一點緩衝時間*/}}
-{{/*          periodSeconds: 5       # 每 5 秒檢查一次*/}}
+{{/*            - /app/data/heartbeat.txt*/}}
+{{/*          initialDelaySeconds: 3  # 容器啟動後 3 秒才開始檢查*/}}
+{{/*          periodSeconds: 3        # 每 3 秒檢查一次*/}}
+
+        # 健康檢查工具 2
+        # 檢查失敗時的動作: 直接重啟容器（Restart Container） 強迫程式滿血復活
+        # 【 存活檢查 】 驅動重啟的核心：initialDelaySeconds 必須比 readiness 大，給它緩衝
+        # ─── 實施 Kafka 連動的 Liveness Exec Recovery ───
+        livenessProbe:
+          exec:
+            command:
+              - sh
+              - -c
+              - |
+                if [ ! -f /app/tmp/heartbeat.txt ]; then exit 1; fi
+          initialDelaySeconds: 15   # 容器啟動後 10 秒才開始檢查
+          periodSeconds: 3          # 每 3 秒進容器 cat 一次
+          timeoutSeconds: 2         # 指令執行超時時間
+          failureThreshold: 2       # 連續 2 次失敗（約 6 秒）就重啟 Pod
 
       # volumes 必須跟 containers 平級（在 spec 底下）
       volumes:
