@@ -1,0 +1,24 @@
+{{- if .Values.inst.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+  name: {{ .Release.Name }}-hpa
+  namespace: {{ .Release.Namespace }}
+
+spec:
+  # HPA 綁定的目標： 對準 Deployment
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}
+  minReplicas: {{ .Values.inst.autoscaling.minReplicas | default 1 }}
+  maxReplicas: {{ .Values.inst.autoscaling.maxReplicas | default 3 }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.inst.autoscaling.targetCPUUtilizationPercentage | default 50 }}
+{{- end }}

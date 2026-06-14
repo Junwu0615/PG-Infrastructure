@@ -172,6 +172,9 @@ kubectl get sts
 # 確認 crd 狀態 ( 藍圖被註冊進 K8s 系統 )
 kubectl get crd
 
+# 確認 HPA 狀態 ( 擴展/縮容 )
+kubectl get hpa
+
 # 檢查已被定義的服務 ( 被連線使用 ) 狀態
 kubectl get svc
 
