@@ -37,15 +37,17 @@ k-top:
 	@kubectl describe nodes | grep -A 20 "Allocated resources" || true && echo && echo && echo
 	@echo "================== [ 叢集硬體算力消耗狀態 ] =================="
 	@kubectl top nodes || echo "⚠️ 無法取得指標，請檢查 metrics-server 是否正常運行。"
+	@echo "✅  <make k-top> done."
 
 init-gitops:
 	@echo "* 一鍵部署基礎設置 ( GitOps Bootstrap Cluster )"
 	cd ./infra-live/bootstrap/ && \
 	chmod +x cluster/scripts/bootstrap-cluster.sh && \
 	./cluster/scripts/bootstrap-cluster.sh
+	@echo "✅  <make init-gitops> done."
 
 helm-chart-build: $(CHART_DIRS)
-	@echo "✅  <helm-chart-build> done."
+	@echo "✅  <make helm-chart-build> done."
 
 $(CHART_DIRS):
 	@echo "* [Vendor Mode] 動態遍歷建置 Helm (Chart.yaml) 依賴 ▶ $@"
