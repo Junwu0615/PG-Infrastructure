@@ -24,6 +24,17 @@ spec:
         app: pg-python-inst
 
     spec:
+      # TODO 節點掛了盡快飄移去別的健康節點 ; 預設 5 min 緩衝才動作
+      tolerations:
+        - key: "node.kubernetes.io/not-ready"
+          operator: "Exists"
+          effect: "NoExecute"
+          tolerationSeconds: 10
+        - key: "node.kubernetes.io/unreachable"
+          operator: "Exists"
+          effect: "NoExecute"
+          tolerationSeconds: 10
+
       containers:
       - name: pg-python-inst
         image: "{{ .Values.inst.image.repository }}:{{ .Values.inst.image.tag }}"

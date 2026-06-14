@@ -13,8 +13,8 @@
 ```
 ✅ = 已實現
 ❌ = 已棄用
-- = 未實現
-* = Homelab 記憶體 OOM Kill ( 折衷改為 Docker Compose ) → 不遷移
+-  = 未實現
+*  = Homelab 記憶體 OOM Kill ( 折衷改為 Docker Compose ) → 不遷移
 △ = 省作業時間 ( 部分與重型服務的 Docker Compose 綑綁 ) → 不遷移
 ``` 
 
@@ -278,7 +278,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
     │       │   │   ├── ingress-nginx
     │       │   │   └── registry
     │       │   └── security
-    │       │   │   └── vault
+    │       │       └── vault
     │       │
     │       ├── environments
     │       │   ├── homelab-prod

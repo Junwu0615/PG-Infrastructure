@@ -1,5 +1,6 @@
 [wsl2]
-memory=36GB
+memory=32GB
+#memory=36GB
 swap=4GB
 processors=24
 

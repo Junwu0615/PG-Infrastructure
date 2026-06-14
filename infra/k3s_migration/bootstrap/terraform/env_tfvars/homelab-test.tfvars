@@ -8,7 +8,7 @@ net_segment_master_start = 10
 net_segment_agent_start = 20
 
 master_count = 3
-agent_count = 3
+agent_count = 4
 
 node_config = {
   "default"     = { memory = 2048, vcpu = 2 }
@@ -18,4 +18,5 @@ node_config = {
   "k3s-agent-0" = { memory = 6144, vcpu = 4 }
   "k3s-agent-1" = { memory = 6144, vcpu = 4 }
   "k3s-agent-2" = { memory = 6144, vcpu = 4 }
+  "k3s-agent-3" = { memory = 6144, vcpu = 4 }
 }
