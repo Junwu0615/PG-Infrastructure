@@ -1,0 +1,3 @@
+registry:
+#  replicaCount: 1
+  replicaCount: 2

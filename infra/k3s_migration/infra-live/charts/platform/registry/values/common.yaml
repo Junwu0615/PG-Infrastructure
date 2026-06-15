@@ -5,6 +5,10 @@ registry:
 
   replicaCount: 1
 
+  env:
+#    ENV: "TEST"
+    ENV: "STAGE"
+
   service:
     type: ClusterIP
     port: 5000

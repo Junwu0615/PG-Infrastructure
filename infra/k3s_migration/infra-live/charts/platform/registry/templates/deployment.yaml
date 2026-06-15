@@ -3,9 +3,11 @@ kind: Deployment
 
 metadata:
   name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
 
 spec:
-
   replicas: {{ .Values.registry.replicaCount }}
 
   selector:
@@ -14,6 +16,8 @@ spec:
 
   template:
     metadata:
+      annotations:
+        kubernetes.io/change-cause: "Deploying version || image: {{ .Values.registry.image.tag }} || ENV: {{ .Values.registry.env.ENV }}"
       labels:
         app: {{ .Release.Name }}
 

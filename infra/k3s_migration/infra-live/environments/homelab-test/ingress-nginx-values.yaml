@@ -5,7 +5,7 @@ ingress-nginx:
     5432: "databases-homelab-test/postgresql-homelab-test:5432"
 
   controller:
-    replicaCount: 2
+    replicaCount: 1
 
     admissionWebhooks:
       enabled: true

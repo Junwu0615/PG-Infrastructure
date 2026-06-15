@@ -801,8 +801,8 @@ DEBUG
             helm template charts/databases/postgresql -f charts/databases/postgresql/values/common.yaml -f environments/homelab-test/postgresql-values.yaml --set namespaceOverride=postgresql-homelab-test > output.yaml
             
             helm template charts/platform/ingress-nginx -f charts/platform/ingress-nginx/values/common.yaml -f environments/homelab-test/ingress-nginx-values.yaml --set namespaceOverride=homelab-test > output.yaml
-            helm template charts/platform/ingress-nginx -f charts/platform/harbor/values/common.yaml -f environments/homelab-test/harbor-values.yaml --set namespaceOverride=homelab-test > output.yaml
-            helm template charts/platform/ingress-nginx -f charts/platform/registry/values/common.yaml -f environments/homelab-test/registry-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/platform/harbor -f charts/platform/harbor/values/common.yaml -f environments/homelab-test/harbor-values.yaml --set namespaceOverride=homelab-test > output.yaml
+            helm template charts/platform/registry -f charts/platform/registry/values/common.yaml -f environments/homelab-test/registry-values.yaml --set namespaceOverride=homelab-test > output.yaml
             
             helm template charts/pg-apps/cp -f charts/pg-apps/cp/values/common.yaml -f environments/homelab-test/cp-values.yaml --set namespaceOverride=homelab-test > output.yaml
             helm template charts/pg-apps/inst -f charts/pg-apps/inst/values/common.yaml -f environments/homelab-test/inst-values.yaml --set namespaceOverride=homelab-test > output.yaml
@@ -961,6 +961,12 @@ Level 2. ArgoCD 應用層級 → 安全解除綁定
     
     3. 若卡死在 Terminating 超過 2 分鐘，才強制抹除
     kubectl delete -n argocd app <app-name> --force --grace-period=0
+    
+    ⭐ 無限套娃動態死鎖: pod 不斷重生 就算頂層 appset + app 砍掉後 還是存活
+       → Pod 會無限自癒，是因為上游有一個 Deployment
+    先查詢: kubectl get all -n <namespace>
+    kubectl patch deployment <deployment-name> -n <namespace> -p '{"metadata":{"finalizers":null}}' --type=merge
+    kubectl delete deployment <deployment-name> -n <namespace> --force --grace-period=0
 
 
 Level 3. 範本與架構層級 → 刪除 AppSet 與 AppProject

@@ -33,7 +33,7 @@ spec:
         helm:
           valueFiles:
             - 'values/common.yaml'
-#            - '../../../environments/{{env}}/vault-values.yaml'
+            - '../../../environments/{{env}}/vault-values.yaml'
 
       destination:
         server: '{{server}}'
