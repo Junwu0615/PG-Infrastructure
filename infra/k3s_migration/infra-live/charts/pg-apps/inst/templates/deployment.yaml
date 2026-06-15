@@ -6,10 +6,10 @@ metadata:
   namespace: {{ .Release.Namespace }}
   annotations:
     reloader.stakater.com/auto: "true"
-    kubernetes.io/change-cause: "Deploying version || image: {{ .Values.inst.image.tag }} || APP_ENV: {{ .Values.inst.env.APP_ENV }}"
 
 spec:
   replicas: {{ .Values.inst.replicaCount | default 1 }}
+
   strategy:
     # 關鍵：先殺後建，防止單一實例邏輯衝突
     type: Recreate
@@ -20,6 +20,8 @@ spec:
 
   template:
     metadata:
+      annotations:
+        kubernetes.io/change-cause: "Deploying version || image: {{ .Values.inst.image.tag }} || APP_ENV: {{ .Values.inst.env.APP_ENV }}"
       labels:
         app: pg-python-inst
 
