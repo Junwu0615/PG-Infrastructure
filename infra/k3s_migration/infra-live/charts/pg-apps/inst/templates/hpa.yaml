@@ -21,4 +21,12 @@ spec:
       target:
         type: Utilization
         averageUtilization: {{ .Values.inst.autoscaling.targetCPUUtilizationPercentage | default 50 }}
+
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: {{ .Values.inst.autoscaling.stabilizationWindowSeconds | default 300 }}
+      policies:
+        - type: Percent
+          value: 100            # 只要指標達標，允許一次砍掉 100% 的冗餘 Pod
+          periodSeconds: 15     # 每 15 秒執行一次評估
 {{- end }}
