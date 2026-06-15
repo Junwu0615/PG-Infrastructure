@@ -46,3 +46,11 @@ grafana:
     limits:
       cpu: 500m
       memory: 512Mi
+
+
+# [ 位置無效 ] 關閉 Sidecar 聯帶重啟效應
+#sidecar:
+#  dashboards:
+#    enabled: false  # 關閉儀表板動態監控
+#  datasources:
+#    enabled: false  # 關閉資料源動態監控，改走純靜態讀取

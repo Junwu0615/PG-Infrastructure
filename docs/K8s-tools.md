@@ -289,7 +289,8 @@ kubectl port-forward svc/postgres-service 5432:5432
     -- 預期 Python Log 會顯示開始報錯重試，直到 K8s 自動把 Postgres Pod 重啟回來後，連線又會恢復
 
 # 檢查 Service 關聯到的端點 ( Endpoints )
-kubectl get endpoints postgres-service
+kubectl get endpoints
+kubectl get ep
 
 ⭐⭐⭐ [ 病歷表 ] 檢查具體噴錯原因
 kubectl describe pod portainer-59cf9d8764-mg54l
