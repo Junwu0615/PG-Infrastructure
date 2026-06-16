@@ -40,6 +40,10 @@ spec:
             - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
               value: /var/lib/registry
 
+            # 注入固定鑰匙，破除 複數副本同時上線 解密失敗
+            - name: REGISTRY_HTTP_SECRET
+              value: "homelab_shared_registry_secret_key_2026"
+
           resources:
 {{ toYaml .Values.registry.resources | nindent 12 }}
 

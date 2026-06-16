@@ -9,12 +9,18 @@
       # 收集 systemd 服務 供後續判斷
       ansible.builtin.service_facts:
 
+    # 物理抹殺 Swap ( fstab )
     - name: Disable Swap in fstab
       mount:
         name: "{{ item }}"
         fstype: swap
         state: absent
       loop: [ "none", "swap" ]
+
+    # 物理抹殺 Swap ( 記憶體 )
+    - name: Disable Swap in current memory (Immediate)
+      command: swapoff -a
+      changed_when: false # 避免每次都回報 changed
 
     - name: Enable Kernel Modules
       modprobe:
@@ -36,6 +42,9 @@
         name: "{{ item }}"
         value: '1'
         state: present
+        # 確保 sysctl 變更重開機不丟失
+        sysctl_file: /etc/sysctl.d/99-kubernetes.conf # 強制寫入獨立設定檔
+        reload: yes
       loop:
         - net.ipv4.ip_forward
         - net.bridge.bridge-nf-call-iptables
@@ -45,6 +54,7 @@
         name: nfs-common
         state: present
         update_cache: yes
+        cache_valid_time: 3600 # 1小時內不重複 update
       when: ansible_os_family == "Debian"
       tags:
         - storage
@@ -96,6 +106,7 @@
         - inventory_hostname in groups['masters']
         # 檢查 systemd 服務檔案是否存在，不存在就跳過
         - ansible_facts.services['k3s.service'] is defined
+        - ansible_facts.services['k3s.service'].state == 'running'
 
     - name: Restart K3s Agent
       systemd:
@@ -105,3 +116,4 @@
         - inventory_hostname in groups['agents']
         # 檢查 systemd 服務檔案是否存在，不存在就跳過
         - ansible_facts.services['k3s-agent.service'] is defined
+        - ansible_facts.services['k3s.service'].state == 'running'

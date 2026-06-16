@@ -299,20 +299,32 @@ vm-power:
 	@echo "✅  <make vm-power> done."
 
 vm-format:
-	@for vm in $$(sudo virsh list --all --name); do \
-		if [ -n "$$vm" ]; then \
-			echo "=== 虛擬機: $$vm ==="; \
-			vcpu=$$(sudo virsh dumpxml "$$vm" | grep 'vcpu' | sed -e 's/<[^>]*>//g' | xargs); \
-			ram_kib=$$(sudo virsh dumpxml "$$vm" | grep 'currentMemory' | sed -e 's/<[^>]*>//g' | xargs); \
-			ram_mb=$$((ram_kib / 1024)); \
-			disk_path=$$(sudo virsh domblklist "$$vm" | awk 'NR==3 {print $$2}'); \
-			if [ -f "$$disk_path" ]; then \
-				disk_size=$$(sudo qemu-img info "$$disk_path" | grep 'virtual size' | awk -F'(' '{print $$1}' | awk -F':' '{print $$2}' | xargs); \
-			else \
-				disk_size="找不到實體磁碟"; \
-			fi; \
-			echo "  [CPU]  : $$vcpu 核"; \
-			echo "  [RAM]  : $$ram_mb MB (~ $$((ram_mb / 1024)) GB)"; \
-			echo "  [DISK] : $$disk_size"; \
-		fi; \
+	@printf "\033[1;36m================== [ KVM 虛擬機算力與配置清單 ] ==================\033[0m\n"
+	@printf "\033[1;33m%-15s %-10s %-8s %-15s %-20s\033[0m\n" "VM_NAME" "STATUS" "VCPU" "MEMORY" "DISK_SIZE"
+	@printf "\033[1;30m----------------------------------------------------------------\033[0m\n"
+	@sudo virsh list --all | awk 'NR>2 {print $$2}' | while read -r vm; do \
+	   if [ -n "$$vm" ]; then \
+	      status=$$(sudo virsh domstate "$$vm" 2>/dev/null); \
+	      if [ "$$status" = "running" ]; then \
+	         status_str="\033[1;32mrunning\033[0m"; \
+	      else \
+	         status_str="\033[1;31m$$status\033[0m"; \
+	      fi; \
+	      vcpu=$$(sudo virsh dumpxml "$$vm" 2>/dev/null | grep '<vcpu' | sed -e 's/<[^>]*>//g' | xargs); \
+	      ram_kib=$$(sudo virsh dumpxml "$$vm" 2>/dev/null | grep '<currentMemory' | sed -e 's/<[^>]*>//g' | xargs); \
+	      ram_gb=$$(echo "scale=1; $$ram_kib / 1024 / 1024" | bc 2>/dev/null); \
+	      [ -z "$$vcpu" ] && vcpu="-"; \
+	      [ -z "$$ram_gb" ] && ram_str="-" || ram_str="$${ram_gb} GB"; \
+	      \
+	      disk_path=$$(sudo virsh domblklist "$$vm" | grep -v -E "Target|Source|------|$$" | grep -v "\.iso" | awk '{print $$2}' | head -n 1 | xargs); \
+	      \
+	      if [ -n "$$disk_path" ] && [ -f "$$disk_path" ]; then \
+	         disk_size=$$(sudo qemu-img info "$$disk_path" 2>/dev/null | grep 'virtual size' | awk -F'(' '{print $$1}' | awk -F':' '{print $$2}' | xargs); \
+	      elif [ -n "$$disk_path" ]; then \
+	         disk_size="$$disk_path"; \
+	      else \
+	         disk_size="無實體磁碟"; \
+	      fi; \
+	      printf "%-15s %b %-8s %-15s %-20s\n" "$$vm" "$$status_str" "    $$vcpu 核" "    $$ram_str" "    $$disk_size"; \
+	   fi; \
 	done

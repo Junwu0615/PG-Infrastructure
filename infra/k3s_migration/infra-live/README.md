@@ -325,13 +325,13 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
     # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
     make k-top
     
-    # 啟動 ingress-nginx → 已將其加入正式定義 無須用此方式
+    # 啟動 ingress-nginx → 已將其加入正式定義 無須用此方式 ( ⭐ VM 初始化階段會一步到位 )
     make upgrade-ingress
     
     # 檢視 Secrets 明文 ( ex: homelab-test )
     make see-secrets ENV=homelab-test
     
-    # 更新 VM Host 設定 => 可以拉取 registry images
+    # 更新 VM Host 設定 => 可以拉取 registry images ( ⭐ VM 初始化階段會一步到位 )
     make trigger-ansible src_type=registry
 
     # 更新 k9s 最愛設定
@@ -1038,8 +1038,22 @@ kubectl get app,appset,appproject -A
 ```
 $ watch -n 2 -d free -hw
 $ watch -n 2 -d "kubectl top nodes"
-$ make k-top
 
+
+$ make vm-format
+================== [ KVM 虛擬機算力與配置清單 ] ==================
+VM_NAME         STATUS     VCPU     MEMORY          DISK_SIZE
+----------------------------------------------------------------
+k3s-agent-2     running     4 核     4.0 GB          無實體磁碟
+k3s-agent-1     running     4 核     4.0 GB          無實體磁碟
+k3s-agent-0     running     4 核     4.0 GB          無實體磁碟
+k3s-agent-3     running     4 核     4.0 GB          無實體磁碟
+k3s-master-2    running     2 核     3.0 GB          無實體磁碟
+k3s-master-0    running     2 核     3.0 GB          無實體磁碟
+k3s-master-1    running     2 核     3.0 GB          無實體磁碟
+
+
+$ make k-top
 ================== [ 叢集硬體算力消耗狀態 ] ==================
 NAME           CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
 k3s-agent-0    185m         4%       947Mi           15%
@@ -1060,23 +1074,15 @@ k3s-master-2   351m         17%      1642Mi          83%
 <ul>
 
 ```
-argocd                       argocd-applicationset-controller-75fccf79bc-6qkrm                 1/1     Running   0          91m   10.42.1.2    k3s-master-2   <none>           <none>
-argocd                       argocd-notifications-controller-747fb557df-nnmnr                  1/1     Running   0          91m   10.42.2.2    k3s-master-1   <none>           <none>
-kube-system                  coredns-8db54c48d-2442m                                           1/1     Running   0          96m   10.42.0.2    k3s-master-0   <none>           <none>
-kube-system                  local-path-provisioner-5d9d9885bc-d4fnl                           1/1     Running   0          96m   10.42.0.3    k3s-master-0   <none>           <none>
-kube-system                  metrics-server-786d997795-k8pd4                                   1/1     Running   0          96m   10.42.0.4    k3s-master-0   <none>           <none>
-observability-homelab-test   loki-canary-cqqvt                                                 1/1     Running   0          81m   10.42.1.4    k3s-master-2   <none>           <none>
-observability-homelab-test   loki-canary-crq6z                                                 1/1     Running   0          81m   10.42.0.6    k3s-master-0   <none>           <none>
-observability-homelab-test   loki-canary-vw9dt                                                 1/1     Running   0          81m   10.42.2.4    k3s-master-1   <none>           <none>
-observability-homelab-test   loki-homelab-test-logs-fngcw                                      2/2     Running   0          80m   10.42.1.5    k3s-master-2   <none>           <none>
-observability-homelab-test   loki-homelab-test-logs-lsq9h                                      2/2     Running   0          80m   10.42.0.7    k3s-master-0   <none>           <none>
-observability-homelab-test   loki-homelab-test-logs-wq4xb                                      2/2     Running   0          80m   10.42.2.5    k3s-master-1   <none>           <none>
-observability-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-8vb9p      1/1     Running   0          83m   10.88.0.12   k3s-master-2   <none>           <none>
-observability-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-jqbj6      1/1     Running   0          83m   10.88.0.11   k3s-master-1   <none>           <none>
-observability-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-k9x4f      1/1     Running   0          83m   10.88.0.10   k3s-master-0   <none>           <none>
-observability-homelab-test   promtail-homelab-test-48zqx                                       1/1     Running   0          68m   10.42.0.8    k3s-master-0   <none>           <none>
-observability-homelab-test   promtail-homelab-test-6pz9g                                       1/1     Running   0          67m   10.42.2.6    k3s-master-1   <none>           <none>
-observability-homelab-test   promtail-homelab-test-ckvqn                                       1/1     Running   0          69m   10.42.1.6    k3s-master-2   <none>           <none>
+kube-system                  coredns-8db54c48d-mxl46                                           1/1     Running             0          17m     10.42.0.3    k3s-master-0   <none>           <none>
+kube-system                  local-path-provisioner-5d9d9885bc-jggsl                           1/1     Running             0          17m     10.42.0.4    k3s-master-0   <none>           <none>
+kube-system                  metrics-server-786d997795-qwcvs                                   1/1     Running             0          17m     10.42.0.2    k3s-master-0   <none>           <none>
+observability-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-2tdb5      1/1     Running             0          5m49s   10.88.0.12   k3s-master-2   <none>           <none>
+observability-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-d8qhc      1/1     Running             0          5m46s   10.88.0.10   k3s-master-0   <none>           <none>
+observability-homelab-test   prometheus-stack-homelab-test-prometheus-node-exporter-zvr4v      1/1     Running             0          5m47s   10.88.0.11   k3s-master-1   <none>           <none>
+observability-homelab-test   promtail-homelab-test-49xvh                                       1/1     Running             0          6m55s   10.42.2.2    k3s-master-1   <none>           <none>
+observability-homelab-test   promtail-homelab-test-bk8kr                                       1/1     Running             0          6m55s   10.42.0.5    k3s-master-0   <none>           <none>
+observability-homelab-test   promtail-homelab-test-gtrhz                                       1/1     Running             0          6m55s   10.42.1.2    k3s-master-2   <none>           <none>
 ```
 
 </ul>
