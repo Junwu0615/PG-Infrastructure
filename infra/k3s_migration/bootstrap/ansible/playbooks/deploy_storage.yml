@@ -1,0 +1,49 @@
+# ansible/playbooks/deploy_storage.yml
+
+---
+- name: Configure NFS Server for Persistent Volumes
+  hosts: storage
+  become: yes
+  vars:
+    nfs_export_dir: "/data/nfs/{{ nfs_sqlite_ver }}"
+    k3s_subnet: "{{ k3s_subnet_path }}"
+    container_uid: 1001
+
+  tasks:
+    - name: Gather service facts
+      # 收集 systemd 服務 供後續判斷
+      ansible.builtin.service_facts:
+
+    - name: Install NFS Server Packages
+      apt:
+        name: nfs-kernel-server
+        state: present
+        update_cache: yes
+
+    - name: Create Physical Directory for SQLite Persistence
+      file:
+        path: "{{ nfs_export_dir }}"
+        state: directory
+        mode: '0777' # 廣義讀寫權限防呆
+        owner: "{{ container_uid }}" # 指定應用程式用戶 UID (1001)
+        group: "{{ container_uid }}" # 指定應用程式用戶 GID (1001)
+        recurse: yes
+
+    - name: Configure NFS Exports Permissions (Mapping to UID 1001)
+      lineinfile:
+        path: /etc/exports
+        regexp: "^{{ nfs_export_dir }}\\s+"
+        # 使用精準的 all_squash 與 anonuid，確保 K3s 各節點寫入時皆具備對等權限，防範 SQLite 檔案鎖衝突
+        line: "{{ nfs_export_dir }} {{ k3s_subnet }}(rw,sync,no_subtree_check,no_root_squash,all_squash,anonuid={{ container_uid }},anongid={{ container_uid }})"
+        state: present
+      notify: Restart NFS Server
+
+  handlers:
+    - name: Restart NFS Server
+      systemd:
+        name: k3s
+        state: restarted
+      when:
+        - inventory_hostname in groups['masters']
+        # 檢查 systemd 服務檔案是否存在，不存在就跳過
+        - ansible_facts.services['k3s.service'] is defined

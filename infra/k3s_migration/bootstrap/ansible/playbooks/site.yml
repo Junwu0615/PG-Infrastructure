@@ -3,4 +3,5 @@
 ---
 - import_playbook: init_nodes.yml
 - import_playbook: deploy_k3s.yml
+- import_playbook: deploy_storage.yml
 #- import_playbook: gateway.yml

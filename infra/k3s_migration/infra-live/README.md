@@ -869,7 +869,7 @@ tempo-homelab-test              tempo                                   nginx   
 
 ------
 
-⚠️ NFS 掛載測試
+⚠️ NFS 掛載測試 ( ⭐ VM 初始化階段會一步到位 )
 
 make trigger-ansible src_type=storage
 $ kubectl get pvc -n pg-apps-homelab-test
@@ -881,7 +881,7 @@ sqlite-nfs-pvc   Bound    nfs-storage-homelab-test-nfs-pv   2Gi        RWO      
 $ kubectl apply -f archive/test/nfs-debug.yaml
 
 
-# 手動 1 ( SSH 進入 10.88.0.10 )
+# 手動 ( SSH 進入 10.88.0.10 )
     # 安裝 NFS Server
     sudo apt-get update && sudo apt-get install -y nfs-kernel-server
     
@@ -905,12 +905,6 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
     
     # 確認服務狀態
     sudo systemctl status nfs-kernel-server
-
-
-[X] # 手動 2 ( 懶 ... 待補 )
-make ...
-
-[X] # 自動 ( VM 初始化階段會一步到位 )
 
 
 # 驗證

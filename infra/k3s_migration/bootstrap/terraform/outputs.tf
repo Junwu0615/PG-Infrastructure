@@ -15,3 +15,11 @@ output "agent_ssh_commands" {
     "k3s-agent-${i} → ssh debian@${libvirt_domain.k3s_agents[i].network_interface.0.addresses[0]}"
   ]
 }
+
+# Storage SSH
+output "storage_ssh_command" {
+  value = [
+    for i in range(0, 1) :
+    "k3s-master-${i} → ssh debian@${libvirt_domain.k3s_masters[i].network_interface.0.addresses[0]}"
+  ]
+}

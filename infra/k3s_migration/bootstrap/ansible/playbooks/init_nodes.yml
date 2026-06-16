@@ -69,7 +69,7 @@
       lineinfile:
         path: /etc/hosts
         regexp: '.*docker-registry\.k8s\.local.*'
-        line: '{{ingress_path}} docker-registry.k8s.local'
+        line: "{{ ingress_path }} {{ registry_host }}"
         state: present
       tags:
         - registry

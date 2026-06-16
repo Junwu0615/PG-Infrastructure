@@ -16,3 +16,6 @@ agents
 
 # [gateway]
 # ${gateway_ip} ansible_user=${user}
+
+[storage]
+${element(masters, 0)} ansible_user=${user}

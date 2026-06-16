@@ -7,7 +7,7 @@
   tasks:
     - name: Check if K3s is already installed
       stat:
-        path: /usr/local/bin/k3s
+        path: "{{ k3s_bin_dir }}"
       register: k3s_installed
 
     # 1. 只有 masters 群組裡的第一台機器 (index 0) 負責初始化 cluster-init
@@ -17,26 +17,27 @@
         sh -s - server
         --cluster-init
         --disable traefik
-#        --disable servicelb
+        --node-taint CriticalAddonsOnly=true:NoSchedule
       when:
         - not k3s_installed.stat.exists
         - inventory_hostname == groups['masters'][0]
 
     # 2. 獲取第一台 Master 的 Token（供後續所有人使用）
     - name: Get K3s Token from First Master
-      command: cat /var/lib/rancher/k3s/server/node-token
+      command: cat "{{ k3s_node_token }}"
       register: k3s_token
       changed_when: false
       delegate_to: "{{ groups['masters'][0] }}"
 
-    # 3. 如果有第 2、3 台 Master，以 '--server' 模式加入，而不是 '--cluster-init'
+    # 3. 如果有第 2、3 ... N 台 Master # --server 會寫死固定機台 改用 K3S_URL
     - name: Join Additional Masters to Cluster
       shell: >
         curl -sfL https://get.k3s.io |
+        K3S_URL="https://{{ groups['masters'][0] }}:{{ k3s_api_port }}"
         K3S_TOKEN="{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
         sh -s - server
-        --server https://{{ groups['masters'][0] }}:6443
         --disable traefik
+        --node-taint CriticalAddonsOnly=true:NoSchedule
       when:
         - not k3s_installed.stat.exists
         - inventory_hostname != groups['masters'][0]
@@ -55,7 +56,7 @@
     - name: Join Agents to Cluster
       shell: >
         curl -sfL https://get.k3s.io |
-        K3S_URL=https://{{ groups['masters'][0] }}:6443
+        K3S_URL="https://{{ groups['masters'][0] }}:{{ k3s_api_port }}"
         K3S_TOKEN="{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
         sh -s - agent
       when: not agent_installed.stat.exists
@@ -71,12 +72,12 @@
   tasks:
     - name: Wait for K3s config
       wait_for:
-        path: /etc/rancher/k3s/k3s.yaml
+        path: "{{ k3s_conf_dir }}"
         timeout: 60
 
     - name: Fetch K3s config
       fetch:
-        src: /etc/rancher/k3s/k3s.yaml
+        src: "{{ k3s_conf_dir }}"
         dest: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
         flat: yes
 
@@ -85,6 +86,5 @@
       become: no
       replace:
         path: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
-        regexp: 'server: https://.*:6443'
-#        replace: "server: https://{{ inventory_hostname }}:6443"
-        replace: "server: https://{{ groups['masters'][0] }}:6443"
+        regexp: "server: https://.*:{{ k3s_api_port }}"
+        replace: "server: https://{{ groups['masters'][0] }}:{{ k3s_api_port }}"

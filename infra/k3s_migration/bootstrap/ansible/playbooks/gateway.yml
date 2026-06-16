@@ -1,3 +1,5 @@
+# ansible/playbooks/gateway.yml
+
 ---
 - name: Setup Gateway Reverse Proxy
   hosts: gateway

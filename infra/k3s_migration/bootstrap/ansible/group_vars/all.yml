@@ -2,22 +2,22 @@
 
 ---
 # K3s 版本與安裝參數
-k3s_version: v1.29.3+k3s1
-
-# 叢集的金鑰，這可以是任何字串，用於 Agent 加入 Master 的驗證
-k3s_token: "K3s-Secret-Token-2026"
+k3s_version: "v1.29.3+k3s1"
 
 # 定義 K3s 相關路徑
-k3s_bin_dir: /usr/local/bin
-k3s_conf_dir: /etc/rancher/k3s
+k3s_bin_dir: "/usr/local/bin/k3s"
+k3s_node_token: "/var/lib/rancher/k3s/server/node-token"
+k3s_conf_dir: "/etc/rancher/k3s/k3s.yaml"
 
 # 網路設定
-api_port: 6443
-
-# Ansible SSH 設定 ( 與 Terraform 中的設定保持一致 )
-ansible_user: debian
-ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+k3s_api_port: "6443"
 
 # 註冊 host 變數清單
-ingress_path: 10.88.0.20
-registry_host: docker-registry.k8s.local
+ingress_path: "10.88.0.20"
+registry_host: "docker-registry.k8s.local"
+
+# NFS 版本
+k3s_subnet_path: "10.88.0.0/24"
+nfs_sqlite_ver: "test-sqlite"
+#nfs_sqlite_ver: "stage-sqlite"
+#nfs_sqlite_ver: "prod-sqlite"
