@@ -15,8 +15,8 @@ node_config = {
   "k3s-master-0"= { memory = 3072, vcpu = 2 }
   "k3s-master-1"= { memory = 3072, vcpu = 2 }
   "k3s-master-2"= { memory = 3072, vcpu = 2 }
-  "k3s-agent-0" = { memory = 4096, vcpu = 4 }
-  "k3s-agent-1" = { memory = 4096, vcpu = 4 }
-  "k3s-agent-2" = { memory = 4096, vcpu = 4 }
-  "k3s-agent-3" = { memory = 4096, vcpu = 4 }
+  "k3s-agent-0" = { memory = 3072, vcpu = 4 }
+  "k3s-agent-1" = { memory = 3072, vcpu = 4 }
+  "k3s-agent-2" = { memory = 3072, vcpu = 4 }
+  "k3s-agent-3" = { memory = 3072, vcpu = 4 }
 }

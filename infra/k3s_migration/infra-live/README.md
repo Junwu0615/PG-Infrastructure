@@ -1047,25 +1047,25 @@ $ make vm-format
 ================== [ KVM 虛擬機算力與配置清單 ] ==================
 VM_NAME         STATUS     VCPU     MEMORY          DISK_SIZE
 ----------------------------------------------------------------
-k3s-agent-2     running     4 核     4.0 GB          無實體磁碟
-k3s-agent-1     running     4 核     4.0 GB          無實體磁碟
-k3s-agent-0     running     4 核     4.0 GB          無實體磁碟
-k3s-agent-3     running     4 核     4.0 GB          無實體磁碟
-k3s-master-2    running     2 核     3.0 GB          無實體磁碟
+k3s-agent-0     running     4 核     3.0 GB          無實體磁碟
+k3s-agent-1     running     4 核     3.0 GB          無實體磁碟
+k3s-agent-2     running     4 核     3.0 GB          無實體磁碟
+k3s-agent-3     running     4 核     3.0 GB          無實體磁碟
 k3s-master-0    running     2 核     3.0 GB          無實體磁碟
 k3s-master-1    running     2 核     3.0 GB          無實體磁碟
+k3s-master-2    running     2 核     3.0 GB          無實體磁碟
 
 
 $ make k-top
 ================== [ 叢集硬體算力消耗狀態 ] ==================
 NAME           CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
-k3s-agent-0    282m         7%       1980Mi          50%
-k3s-agent-1    214m         5%       1513Mi          38%
-k3s-agent-2    258m         6%       1253Mi          32%
-k3s-agent-3    222m         5%       1821Mi          46%
-k3s-master-0   261m         13%      1892Mi          63%
-k3s-master-1   276m         13%      2070Mi          69%
-k3s-master-2   249m         12%      1388Mi          46%
+k3s-agent-0    633m         15%      1118Mi          37%
+k3s-agent-1    339m         8%       1271Mi          42%
+k3s-agent-2    500m         12%      1501Mi          50%
+k3s-agent-3    542m         13%      1887Mi          63%
+k3s-master-0   556m         27%      1737Mi          58%
+k3s-master-1   384m         19%      1211Mi          40%
+k3s-master-2   353m         17%      1978Mi          66%
 ```
 
 ![PNG](../../../assets/k9s.png)

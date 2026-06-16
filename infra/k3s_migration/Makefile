@@ -311,7 +311,7 @@ vm-format:
 	@printf "\033[1;36m================== [ KVM 虛擬機算力與配置清單 ] ==================\033[0m\n"
 	@printf "\033[1;33m%-15s %-10s %-8s %-15s %-20s\033[0m\n" "VM_NAME" "STATUS" "VCPU" "MEMORY" "DISK_SIZE"
 	@printf "\033[1;30m----------------------------------------------------------------\033[0m\n"
-	@sudo virsh list --all | awk 'NR>2 {print $$2}' | while read -r vm; do \
+	@sudo virsh list --all | tail -n +2  | sort -k 2 | awk 'NR>2 {print $$2}' | while read -r vm; do \
 	   if [ -n "$$vm" ]; then \
 	      status=$$(sudo virsh domstate "$$vm" 2>/dev/null); \
 	      if [ "$$status" = "running" ]; then \
