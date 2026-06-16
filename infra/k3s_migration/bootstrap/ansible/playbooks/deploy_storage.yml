@@ -32,18 +32,23 @@
     - name: Configure NFS Exports Permissions (Mapping to UID 1001)
       lineinfile:
         path: /etc/exports
-        regexp: "^{{ nfs_export_dir }}\\s+"
-        # 使用精準的 all_squash 與 anonuid，確保 K3s 各節點寫入時皆具備對等權限，防範 SQLite 檔案鎖衝突
+        regexp: "^{{ nfs_export_dir | regex_escape }}\\s+"
         line: "{{ nfs_export_dir }} {{ k3s_subnet }}(rw,sync,no_subtree_check,no_root_squash,all_squash,anonuid={{ container_uid }},anongid={{ container_uid }})"
         state: present
-      notify: Restart NFS Server
+      notify:
+        - Reload NFS Exports Table
+        - Restart NFS Server
 
   handlers:
+    # 繞過 systemd 直達核心，解決非同步載入盲點
+    - name: Reload NFS Exports Table
+      command: exportfs -arv
+      changed_when: true
+
     - name: Restart NFS Server
       systemd:
-        name: k3s
+        name: nfs-kernel-server
         state: restarted
+        enabled: yes
       when:
-        - inventory_hostname in groups['masters']
-        # 檢查 systemd 服務檔案是否存在，不存在就跳過
-        - ansible_facts.services['k3s.service'] is defined
+        - ansible_facts.services['nfs-kernel-server.service'] is defined

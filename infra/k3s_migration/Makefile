@@ -28,7 +28,7 @@ CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 SHELL := /bin/bash
 .PHONY: init apply destroy output terraform-list \
 status k-top label-nodes vm-format vm-power \
-k9s-fav trigger-ansible \
+k9s-fav trigger-ansible-tag trigger-ansible-yml \
 root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
 
@@ -277,14 +277,23 @@ status:
 	kubectl get nodes -o wide
 	kubectl get pods -A -o wide
 
-trigger-ansible:
-	@echo "* 觸發指定 Ansible 腳本 ..."
-	@if [ -z "$(src_type)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make trigger-ansible src_type=[registry/storage]"; \
+trigger-ansible-tag:
+	@echo "* 觸發指定 Ansible 標籤 ..."
+	@if [ -z "$(tag)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make trigger-ansible-tag tag=[registry/storage]"; \
 		exit 1; \
 	fi
-	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/site.yml --tags $(src_type)
-	@echo "✅  <make trigger-ansible --tags $(src_type)> done."
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/site.yml --tags $(tag)
+	@echo "✅  <make trigger-ansible-tag --tags $(tag)> done."
+
+trigger-ansible-yml:
+	@echo "* 觸發指定 Ansible 腳本 ..."
+	@if [ -z "$(yml)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make trigger-ansible-yml yml=[xxx.yml]"; \
+		exit 1; \
+	fi
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/$(yml)
+	@echo "✅  <make trigger-ansible-yml yml=$(yml)> done."
 
 vm-power:
 	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"

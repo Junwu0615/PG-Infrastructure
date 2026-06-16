@@ -332,7 +332,10 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
     make see-secrets ENV=homelab-test
     
     # 更新 VM Host 設定 => 可以拉取 registry images ( ⭐ VM 初始化階段會一步到位 )
-    make trigger-ansible src_type=registry
+    make trigger-ansible-tag tag=registry
+    
+    # 更新 VM Storage 設定 => SQLite 持久化
+    make trigger-ansible-yml yml=deploy_storage.yml
 
     # 更新 k9s 最愛設定
         - 備份原先設定
@@ -871,7 +874,7 @@ tempo-homelab-test              tempo                                   nginx   
 
 ⚠️ NFS 掛載測試 ( ⭐ VM 初始化階段會一步到位 )
 
-make trigger-ansible src_type=storage
+make trigger-ansible-tag tag=storage
 $ kubectl get pvc -n pg-apps-homelab-test
 NAME             STATUS   VOLUME                            CAPACITY   ACCESS MODES   STORAGECLASS                                 VOLUMEATTRIBUTESCLASS   AGE
 sqlite-nfs-pvc   Bound    nfs-storage-homelab-test-nfs-pv   2Gi        RWO            nfs-storage-homelab-test-nfs-storage-class   <unset>                 83m
@@ -1056,12 +1059,13 @@ k3s-master-1    running     2 核     3.0 GB          無實體磁碟
 $ make k-top
 ================== [ 叢集硬體算力消耗狀態 ] ==================
 NAME           CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)
-k3s-agent-0    185m         4%       947Mi           15%
-k3s-agent-1    257m         6%       1344Mi          22%
-k3s-agent-2    456m         11%      3020Mi          50%
-k3s-master-0   355m         17%      1362Mi          69%
-k3s-master-1   294m         14%      1070Mi          54%
-k3s-master-2   351m         17%      1642Mi          83%
+k3s-agent-0    282m         7%       1980Mi          50%
+k3s-agent-1    214m         5%       1513Mi          38%
+k3s-agent-2    258m         6%       1253Mi          32%
+k3s-agent-3    222m         5%       1821Mi          46%
+k3s-master-0   261m         13%      1892Mi          63%
+k3s-master-1   276m         13%      2070Mi          69%
+k3s-master-2   249m         12%      1388Mi          46%
 ```
 
 ![PNG](../../../assets/k9s.png)
