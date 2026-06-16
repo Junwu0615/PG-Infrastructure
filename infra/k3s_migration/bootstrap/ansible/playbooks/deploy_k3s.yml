@@ -1,16 +1,17 @@
 # ansible/playbooks/deploy_k3s.yml
 
 ---
-- name: Install or Check K3s Server
+- name: Install or Update K3s Server
   hosts: masters
   become: yes
   tasks:
     - name: Check if K3s is already installed
       stat:
-        path: "{{ k3s_bin_dir }}"
+        path: "{{ k3s_bin_dir | default('/usr/local/bin/k3s') }}"
       register: k3s_installed
+      tags: [ install, update ]
 
-    # 1. 只有 masters 群組裡的第一台機器 (index 0) 負責初始化 cluster-init
+    # 只有 masters[0] 負責初始化
     - name: Initialize K3s Cluster on First Master
       shell: >
         curl -sfL https://get.k3s.io |
@@ -21,29 +22,54 @@
       when:
         - not k3s_installed.stat.exists
         - inventory_hostname == groups['masters'][0]
+      tags: [ install ]
 
-    # 2. 獲取第一台 Master 的 Token（供後續所有人使用）
+    # 獲取第一台 Master 的 Token（不論安裝或更新，都要拉最新 Token 驗證）
     - name: Get K3s Token from First Master
-      command: cat "{{ k3s_node_token }}"
+      command: cat "{{ k3s_node_token | default('/var/lib/rancher/k3s/server/node-token') }}"
       register: k3s_token
       changed_when: false
       delegate_to: "{{ groups['masters'][0] }}"
+      tags: [ install, update ]
 
-    # 3. 如果有第 2、3 ... N 台 Master # --server 會寫死固定機台 改用 K3S_URL
-    - name: Join Additional Masters to Cluster
+    # 初始化時 Master 先執行實體安裝 ( 如果有第 2、3 ... N 台 )
+    - name: Install K3s Binary on Additional Masters
       shell: >
-        curl -sfL https://get.k3s.io |
-        K3S_URL="https://{{ groups['masters'][0] }}:{{ k3s_api_port }}"
-        K3S_TOKEN="{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
-        sh -s - server
-        --disable traefik
+        curl -sfL https://get.k3s.io | 
+        sh -s - server 
+        --disable traefik 
         --node-taint CriticalAddonsOnly=true:NoSchedule
       when:
         - not k3s_installed.stat.exists
         - inventory_hostname != groups['masters'][0]
+      tags: [ install ]
+
+    # 配置或熱更新環境變數（不管是初始化還是更新，都由此任務控管，實現無縫併網）
+    - name: Configure K3s Service Environment Variables (Masters)
+      lineinfile:
+        path: /etc/systemd/system/k3s.service.env
+        create: yes
+        owner: root
+        group: root
+        mode: '0600'
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ groups['masters'][0] }}:{{ k3s_api_port | default(6443) }}" }
+        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_token.stdout | trim }}" }
+      when: inventory_hostname != groups['masters'][0]
+      tags: [ install, update ]
+      notify: Reload and Restart K3s Master
+
+  handlers:
+    - name: Reload and Restart K3s Master
+      systemd:
+        name: k3s
+        state: restarted
+        daemon_reload: yes
 
 
-- name: Configure K3s Agents
+- name: Configure and Update K3s Agents
   hosts: agents
   become: yes
   tasks:
@@ -51,40 +77,43 @@
       stat:
         path: /etc/systemd/system/k3s-agent.service
       register: agent_installed
+      tags: [ install, update ]
 
-    # 4. Agent 節點一律向第一台 Master 註冊加入
-    - name: Join Agents to Cluster
+    # 抓取 Token 供 Agent 使用
+    - name: Get K3s Token for Agents
+      command: cat "{{ k3s_node_token | default('/var/lib/rancher/k3s/server/node-token') }}"
+      register: k3s_token
+      changed_when: false
+      delegate_to: "{{ groups['masters'][0] }}"
+      tags: [ install, update ]
+
+    # 初始化時 Agent 先執行實體安裝
+    - name: Install K3s Agent Binary
       shell: >
-        curl -sfL https://get.k3s.io |
-        K3S_URL="https://{{ groups['masters'][0] }}:{{ k3s_api_port }}"
-        K3S_TOKEN="{{ hostvars[groups['masters'][0]]['k3s_token']['stdout'] }}"
+        curl -sfL https://get.k3s.io | 
         sh -s - agent
       when: not agent_installed.stat.exists
+      tags: [ install ]
 
+    # Agent 節點一律向第一台 Master 註冊加入 ( 配置或熱更新 Agent 的環境變數 )
+    - name: Configure K3s Service Environment Variables (Agents)
+      lineinfile:
+        path: /etc/systemd/system/k3s-agent.service.env
+        create: yes
+        owner: root
+        group: root
+        mode: '0600'
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ groups['masters'][0] }}:{{ k3s_api_port | default(6443) }}" }
+        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_token.stdout | trim }}" }
+      tags: [ install, update ]
+      notify: Reload and Restart K3s Agent
 
-- name: Setup local kubectl access
-  hosts: masters
-  become: yes
-
-  # 只需要從第一台健康的 Master 抓一份 kubeconfig 即可
-  run_once: true
-
-  tasks:
-    - name: Wait for K3s config
-      wait_for:
-        path: "{{ k3s_conf_dir }}"
-        timeout: 60
-
-    - name: Fetch K3s config
-      fetch:
-        src: "{{ k3s_conf_dir }}"
-        dest: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
-        flat: yes
-
-    - name: Fix Kubeconfig IP
-      delegate_to: localhost
-      become: no
-      replace:
-        path: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
-        regexp: "server: https://.*:{{ k3s_api_port }}"
-        replace: "server: https://{{ groups['masters'][0] }}:{{ k3s_api_port }}"
+  handlers:
+    - name: Reload and Restart K3s Agent
+      systemd:
+        name: k3s-agent
+        state: restarted
+        daemon_reload: yes
