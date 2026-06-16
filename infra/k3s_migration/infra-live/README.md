@@ -325,16 +325,16 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
     # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
     make k-top
     
-    # 啟動 ingress-nginx → 已將其加入正式定義 無須用此方式 ( ⭐ VM 初始化階段會一步到位 )
+    # ( ⭐ VM 初始化階段會一步到位 ) 啟動 ingress-nginx → 已將其加入正式定義 無須用此方式
     make upgrade-ingress
     
     # 檢視 Secrets 明文 ( ex: homelab-test )
     make see-secrets ENV=homelab-test
     
-    # 更新 K3s Master 選舉設定熱更新 ( ⭐ VM 初始化階段會一步到位 )
+    # ( ⭐ VM 初始化階段會一步到位 ) 更新 K3s Master 選舉設定熱更新
     make trigger-ansible-tag tag=update
     
-    # 更新 VM Host 設定 => 可以拉取 registry images ( ⭐ VM 初始化階段會一步到位 )
+    # ( ⭐ VM 初始化階段會一步到位 )更新 VM Host 設定 => 可以拉取 registry images
     make trigger-ansible-tag tag=registry
     
     # 更新 VM Storage 設定 => SQLite 持久化
@@ -875,7 +875,7 @@ tempo-homelab-test              tempo                                   nginx   
 
 ------
 
-⚠️ NFS 掛載測試 ( ⭐ VM 初始化階段會一步到位 )
+⚠️ ( ⭐ VM 初始化階段會一步到位 ) NFS 掛載測試
 
 make trigger-ansible-tag tag=storage
 $ kubectl get pvc -n pg-apps-homelab-test

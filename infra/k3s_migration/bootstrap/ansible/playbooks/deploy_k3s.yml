@@ -1,6 +1,61 @@
 # ansible/playbooks/deploy_k3s.yml
 
 ---
+# ==========================================================================
+# 階段一：配置 Masters 的 Keepalived 虛擬 IP (VIP)
+# ==========================================================================
+- name: Configure High-Availability VIP via Keepalived
+  hosts: masters
+  become: yes
+  tasks:
+    - name: Install Keepalived
+      apt:
+        name: keepalived
+        state: present
+        update_cache: yes
+      tags: [ install ]
+
+    - name: Configure Keepalived VRRP Instance
+      copy:
+        dest: /etc/keepalived/keepalived.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          vrrp_instance VI_1 {
+              state {{ 'MASTER' if inventory_hostname == groups['masters'][0] else 'BACKUP' }}
+              interface {{ ansible_default_ipv4.interface }}
+              virtual_router_id 51
+              priority {{ '101' if inventory_hostname == groups['masters'][0] else '100' }}
+              advert_int 1
+              authentication {
+                  auth_type PASS
+                  auth_pass k3s_ha_secret
+              }
+              virtual_ipaddress {
+                  {{ k3s_vip | default('10.88.0.99') }}/24
+              }
+          }
+      tags: [ install, update ]
+      notify: Restart Keepalived
+
+    # 強制刷新 Handler，確保 VIP 在進入 K3s 階段前百分之百已經在網路上存活
+    - name: Flush handlers to bring up VIP immediately
+      meta: flush_handlers
+      tags: [ install, update ]
+
+  handlers:
+    - name: Restart Keepalived
+      systemd:
+        name: keepalived
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+
+
+# ==========================================================================
+# 階段二：安裝或更新 K3s 控制面 (Masters)
+# ==========================================================================
 - name: Install or Update K3s Server
   hosts: masters
   become: yes
@@ -11,7 +66,7 @@
       register: k3s_installed
       tags: [ install, update ]
 
-    # 只有 masters[0] 負責初始化
+    # 只有 masters[0] 負責初始化，加入 --tls-san 確保憑證信任 VIP
     - name: Initialize K3s Cluster on First Master
       shell: >
         curl -sfL https://get.k3s.io |
@@ -19,32 +74,55 @@
         --cluster-init
         --disable traefik
         --node-taint CriticalAddonsOnly=true:NoSchedule
+        --tls-san {{ k3s_vip | default('10.88.0.99') }}
       when:
         - not k3s_installed.stat.exists
         - inventory_hostname == groups['masters'][0]
       tags: [ install ]
 
-    # 獲取第一台 Master 的 Token（不論安裝或更新，都要拉最新 Token 驗證）
-    - name: Get K3s Token from First Master
+    # 將 0 號機的 --tls-san 熱更新納入冪等性管轄，避免手動改壞 service
+    - name: Ensure --tls-san is present in First Master Systemd Configuration
+      replace:
+        path: /etc/systemd/system/k3s.service
+        regexp: '^(ExecStart=.*server(?!.*--tls-san).*)$'
+        replace: '\1 --tls-san {{ k3s_vip | default("10.88.0.99") }}'
+      when: inventory_hostname == groups['masters'][0]
+      tags: [ update ]
+      notify: Reload and Restart K3s Master
+
+    # 強制確保第一台 Master ( 0 號機 ) 沒有 .env 檔案干擾
+    - name: Ensure First Master has NO Service Environment File
+      file:
+        path: /etc/systemd/system/k3s.service.env
+        state: absent
+      when: inventory_hostname == groups['masters'][0]
+      tags: [ install, update ]
+      notify: Reload and Restart K3s Master
+
+    # 獲取任意一台健康 Master 的 Token（解耦 0 號機單點故障） => 分散式安全抓取
+    - name: Get K3s Token from Cluster Masters
       command: cat "{{ k3s_node_token | default('/var/lib/rancher/k3s/server/node-token') }}"
       register: k3s_token
       changed_when: false
-      delegate_to: "{{ groups['masters'][0] }}"
+      # 熱更新時只要隨便一台活著的 Master 抓即可，防範 0 號機死機卡死
+      delegate_to: "{{ groups['masters'][0] if not k3s_installed.stat.exists else inventory_hostname }}"
+      run_once: "{{ true if not k3s_installed.stat.exists else false }}"
       tags: [ install, update ]
 
-    # 初始化時 Master 先執行實體安裝 ( 如果有第 2、3 ... N 台 )
+    # 初始化時 Master 先執行實體安裝 ( 如果有第 2、3 ... N 台 )，加入 --tls-san 確保憑證信任 VIP
     - name: Install K3s Binary on Additional Masters
       shell: >
         curl -sfL https://get.k3s.io | 
         sh -s - server 
         --disable traefik 
         --node-taint CriticalAddonsOnly=true:NoSchedule
+        --tls-san {{ k3s_vip | default('10.88.0.99') }}
       when:
         - not k3s_installed.stat.exists
         - inventory_hostname != groups['masters'][0]
       tags: [ install ]
 
-    # 配置或熱更新環境變數（不管是初始化還是更新，都由此任務控管，實現無縫併網）
+    # 配置或熱更新環境變數 => 其餘 Master 改連向 VIP 入口
     - name: Configure K3s Service Environment Variables (Masters)
       lineinfile:
         path: /etc/systemd/system/k3s.service.env
@@ -55,8 +133,8 @@
         regexp: "{{ item.regexp }}"
         line: "{{ item.line }}"
       loop:
-        - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ groups['masters'][0] }}:{{ k3s_api_port | default(6443) }}" }
-        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_token.stdout | trim }}" }
+        - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}" }
+        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_token.results[0].stdout | trim if not k3s_installed.stat.exists else k3s_token.stdout | trim }}" }
       when: inventory_hostname != groups['masters'][0]
       tags: [ install, update ]
       notify: Reload and Restart K3s Master
@@ -69,6 +147,9 @@
         daemon_reload: yes
 
 
+# ==========================================================================
+# 階段三：組態與更新 K3s 資料面 (Agents)
+# ==========================================================================
 - name: Configure and Update K3s Agents
   hosts: agents
   become: yes
@@ -79,12 +160,13 @@
       register: agent_installed
       tags: [ install, update ]
 
-    # 抓取 Token 供 Agent 使用
+    # 抓取 Token 供 Agent 使用 => 分散式安全抓取
     - name: Get K3s Token for Agents
       command: cat "{{ k3s_node_token | default('/var/lib/rancher/k3s/server/node-token') }}"
-      register: k3s_token
+      register: k3s_agent_token
       changed_when: false
-      delegate_to: "{{ groups['masters'][0] }}"
+      # 隨機抽一台 Master 抓，大腦掛了也能熱更新
+      delegate_to: "{{ groups['masters'] | random }}"
       tags: [ install, update ]
 
     # 初始化時 Agent 先執行實體安裝
@@ -95,7 +177,7 @@
       when: not agent_installed.stat.exists
       tags: [ install ]
 
-    # Agent 節點一律向第一台 Master 註冊加入 ( 配置或熱更新 Agent 的環境變數 )
+    # Agent 節點直連高可用 VIP ( 配置或熱更新 Agent 的環境變數 )
     - name: Configure K3s Service Environment Variables (Agents)
       lineinfile:
         path: /etc/systemd/system/k3s-agent.service.env
@@ -106,8 +188,8 @@
         regexp: "{{ item.regexp }}"
         line: "{{ item.line }}"
       loop:
-        - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ groups['masters'][0] }}:{{ k3s_api_port | default(6443) }}" }
-        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_token.stdout | trim }}" }
+        - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}" }
+        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_agent_token.stdout | trim }}" }
       tags: [ install, update ]
       notify: Reload and Restart K3s Agent
 
@@ -117,3 +199,34 @@
         name: k3s-agent
         state: restarted
         daemon_reload: yes
+
+
+# ==========================================================================
+# 階段四：本地端 Kubeconfig 權限提取與 VIP 對位
+# ==========================================================================
+- name: Setup local kubectl access
+  hosts: masters
+  become: yes
+  run_once: true
+  tasks:
+    - name: Wait for K3s config
+      wait_for:
+        path: "{{ k3s_conf_dir | default('/etc/rancher/k3s/k3s.yaml') }}"
+        timeout: 60
+      tags: [ install, update ]
+
+    - name: Fetch K3s config
+      fetch:
+        src: "{{ k3s_conf_dir | default('/etc/rancher/k3s/k3s.yaml') }}"
+        dest: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
+        flat: yes
+      tags: [ install, update ]
+
+    - name: Fix Kubeconfig IP to VIP Entrance
+      delegate_to: localhost
+      become: no
+      replace:
+        path: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
+        regexp: "server: https://.*:{{ k3s_api_port | default(6443) }}"
+        replace: "server: https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}"
+      tags: [ install, update ]
