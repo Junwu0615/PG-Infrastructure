@@ -1225,7 +1225,7 @@ argocd      tempo-homelab-test              Synced        Healthy
 - *[K8s - Deployment Delivery Baseline](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Deployment-Delivery-Baseline.md)*
 - *[K8s - Deployment Governance](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Deployment-Governance.md)*
 - *[K8s - Observability Platform](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability-Platform.md)*
-- *[K8s - Vault Distribution Key](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)*
+- *[K8s - Vault Secret Management & Distribution](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)*
 - *[K8s - End-to-End DevOps Workflow](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/End-to-End-DevOps-Workflow.md)*
 
 
