@@ -325,16 +325,16 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
     # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
     make k-top
     
-    # ( ⭐ VM 初始化階段會一步到位 ) 啟動 ingress-nginx → 已將其加入正式定義 無須用此方式
+    # [ ⭐ VM 初始化階段會一步到位 ] 啟動 ingress-nginx → 已將其加入正式定義 無須用此方式
     make upgrade-ingress
     
     # 檢視 Secrets 明文 ( ex: homelab-test )
     make see-secrets ENV=homelab-test
     
-    # ( ⭐ VM 初始化階段會一步到位 ) 更新 K3s Master 選舉設定熱更新
+    # [ ⭐ VM 初始化階段會一步到位 ] 更新 K3s Master 選舉設定熱更新
     make trigger-ansible-tag tag=update
     
-    # ( ⭐ VM 初始化階段會一步到位 )更新 VM Host 設定 => 可以拉取 registry images
+    # [ ⭐ VM 初始化階段會一步到位 ] 更新 VM Host 設定 => 可以拉取 registry images
     make trigger-ansible-tag tag=registry
     
     # 更新 VM Storage 設定 => SQLite 持久化
@@ -875,7 +875,7 @@ tempo-homelab-test              tempo                                   nginx   
 
 ------
 
-⚠️ ( ⭐ VM 初始化階段會一步到位 ) NFS 掛載測試
+[ ⭐ VM 初始化階段會一步到位 ] NFS 掛載測試
 
 make trigger-ansible-tag tag=storage
 $ kubectl get pvc -n pg-apps-homelab-test
@@ -1223,8 +1223,10 @@ argocd      tempo-homelab-test              Synced        Healthy
 ### *E.　收斂階段*
 - *[K8s - Feature Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/K8s-Feature-Validation.md)*
 - *[K8s - Deployment Delivery Baseline](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/CI-CD.md)*
+- *[K8s - Deployment Governance](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Deployment-Governance.md)*
 - *[K8s - Observability Platform](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability-Platform.md)*
 - *[K8s - Vault Distribution Key](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)*
-- *[GitOps - Deployment Governance](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Deployment-Governance.md)*
+- *[K8s - DevOps](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/DevOps.md)*
+
 
 <br><br><br>
