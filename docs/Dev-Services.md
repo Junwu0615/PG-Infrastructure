@@ -124,7 +124,7 @@
   k get -n postgresql-homelab-test cm,pv,pvc,sts,secret,service,ingress
   kubectl logs postgresql-homelab-test-0 -n postgresql-homelab-test -c postgresql
   ```
-  ![PNG](../assets/conn_postgresql.png)
+  ![PNG](../assets/png/conn_postgresql.png)
 
 </ul>
 </details>
@@ -649,7 +649,7 @@
     [X] Environment address: portainer.k8s.local:9001
     [O] Environment address: host.docker.internal:9001
   ```
-  ![PNG](../assets/portainer.png)
+  ![PNG](../assets/png/portainer.png)
 
 </ul>
 </details>
@@ -781,9 +781,9 @@
     - Top 10 index scan
     - Table growth
   ```
-- ![PNG](../assets/grafana_1.PNG)
-- ![PNG](../assets/grafana_2.PNG)
-- ![PNG](../assets/grafana_3.PNG)
+- ![PNG](../assets/png/grafana_1.png)
+- ![PNG](../assets/png/grafana_2.png)
+- ![PNG](../assets/png/grafana_3.png)
 
 - #### *b.　壓測觀察重點*
   ```
@@ -796,7 +796,7 @@
 
 - #### *c.　監控位置*
   - #### *⭐ c.1.　TPS: 每秒 Commit + Rollback 數*
-  - ![PNG](../assets/grafana_01.PNG)
+  - ![PNG](../assets/png/grafana_01.png)
     ```
     -- Equivalent SQL ⬇️ 
     SELECT
@@ -839,7 +839,7 @@
     非預期 : IO Full → TPS 突然下降
     ```
   - #### *⭐ c.4.　Lock Contention*
-  - ![PNG](../assets/grafana_04.PNG)
+  - ![PNG](../assets/png/grafana_04.png)
     ```
     -- Equivalent SQL ⬇️ 
     SELECT *
@@ -855,7 +855,7 @@
         - OLAP Query → AccessShareLock
     ```
   - #### *c.5.　Connections*
-  - ![PNG](../assets/grafana_05.PNG)
+  - ![PNG](../assets/png/grafana_05.png)
     ```
     -- Equivalent SQL ⬇️ 
     SELECT count(*)
@@ -870,7 +870,7 @@
         - Pool Misconfiguration → Connection Pooling Exploded
     ```
   - #### *⭐ c.6.　Cache Hit Ratio*
-  - ![PNG](../assets/grafana_06.PNG)
+  - ![PNG](../assets/png/grafana_06.png)
     ```
     -- Equivalent SQL ⬇️ 
     None
@@ -883,7 +883,7 @@
       - dataset > RAM ???
     ```
   - #### *⭐ c.7.　WAL Flush / Checkpoint*
-  - ![PNG](../assets/grafana_07.PNG)
+  - ![PNG](../assets/png/grafana_07.png)
     ```
     -- Equivalent SQL ⬇️ 
     None

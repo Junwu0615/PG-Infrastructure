@@ -25,7 +25,7 @@ Summary:
 <br>
 
 ### *B.　VM 生命週期 ( Makefile )*
-![PNG](../../../assets/k3s_vm.png)
+![PNG](../../../assets/png/k3s_vm.png)
 ```
 Terraform:
     # 初始化配置
@@ -296,7 +296,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 <summary><b><i>　I.　啟動服務 </i></b></summary>
 <ul>
 
-![PNG](../../../assets/label_nodes.png)
+![PNG](../../../assets/png/label_nodes.png)
 ```
 * 啟動 Docker Compose ( 參考: docs/Docker-Compose.md )
     make gitlab action=up
@@ -1071,7 +1071,7 @@ k3s-master-1   384m         19%      1211Mi          40%
 k3s-master-2   353m         17%      1978Mi          66%
 ```
 
-![PNG](../../../assets/k9s.png)
+![PNG](../../../assets/png/k9s.png)
 
 [//]: # (![PNG]&#40;../../../assets/k8s_edge_00.png&#41;)
 
