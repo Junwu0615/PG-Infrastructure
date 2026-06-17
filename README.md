@@ -7,7 +7,7 @@
 ### *A.　Implement*
 
 <details>
-<summary><b><i>　a.1.　Service Support Form </i></b></summary>
+<summary><b><i>　Service Support Form </i></b></summary>
 <ul>
 
 ```
@@ -56,7 +56,7 @@
 </details>
 
 <details>
-<summary><b><i>　a.2.　Tree </i></b></summary>
+<summary><b><i>　Tree </i></b></summary>
 <ul>
 
 ```bash
