@@ -387,7 +387,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts'
 
 
 <details>
-<summary><b><i>　b.4.　Monitoring </i></b></summary>
+<summary><b><i>　b.4.　Observability </i></b></summary>
 <ul>
 
 |**Service**|**Description**|**Docker**|**K8s**|**State**|
