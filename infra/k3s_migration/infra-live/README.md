@@ -1221,10 +1221,10 @@ argocd      tempo-homelab-test              Synced        Healthy
 <br>
 
 ### *E.　收斂階段*
-- *[K8s - Feature Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/K8s-Resiliency-Availability-Validation.md)*
+- *[K8s - Resiliency & Availability Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/K8s-Resiliency-Availability-Validation.md)*
 - *[K8s - Deployment Delivery Baseline](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Deployment-Delivery-Baseline.md)*
 - *[K8s - GitOps Deployment Governance Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/GitOps-Deployment-Governance-Validation.md)*
-- *[K8s - Observability Platform](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability-Platform-Validation.md)*
+- *[K8s - Observability Platform Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability-Platform-Validation.md)*
 - *[K8s - Vault Secret Management & Distribution](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)*
 - *[K8s - End-to-End DevOps Operating Model](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/End-to-End-DevOps-Operating-Model.md)*
 
