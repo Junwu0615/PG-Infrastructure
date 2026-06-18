@@ -10,13 +10,11 @@
 <summary><b><i>　Service Support Form </i></b></summary>
 <ul>
 
-```
-已實現 ( ✔ )
-已棄用 ( ✘ )
-未實現 ( - )
-不遷移 ( * ) → 記憶體 OOM Kill ( 折衷打退回為 Docker Compose )
-不遷移 ( △ ) → 省作業時間 ( 部分與重型服務 Docker Compose 綑綁 )
-``` 
+> ##### 已實現 ( ✔ )
+> ##### 已棄用 ( ✘ )
+> ##### 未實現 ( - )
+> ##### 不遷移 ( * ) ➔ 記憶體 OOM Kill ( 折衷打退回為 Docker Compose )
+> ##### 不遷移 ( △ ) ➔ 省作業時間 ( 部分與重型服務 Docker Compose 綑綁 )
 
 |**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**K3s<br>Migration**|**Kubeadm**|**GKE**|
 |--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
