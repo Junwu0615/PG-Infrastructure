@@ -36,6 +36,7 @@ Summary:
     
     3. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) → SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/homelab-test.tfvars
+    make apply VAR_FILE=./env_tfvars/homelab-beta.tfvars
 
 
 ☆ 其他

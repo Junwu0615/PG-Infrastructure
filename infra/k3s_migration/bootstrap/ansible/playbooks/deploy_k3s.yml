@@ -178,6 +178,7 @@
     # ----------------------------------------------------------------------
     # 執行實體安裝 + 加入 --tls-san 確保憑證信任 VIP
     # Additional Masters 安裝時必須阻斷自動啟動，否則會建立獨立叢集
+    # 安裝時透過變數注入，讓 K3s 腳本自動生成 Systemd 配置
     - name: Install K3s Binary on Additional Masters (Offline Mode)
       shell: >
         INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/k3s_install/install.sh server
@@ -185,29 +186,12 @@
         --node-taint CriticalAddonsOnly=true:NoSchedule
         --tls-san {{ k3s_vip | default('10.88.0.99') }}
       environment:
-        INSTALL_K3S_SKIP_ENABLE: "true"
-        INSTALL_K3S_SKIP_START: "true"
+        K3S_URL: "https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}"
+        K3S_TOKEN: "{{ k3s_token.stdout | trim }}"
       when:
         - not k3s_installed.stat.exists
         - inventory_hostname != groups['masters'][0]
       tags: [ install ]
-
-    # 配置或熱更新環境變數 => 其餘 Master 改連向 VIP 入口
-    - name: Configure K3s Service Environment Variables (Masters)
-      lineinfile:
-        path: /etc/systemd/system/k3s.service.env
-        create: yes
-        owner: root
-        group: root
-        mode: '0600'
-        regexp: "{{ item.regexp }}"
-        line: "{{ item.line }}"
-      loop:
-        - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}" }
-        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_token.stdout | trim }}" }
-      when: inventory_hostname != groups['masters'][0]
-      tags: [ install, update ]
-      notify: Reload and Restart K3s Master
 
     # 確保新加入的 Master 被正確拉起
     - name: Flush Master handlers immediately
