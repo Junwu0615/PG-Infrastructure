@@ -11,12 +11,20 @@
     # ----------------------------------------------------------------------
     # 【 全離線基建 】 分發 Keepalived 離線資產
     # ----------------------------------------------------------------------
+    - name: Check if Keepalived is already installed
+      command: which keepalived
+      register: keepalived_check
+      failed_when: false
+      changed_when: false
+      tags: [ install, update ]
+
     # [Keepalived] 本地套件安裝
     - name: Create local directory for offline Keepalived packages
       file:
         path: /tmp/keepalived_packages
         state: directory
         mode: '0755'
+      when: keepalived_check.rc != 0
       tags: [ install ]
 
     - name: Copy offline Keepalived packages to Masters
@@ -25,18 +33,21 @@
         src: "{{ playbook_dir }}/../../files/keepalived_packages/"
         dest: /tmp/keepalived_packages/
         mode: '0644'
+      when: keepalived_check.rc != 0
       tags: [ install ]
 
     - name: Install Keepalived via dpkg (Block external apt)
       shell: dpkg -i /tmp/keepalived_packages/*.deb
       register: keepalived_dpkg_result
       changed_when: "'Installing' in keepalived_dpkg_result.stdout or 'Upgrading' in keepalived_dpkg_result.stdout"
+      when: keepalived_check.rc != 0
       tags: [ install ]
 
     - name: Cleanup temporary Keepalived package directory
       file:
         path: /tmp/keepalived_packages
         state: absent
+      when: keepalived_check.rc != 0
       tags: [ install ]
 
     # [Keepalived] 基礎配置維護
@@ -48,7 +59,7 @@
         mode: '0644'
         content: |
           vrrp_instance VI_1 {
-              state {{ 'MASTER' if inventory_hostname == groups['masters'][0] else 'BACKUP' }}
+              state BACKUP
               interface {{ ansible_default_ipv4.interface }}
               virtual_router_id 51
               priority {{ '101' if inventory_hostname == groups['masters'][0] else '100' }}
@@ -101,7 +112,6 @@
         owner: root
         group: root
         mode: "0755"
-      when: not k3s_installed.stat.exists
       tags: [ install ]
 
     - name: Create temporary directory for K3s install script
@@ -109,7 +119,6 @@
         path: /tmp/k3s_install
         state: directory
         mode: "0755"
-      when: not k3s_installed.stat.exists
       tags: [ install ]
 
     - name: Copy K3s install script to node
@@ -117,7 +126,6 @@
         src: "{{ playbook_dir }}/../../files/k3s_packages/install.sh"
         dest: /tmp/k3s_install/install.sh
         mode: "0755"
-      when: not k3s_installed.stat.exists
       tags: [ install ]
 
     # ----------------------------------------------------------------------
@@ -240,7 +248,7 @@
     # ----------------------------------------------------------------------
     - name: Copy K3s binary to Agent nodes
       copy:
-        src: "{{ playbook_dir }}/../../../files/k3s_packages/k3s"
+        src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
         dest: /usr/local/bin/k3s
         owner: root
         group: root
@@ -258,7 +266,7 @@
 
     - name: Copy K3s install script to Agent nodes
       copy:
-        src: "{{ playbook_dir }}/../../../files/k3s_packages/install.sh"
+        src: "{{ playbook_dir }}/../../files/k3s_packages/install.sh"
         dest: /tmp/k3s_agent_install/install.sh
         mode: "0755"
       when: not agent_installed.stat.exists
