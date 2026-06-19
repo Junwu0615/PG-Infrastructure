@@ -99,24 +99,29 @@
       tags: [ install, update ]
       notify: Reload and Restart K3s Master
 
-    # 獲取任意一台健康 Master 的 Token（解耦 0 號機單點故障） => 分散式安全抓取
+    # 獲取任意一台健康 Master 的 Token
+    # 全新安裝向 0 號機拿；熱更新時，直接穿透 Keepalived VIP 去找當時在線的 Leader 拿（解耦 0 號機故障風險）
+    # 同時固定為 run_once: true，只抓一次分發全場，效率最高
     - name: Get K3s Token from Cluster Masters
       command: cat "{{ k3s_node_token | default('/var/lib/rancher/k3s/server/node-token') }}"
       register: k3s_token
       changed_when: false
-      # 熱更新時只要隨便一台活著的 Master 抓即可，防範 0 號機死機卡死
-      delegate_to: "{{ groups['masters'][0] if not k3s_installed.stat.exists else inventory_hostname }}"
-      run_once: "{{ true if not k3s_installed.stat.exists else false }}"
+      delegate_to: "{{ groups['masters'][0] if not k3s_installed.stat.exists else k3s_vip | default('10.88.0.99') }}"
+      run_once: true
       tags: [ install, update ]
 
     # 初始化時 Master 先執行實體安裝 ( 如果有第 2、3 ... N 台 )，加入 --tls-san 確保憑證信任 VIP
-    - name: Install K3s Binary on Additional Masters
+    # Additional Masters 安裝時必須阻斷自動啟動，否則會建立獨立叢集
+    - name: Install K3s Binary on Additional Masters (Skip Start)
       shell: >
         curl -sfL https://get.k3s.io | 
         sh -s - server 
         --disable traefik 
         --node-taint CriticalAddonsOnly=true:NoSchedule
         --tls-san {{ k3s_vip | default('10.88.0.99') }}
+      environment:
+        INSTALL_K3S_SKIP_ENABLE: "true"
+        INSTALL_K3S_SKIP_START: "true"
       when:
         - not k3s_installed.stat.exists
         - inventory_hostname != groups['masters'][0]
@@ -134,10 +139,23 @@
         line: "{{ item.line }}"
       loop:
         - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}" }
-        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_token.results[0].stdout | trim if not k3s_installed.stat.exists else k3s_token.stdout | trim }}" }
+        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_token.stdout | trim }}" }
       when: inventory_hostname != groups['masters'][0]
       tags: [ install, update ]
       notify: Reload and Restart K3s Master
+
+    # 確保新加入的 Master 被正確拉起
+    - name: Flush Master handlers immediately
+      meta: flush_handlers
+      tags: [ install, update ]
+
+    - name: Enable Additional Master Services
+      systemd:
+        name: k3s
+        enabled: yes
+        state: started
+      when: inventory_hostname != groups['masters'][0]
+      tags: [ install ]
 
   handlers:
     - name: Reload and Restart K3s Master
@@ -160,13 +178,13 @@
       register: agent_installed
       tags: [ install, update ]
 
-    # 抓取 Token 供 Agent 使用 => 分散式安全抓取
+    # 抓取 Token 供 Agent 使用
+    # 與 Master 階段邏輯對位。初始化時指定 0 號機，熱更新時隨機自 Masters 取得（此時 etcd 數據已同步，內容皆相同）
     - name: Get K3s Token for Agents
       command: cat "{{ k3s_node_token | default('/var/lib/rancher/k3s/server/node-token') }}"
       register: k3s_agent_token
       changed_when: false
-      # 隨機抽一台 Master 抓，大腦掛了也能熱更新
-      delegate_to: "{{ groups['masters'] | random }}"
+      delegate_to: "{{ groups['masters'][0] if not agent_installed.stat.exists else (groups['masters'] | random) }}"
       tags: [ install, update ]
 
     # 初始化時 Agent 先執行實體安裝 + 「不允許」自動啟動
