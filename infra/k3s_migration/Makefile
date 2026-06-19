@@ -1,3 +1,6 @@
+# 需與 terraform 變數設定對齊
+OS_IMAGE := debian:12-slim
+
 BOOTSTRAP_DIR        := ./bootstrap
 FILES_DIR            := $(BOOTSTRAP_DIR)/files
 TERRAFORM_PATH       := $(BOOTSTRAP_DIR)/terraform
@@ -34,22 +37,29 @@ root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
 
 apt-source-prepare: $(NFS_DIR) $(KEEPALIVED_DIR)
-	@echo "* 開始下載離線套件 ( 動態版本相容與冪等性檢查 ) ..."
-	# 1. 抓取 NFS 相關套件（主套件 + 基礎通訊元件 + 模糊匹配 tirpc 函式庫）
+	@echo "* 透過 Host 網路模式與容器 (${OS_IMAGE}) 動態下載目標 OS 相容套件 ..."
+	# 1. 動態下載符合 $(OS_IMAGE) 的 NFS 客戶端及其完整相依套件
 	@if [ -z "$$(ls -A $(NFS_DIR))" ]; then \
-		echo "  - 下載 NFS 離線套件中 ..."; \
-		cd $(NFS_DIR) && apt-get download nfs-common rpcbind libkeyutils1 2>/dev/null || true; \
-		cd $(NFS_DIR) && apt-get download libtirpc3 libtirpc3t64 2>/dev/null || true; \
+		echo "  🚀 正在下載 $(OS_IMAGE) 相容之 NFS 離線套件 ..."; \
+		docker run --rm \
+			--network host \
+			-v $(shell pwd)/$(NFS_DIR):/download \
+			${OS_IMAGE} \
+			sh -c "apt-get update && apt-get install -y --download-only nfs-common rpcbind && cp /var/cache/apt/archives/*.deb /download/"; \
 	else \
-		echo "  [OK] NFS 離線套件已存在，跳過 ..."; \
+		echo "  📦 NFS 離線套件已存在，跳過 ..."; \
 	fi
-	# 2. 抓取 Keepalived 相關套件（主套件 + 模糊匹配 32/64 位元核心 netfilter 依賴）
+
+	# 2. 動態下載符合 $(OS_IMAGE) 的 Keepalived 及其完整相依套件
 	@if [ -z "$$(ls -A $(KEEPALIVED_DIR))" ]; then \
-		echo "  - 下載 Keepalived 離線套件中 ..."; \
-		cd $(KEEPALIVED_DIR) && apt-get download keepalived 2>/dev/null || true; \
-		cd $(KEEPALIVED_DIR) && apt-get download libip4tc2 libip6tc2 libiptc0 libxtables12 libxtables12t64 2>/dev/null || true; \
+		echo "  🚀 正在下載 $(OS_IMAGE) 相容之 Keepalived 離線套件 ..."; \
+		docker run --rm \
+			--network host \
+			-v $(shell pwd)/$(KEEPALIVED_DIR):/download \
+			${OS_IMAGE} \
+			sh -c "apt-get update && apt-get install -y --download-only keepalived && cp /var/cache/apt/archives/*.deb /download/"; \
 	else \
-		echo "  [OK] Keepalived 離線套件已存在，跳過 ..."; \
+		echo "  📦 Keepalived 離線套件已存在，跳過 ..."; \
 	fi
 	@echo "✅  <make apt-source-prepare> done."
 

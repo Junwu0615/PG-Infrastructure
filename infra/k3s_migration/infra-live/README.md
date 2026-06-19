@@ -38,7 +38,7 @@ Summary:
     make apply VAR_FILE=./env_tfvars/homelab-test.tfvars
 
 
-* 其他
+☆ 其他
     # 清除預載資源佔用
     make apt-source-clean
 
@@ -67,7 +67,7 @@ Summary:
 <ul>
 
 ```
-* --- 持續觀察 --- *
+☆ --- 持續觀察 --- ☆
 kubectl get pods -n infra-data -w
 kubectl get pods -n infra-monitor -w
 kubectl get pods -n infra-tools -w
@@ -75,7 +75,7 @@ kubectl get pods -n dev-apps -w
 ```
 
 ```
-* --- 新增官方 Helm 倉庫 --- *
+☆ --- 新增官方 Helm 倉庫 --- ☆
 
 # 新增 gitlab
 helm repo add gitlab https://charts.gitlab.io/
@@ -91,7 +91,7 @@ helm repo update
 ```
 
 ```
-* --- 建立命名空間 --- *
+☆ --- 建立命名空間 --- ☆
 
 kubectl create namespace infra-data       # → Postgres, Kafka, Airflow
 kubectl create namespace infra-monitor    # → Prometheus, Grafana, ELK
@@ -100,7 +100,7 @@ kubectl create namespace dev-apps         # → 自定義業務服務: cp, inst
 ```
 
 ```
-* --- 常見操作 --- *
+☆ --- 常見操作 --- ☆
 
 # 檢視已建立密碼
 kubectl get secrets -n infra-data
@@ -151,7 +151,7 @@ kubectl describe pod -n infra-data -l app.kubernetes.io/name=postgresql
 ```
 
 ```
-* --- 手動過渡期: 基礎設施基底 ( gitlab + postgresql + airflow ) --- *
+☆ --- 手動過渡期: 基礎設施基底 ( gitlab + postgresql + airflow ) --- ☆
 
 # 1. 防呆
 # 徹底刪除可能卡死的「內建」Postgres StatefulSet
@@ -258,7 +258,7 @@ helm upgrade gitlab-infra gitlab/gitlab \
 ```
 
 ```
-* --- 砍上述一系列依賴設置 --- *
+☆ --- 砍上述一系列依賴設置 --- ☆
 
 # pods
 helm uninstall gitlab-infra -n infra-tools
@@ -305,12 +305,12 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 
 ![PNG](../../../assets/png/label_nodes.png)
 ```
-* 啟動 Docker Compose ( 參考: docs/Docker-Compose.md )
+☆ 啟動 Docker Compose ( 參考: docs/Docker-Compose.md )
     make gitlab action=up
     make portainer action=up
     make mqtt action=up
     make kafka action=up
-    make elk action=up
+    [X] make elk action=up
 
 
 ⭐ 啟動 K3s Cluster
@@ -328,7 +328,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
     make root-app ENV=homelab-test
 
 
-* 其他
+☆ 其他
     # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
     make k-top
     
@@ -368,7 +368,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 
 ```
 ########################  NEW  ########################
-* --- GitLab 專案結構樹 ( GitOps 與其對齊 ) --- *
+☆ --- GitLab 專案結構樹 ( GitOps 與其對齊 ) --- ☆
     infra-live/
     ├── argocd/                         # 【 Control Plane / Bootstrap 層 】# 控制平面/開機層
     │   ├── root-app.yaml               # 【 Root Application / 大總管 】
@@ -400,7 +400,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 
 
 ########################  OLD  ########################
-* --- GitLab 專案結構樹 ( Repo 即是 infra-live 內容 ) --- *
+☆ --- GitLab 專案結構樹 ( Repo 即是 infra-live 內容 ) --- ☆
     infra-live/
     ├── applications/
     ├── argocd/
@@ -411,7 +411,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
     └── README
 
 
-* --- K3s 部署結構樹 ( GitOps 與其對齊 ) --- *
+☆ --- K3s 部署結構樹 ( GitOps 與其對齊 ) --- ☆
     infra-live/
     │
     ├── bootstrap/ # 叢集初始化必備元件
@@ -506,7 +506,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
         └── storage-project.yaml
     
 
-* --- [?] Applications: Databases --- *
+☆ --- [?] Applications: Databases --- ☆
 
     infra-live/applications/databases/postgresql/
     ├── helm-release/
@@ -515,7 +515,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
     ├── pvc/
     └── monitoring/
     
-* --- Applications: Helm + Values 分離 --- *
+☆ --- Applications: Helm + Values 分離 --- ☆
 
     applications/observability/
     ├── Kustomize
@@ -694,15 +694,15 @@ echo $?
 
 ---
 
-* 輸出官方範本參考
+☆ 輸出官方範本參考
 helm show values ingress-nginx/ingress-nginx > official-values.yaml
 
 
-* 手動確認是否吃到參數
+☆ 手動確認是否吃到參數
 helm get values ingress-nginx -n ingress-nginx
 
 
-* 確認實際 Deployment 參數
+☆ 確認實際 Deployment 參數
 kubectl get deploy ingress-nginx-controller \
     -n ingress-nginx \
     -o yaml
@@ -775,7 +775,7 @@ DEBUG
     helm show values charts/observability/prometheus/charts/prometheus-27.39.0.tgz > official-values.yaml
     helm show values charts/observability/loki/charts/loki > official-values.yaml
     
-    * [ 部分應用渲染需要帶 values 驗證 否則直接報錯 ] helm 渲染 ( 渲染後的 output.yaml 可用來檢視實際部署內容 )
+    ☆ [ 部分應用渲染需要帶 values 驗證 否則直接報錯 ] helm 渲染 ( 渲染後的 output.yaml 可用來檢視實際部署內容 )
         # 帶參數
         helm template . \
           -f values/common.yaml \
@@ -784,15 +784,15 @@ DEBUG
         # 不帶參數
         helm template . > output.yaml
     
-    * 找關鍵字
+    ☆ 找關鍵字
     [1] cat output.yaml | grep "image: "
     [2] grep "image: " output.yaml
     
     ⭐ 渲染大法
-        * 執行本地渲染 # 帶上所有 values # 無法確實輸出就是初步渲染都失敗
+        ☆ 執行本地渲染 # 帶上所有 values # 無法確實輸出就是初步渲染都失敗
         helm template . -f values/common.yaml > output.yaml
         
-        * 產出的實體檔案中尋找該參數，驗證是否成功變更
+        ☆ 產出的實體檔案中尋找該參數，驗證是否成功變更
         grep -rn "目標參數關鍵字" .
         grep -rn "目標參數關鍵字" output.yaml
         
@@ -826,16 +826,16 @@ DEBUG
         grep -rn "key" output.yaml
         
     
-    * 確認 Chart 是否真的載入到 dependency
+    ☆ 確認 Chart 是否真的載入到 dependency
     helm dependency list .
     
-    * yq 排查內容方式
+    ☆ yq 排查內容方式
     yq '.loki.storage.bucketNames' values/common.yaml
     
-    * 疊加 values 作法 ( 官方範本 + 自定義 )
+    ☆ 疊加 values 作法 ( 官方範本 + 自定義 )
     helm template . -f official-values.yaml -f values/common.yaml --debug
     
-    * 改用 helm template 直接對子 Chart 進行操作
+    ☆ 改用 helm template 直接對子 Chart 進行操作
         1. 解壓子 Chart（如果它還是 .tgz 壓縮檔）
         tar -zxvf charts/loki-5.47.2.tgz -C charts/
         
@@ -935,7 +935,7 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
     -rw-r--r-- 1 root root 16512 Jun 13 10:13 kafka_consumer_local.db-wal
 
 
-* 若變更設置需要重頭來過 => 刪除 pvc, pv
+☆ 若變更設置需要重頭來過 => 刪除 pvc, pv
 $ kubectl delete pvc sqlite-nfs-pvc -n pg-apps-homelab-test
 $ kubectl delete pv nfs-storage-homelab-test-nfs-pv
 ```
@@ -952,10 +952,10 @@ $ kubectl delete pv nfs-storage-homelab-test-nfs-pv
 ⭐ 強制重製: --force --grace-period=0
 
 Level 1. 應用層級 → 日常重啟或強制重製
-    * 優雅作法
+    ☆ 優雅作法
     kubectl rollout restart deployment/<deployment-name> -n <namespace>
     
-    * 強制作法
+    ☆ 強制作法
     kubectl delete pod <pod-name> -n <namespace> --force --grace-period=0
 
 
@@ -992,10 +992,10 @@ Level 3. 範本與架構層級 → 刪除 AppSet 與 AppProject
 
 Level 4. 集群環境層級 → 刪除業務 Namespace
     1. 排查 ...
-        * 標準安全排查法： 找出到底是誰卡住 Namespace
+        ☆ 標準安全排查法： 找出到底是誰卡住 Namespace
         kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n <namespace>
     
-        * 暴力強制移除法（直接抹除該 Namespace 的 Finalizers 阻擋）
+        ☆ 暴力強制移除法（直接抹除該 Namespace 的 Finalizers 阻擋）
         kubectl get ns <namespace> -o json | jq '.spec.finalizers = []' | kubectl replace --raw "/api/v1/namespaces/<namespace>/finalize" -f -
     
     2. 刪除 namespace ( 連同內部資源一起刪除 )
@@ -1008,10 +1008,10 @@ Level 5. 基礎設施層級 → 卸載 ArgoCD 叢集全面大洗地
     ⭐ 無腦 make destroy 另說 ... 正常流程如下 :
     
     Step 1. 安全卸載工具鏈 ( 拔除大腦，解除 Finalizer 依賴 ) : 
-        * 拔除大總管 ArgoCD
+        ☆ 拔除大總管 ArgoCD
         helm uninstall argocd -n argocd
         
-        * 移除其他核心組件: 清除憑證 + 加密控制器
+        ☆ 移除其他核心組件: 清除憑證 + 加密控制器
         helm uninstall sealed-secrets -n sealed-secrets
         helm uninstall cert-manager -n cert-manager
     
@@ -1034,7 +1034,7 @@ kubectl get all -n <namespace>
 ⚠️ 查詢哪個保護鎖卡住
 kubectl get <資源類型> <資源名稱> -n <命名空間> -o jsonpath='{.metadata.finalizers}'
 
-* 懶人查詢
+☆ 懶人查詢
 kubectl get app,appset,appproject -A
 ```
 

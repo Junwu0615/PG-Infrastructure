@@ -19,7 +19,7 @@
     - name: Copy offline Keepalived packages to Masters
       copy:
         # 對位 Makefile 下載的檔案路徑
-        src: files/keepalived_packages/
+        src: "{{ playbook_dir }}/../../files/keepalived_packages/"
         dest: /tmp/keepalived_packages/
         mode: '0644'
       tags: [ install ]

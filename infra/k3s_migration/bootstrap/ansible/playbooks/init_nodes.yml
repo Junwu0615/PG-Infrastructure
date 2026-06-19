@@ -67,7 +67,7 @@
 
     - name: Copy offline NFS packages to nodes
       copy:
-        src: files/nfs_packages/
+        src: "{{ playbook_dir }}/../../files/nfs_packages/"
         dest: /tmp/nfs_packages/
         mode: '0644'
       when: ansible_os_family == "Debian"
