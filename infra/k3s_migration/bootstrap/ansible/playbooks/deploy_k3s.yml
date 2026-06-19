@@ -179,14 +179,15 @@
     # 執行實體安裝 + 加入 --tls-san 確保憑證信任 VIP
     # Additional Masters 安裝時必須阻斷自動啟動，否則會建立獨立叢集
     # 安裝時透過變數注入，讓 K3s 腳本自動生成 Systemd 配置
+    # 不使用 environment 塞 K3S_URL，直接 --server 傳遞 install.sh => /etc/systemd/system/k3s.service 寫入完全合規的 ExecStart 啟動參數
     - name: Install K3s Binary on Additional Masters (Offline Mode)
       shell: >
         INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/k3s_install/install.sh server
+        --server https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}
         --disable traefik 
         --node-taint CriticalAddonsOnly=true:NoSchedule
         --tls-san {{ k3s_vip | default('10.88.0.99') }}
       environment:
-        K3S_URL: "https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}"
         K3S_TOKEN: "{{ k3s_token.stdout | trim }}"
       when:
         - not k3s_installed.stat.exists
@@ -271,18 +272,19 @@
     # ----------------------------------------------------------------------
     # Agent 初始化離線註冊加入
     # ----------------------------------------------------------------------
-    # 初始化時 Agent 先執行實體安裝 + 「不允許」自動啟動
-    - name: Install K3s Agent Binary (Skip Start)
+    # 初始化時 Agent 先執行實體安裝 + 安裝完直接由官方腳本拉起，回歸標準生命週期
+    - name: Install and Start K3s Agent (Offline Mode)
       shell: >
         INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/k3s_agent_install/install.sh agent
       environment:
-        INSTALL_K3S_SKIP_ENABLE: "true"
-        INSTALL_K3S_SKIP_START: "true"
+        K3S_URL: "https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}"
+        K3S_TOKEN: "{{ k3s_agent_token.stdout | trim }}"
       when: not agent_installed.stat.exists
       tags: [ install ]
 
-    # Agent 節點直連高可用 VIP ( 配置或熱更新 Agent 的環境變數 )
-    - name: Configure K3s Service Environment Variables (Agents)
+    # 熱更新/二刷維護：如果未來 VIP 或 Token 有變動，透過 lineinfile 進行動態更新
+    # 只有當「已經安裝過」且「配置真的有改」時，才會觸發重啟 Handler
+    - name: Configure K3s Service Environment Variables (Agents Update Only)
       lineinfile:
         path: /etc/systemd/system/k3s-agent.service.env
         create: yes
@@ -294,19 +296,18 @@
       loop:
         - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}" }
         - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_agent_token.stdout | trim }}" }
-      tags: [ install, update ]
+      when: agent_installed.stat.exists
+      tags: [ update ]
       notify: Reload and Restart K3s Agent
 
-    # 強迫 Ansible 立刻執行被 notify 的 Handler
+    # 強迫立刻執行被 notify 的 Handler ( 僅在 update 標籤或二刷配置改變時才會真正耗時重啟 )
     # 若是 update 會在這裡立刻重啟服務
     # 若是 install 因為服務還沒啟動，Handler 執行 restarted 剛好直接把服務拉起來
     - name: Flush handlers to apply config changes immediately
       meta: flush_handlers
       tags: [ install, update ]
 
-    # 確保服務被 mask/enable，且狀態維持在 started
-    # 透過 flush_handlers，如果全新安裝，服務其實已經被 Handler 啟動
-    # started 只會確保它是活著的（冪等性），並且負責 set enable
+    # 確保服務無論如何都是開機自啟，且狀態維持在 started
     - name: Enable K3s Agent Service
       systemd:
         name: k3s-agent

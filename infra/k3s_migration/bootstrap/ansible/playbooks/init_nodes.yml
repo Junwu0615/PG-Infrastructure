@@ -130,3 +130,39 @@
         group: root
         mode: "0644"
       tags: [ install, update, registry ]
+
+
+
+    # ----------------------------------------------------------------------
+    # 防止 deploy_k3s.yml 初始化失敗 提前清理
+    # ----------------------------------------------------------------------
+    # 允許綁定非本地 IP 徹底解決 Keepalived VIP 離線初始化死鎖
+    - name: Allow applications to bind to nonlocal IP addresses
+      sysctl:
+        name: net.ipv4.ip_nonlocal_bind
+        value: '1'
+        sysctl_set: yes
+        state: present
+        reload: yes
+      tags: [ install, update ]
+
+    # 就地檢查 K3s 是否已安裝，解耦全域變數相依性
+    - name: Check if K3s binary exists locally
+      stat:
+        path: /usr/local/bin/k3s
+      register: local_k3s_check
+      tags: [ install ]
+
+    # 如果是全新安裝且之前失敗過，徹底鏟平 1-N 號機的 etcd 髒數據
+    - name: Clean up corrupted etcd storage on Additional Masters if not successfully installed
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/rancher/k3s/server/db
+        - /var/lib/rancher/k3s/server/tls
+      when:
+        - not local_k3s_check.stat.exists
+        - inventory_hostname in groups['masters'] | default([])
+        - inventory_hostname != (groups['masters'] | default(['']))[0]
+      tags: [ install ]
