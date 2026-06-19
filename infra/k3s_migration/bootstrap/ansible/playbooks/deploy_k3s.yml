@@ -169,11 +169,14 @@
       delegate_to: "{{ groups['masters'] | random }}"
       tags: [ install, update ]
 
-    # 初始化時 Agent 先執行實體安裝
-    - name: Install K3s Agent Binary
+    # 初始化時 Agent 先執行實體安裝 + 「不允許」自動啟動
+    - name: Install K3s Agent Binary (Skip Start)
       shell: >
         curl -sfL https://get.k3s.io | 
         sh -s - agent
+      environment:
+        INSTALL_K3S_SKIP_ENABLE: "true"
+        INSTALL_K3S_SKIP_START: "true"
       when: not agent_installed.stat.exists
       tags: [ install ]
 
@@ -192,6 +195,23 @@
         - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_agent_token.stdout | trim }}" }
       tags: [ install, update ]
       notify: Reload and Restart K3s Agent
+
+    # 強迫 Ansible 立刻執行被 notify 的 Handler
+    # 若是 update 會在這裡立刻重啟服務
+    # 若是 install 因為服務還沒啟動，Handler 執行 restarted 剛好直接把服務拉起來
+    - name: Flush handlers to apply config changes immediately
+      meta: flush_handlers
+      tags: [ install, update ]
+
+    # 確保服務被 mask/enable，且狀態維持在 started
+    # 透過 flush_handlers，如果全新安裝，服務其實已經被 Handler 啟動
+    # started 只會確保它是活著的（冪等性），並且負責 set enable
+    - name: Enable K3s Agent Service
+      systemd:
+        name: k3s-agent
+        enabled: yes
+        state: started
+      tags: [ install ]
 
   handlers:
     - name: Reload and Restart K3s Agent

@@ -24,6 +24,7 @@ registry:
     enabled: true
     className: nginx
     host: docker-registry.k8s.local
+#    host: docker-registry.k8s-test.local
 
 #    tls: []
     tls:
