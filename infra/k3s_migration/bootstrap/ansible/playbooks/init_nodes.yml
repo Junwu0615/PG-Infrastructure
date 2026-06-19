@@ -16,11 +16,13 @@
         fstype: swap
         state: absent
       loop: [ "none", "swap" ]
+      tags: [ install ]
 
     # 物理抹殺 Swap ( 記憶體 )
     - name: Disable Swap in current memory (Immediate)
       command: swapoff -a
       changed_when: false # 避免每次都回報 changed
+      tags: [ install ]
 
     - name: Enable Kernel Modules
       modprobe:
@@ -29,6 +31,7 @@
       loop:
         - br_netfilter
         - overlay
+      tags: [ install ]
 
     - name: Ensure modules load on boot
       copy:
@@ -36,6 +39,7 @@
           br_netfilter
           overlay
         dest: /etc/modules-load.d/k8s.conf
+      tags: [ install ]
 
     - name: Enable IPv4 Forwarding
       sysctl:
@@ -48,6 +52,7 @@
       loop:
         - net.ipv4.ip_forward
         - net.bridge.bridge-nf-call-iptables
+      tags: [ install ]
 
     - name: Install NFS client for Debian/Ubuntu
       apt:
@@ -56,24 +61,21 @@
         update_cache: yes
         cache_valid_time: 3600 # 1小時內不重複 update
       when: ansible_os_family == "Debian"
-      tags:
-        - storage
+      tags: [ install, storage ]
 
     - name: Install NFS client for RedHat/CentOS/Rocky
       dnf:
         name: nfs-utils
         state: present
       when: ansible_os_family == "RedHat"
-      tags:
-        - storage
+      tags: [ install, storage ]
 
     - name: Ensure rancher directory exists
       file:
         path: /etc/rancher/k3s
         state: directory
         mode: "0755"
-      tags:
-        - registry
+      tags: [ install, registry ]
 
     - name: Add registry host
       lineinfile:
@@ -81,8 +83,7 @@
         regexp: '.*docker-registry\.k8s\.local.*'
         line: "{{ ingress_path }} {{ registry_host }}"
         state: present
-      tags:
-        - registry
+      tags: [ install, registry ]
 
     - name: Create registries.yaml
       template:
@@ -91,8 +92,7 @@
         owner: root
         group: root
         mode: "0644"
-      tags:
-        - registry
+      tags: [ install, registry ]
       notify:
         - Restart K3s Master
         - Restart K3s Agent

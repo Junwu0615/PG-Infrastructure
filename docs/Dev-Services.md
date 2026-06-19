@@ -437,6 +437,11 @@
   [USER 2]
     jun_wu
     r2p8(G&(nJETwM]N
+  
+  # 遇到外部 IP 遭阻攔 可能是 WIN 設置沒能成功轉發
+  netsh interface portproxy show all
+        ↓
+  netsh interface portproxy add v4tov4 listenport=8090 listenaddress=0.0.0.0 connectport=8090 connectaddress=127.0.0.1
   ```
 
 - #### *b.　Gitlab Runner*

@@ -11,12 +11,14 @@
         name: nginx
         state: present
         update_cache: yes
+      tags: [ install ]
 
     - name: Enable nginx
       systemd:
         name: nginx
         enabled: yes
         state: started
+      tags: [ install ]
 
     - name: Configure portainer reverse proxy
       copy:
@@ -34,8 +36,10 @@
                   proxy_set_header X-Forwarded-Proto $scheme;
               }
           }
+      tags: [ install ]
 
     - name: Restart nginx
       systemd:
         name: nginx
         state: restarted
+      tags: [ install ]

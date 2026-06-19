@@ -19,6 +19,7 @@
         name: nfs-kernel-server
         state: present
         update_cache: yes
+      tags: [ install ]
 
     - name: Create Physical Directory for SQLite Persistence
       file:
@@ -28,6 +29,7 @@
         owner: "{{ container_uid }}" # 指定應用程式用戶 UID (1001)
         group: "{{ container_uid }}" # 指定應用程式用戶 GID (1001)
         recurse: yes
+      tags: [ install ]
 
     - name: Configure NFS Exports Permissions (Mapping to UID 1001)
       lineinfile:
@@ -35,6 +37,7 @@
         regexp: "^{{ nfs_export_dir | regex_escape }}\\s+"
         line: "{{ nfs_export_dir }} {{ k3s_subnet }}(rw,sync,no_subtree_check,no_root_squash,all_squash,anonuid={{ container_uid }},anongid={{ container_uid }})"
         state: present
+      tags: [ install ]
       notify:
         - Reload NFS Exports Table
         - Restart NFS Server
