@@ -1,36 +1,71 @@
-RELEASE_NAME=pg-service-release
-CHART_PATH=./helm/app-stack
-VALUES_PATH=./helm/app-stack/values-dev.yaml
-TERRAFORM_PATH=./bootstrap/terraform
-ANSIBLE_INI_PATH=./bootstrap/ansible/inventory.ini
-ANSIBLE_SCRIPTS_PATH=./bootstrap/ansible/playbooks
-INFRA_LIVE_BOOTSTRAP_DIR=./infra-live/bootstrap/cluster
-ROOT_APP_DIR=./infra-live/argocd/root-app.yaml
+BOOTSTRAP_DIR        := ./bootstrap
+FILES_DIR            := $(BOOTSTRAP_DIR)/files
+TERRAFORM_PATH       := $(BOOTSTRAP_DIR)/terraform
+ANSIBLE_INI_PATH     := $(BOOTSTRAP_DIR)/ansible/inventory.ini
+ANSIBLE_SCRIPTS_PATH := $(BOOTSTRAP_DIR)/ansible/playbooks
+NFS_DIR              := $(FILES_DIR)/nfs_packages
+KEEPALIVED_DIR       := $(FILES_DIR)/keepalived_packages
+INFRA_LIVE_DIR       := ./infra-live
 
 ALL_CHART_DIRS := \
-    ./infra-live/charts/observability/grafana \
-    ./infra-live/charts/observability/prometheus \
-    ./infra-live/charts/observability/prometheus-stack \
-    ./infra-live/charts/observability/loki \
-    ./infra-live/charts/observability/promtail \
-    ./infra-live/charts/observability/tempo \
-    ./infra-live/charts/databases/postgresql \
-    ./infra-live/charts/platform/ingress-nginx \
-    ./infra-live/charts/platform/registry \
-    ./infra-live/charts/platform/harbor \
+    $(INFRA_LIVE_DIR)/charts/observability/grafana \
+    $(INFRA_LIVE_DIR)/charts/observability/prometheus \
+    $(INFRA_LIVE_DIR)/charts/observability/prometheus-stack \
+    $(INFRA_LIVE_DIR)/charts/observability/loki \
+    $(INFRA_LIVE_DIR)/charts/observability/promtail \
+    $(INFRA_LIVE_DIR)/charts/observability/tempo \
+    $(INFRA_LIVE_DIR)/charts/databases/postgresql \
+    $(INFRA_LIVE_DIR)/charts/platform/ingress-nginx \
+    $(INFRA_LIVE_DIR)/charts/platform/registry \
+    $(INFRA_LIVE_DIR)/charts/platform/harbor \
 
 FILTER_CHART_DIRS := \
-	./infra-live/charts/observability/prometheus \
-	./infra-live/charts/observability/harbor \
+	$(INFRA_LIVE_DIR)/charts/observability/prometheus \
+	$(INFRA_LIVE_DIR)/charts/observability/harbor \
 
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
 SHELL := /bin/bash
-.PHONY: init apply destroy output terraform-list \
+.PHONY: apt-source-prepare apt-source-clean \
+init apply destroy output terraform-list \
 status k-top label-nodes vm-format vm-power \
 k9s-fav trigger-ansible-tag trigger-ansible-yml \
 root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
+
+apt-source-prepare: $(NFS_DIR) $(KEEPALIVED_DIR)
+	@echo "* 開始下載離線套件 ( 動態版本相容與冪等性檢查 ) ..."
+	# 1. 抓取 NFS 相關套件（主套件 + 基礎通訊元件 + 模糊匹配 tirpc 函式庫）
+	@if [ -z "$$(ls -A $(NFS_DIR))" ]; then \
+		echo "  - 下載 NFS 離線套件中 ..."; \
+		cd $(NFS_DIR) && apt-get download nfs-common rpcbind libkeyutils1 2>/dev/null || true; \
+		cd $(NFS_DIR) && apt-get download libtirpc3 libtirpc3t64 2>/dev/null || true; \
+	else \
+		echo "  [OK] NFS 離線套件已存在，跳過 ..."; \
+	fi
+	# 2. 抓取 Keepalived 相關套件（主套件 + 模糊匹配 32/64 位元核心 netfilter 依賴）
+	@if [ -z "$$(ls -A $(KEEPALIVED_DIR))" ]; then \
+		echo "  - 下載 Keepalived 離線套件中 ..."; \
+		cd $(KEEPALIVED_DIR) && apt-get download keepalived 2>/dev/null || true; \
+		cd $(KEEPALIVED_DIR) && apt-get download libip4tc2 libip6tc2 libiptc0 libxtables12 libxtables12t64 2>/dev/null || true; \
+	else \
+		echo "  [OK] Keepalived 離線套件已存在，跳過 ..."; \
+	fi
+	@echo "✅  <make apt-source-prepare> done."
+
+$(NFS_DIR):
+	@echo "* 幕等式創建檔案夾: $(NFS_DIR)"
+	mkdir -p $(NFS_DIR)
+
+$(KEEPALIVED_DIR):
+	@echo "* 幕等式創建檔案夾: $(KEEPALIVED_DIR)"
+	mkdir -p $(KEEPALIVED_DIR)
+
+apt-source-clean:
+	@echo "* 進行離線資源快取清理 ..."
+	rm -rf $(FILES_DIR)/nfs_packages
+	rm -rf $(FILES_DIR)/keepalived_packages
+	@echo "✅  <make apt-source-clean> done."
 
 k-top:
 	@echo "================== [ 節點資源配額預佔狀態 ] =================="
@@ -41,7 +76,7 @@ k-top:
 
 init-gitops:
 	@echo "* 一鍵部署基礎設置 ( GitOps Bootstrap Cluster )"
-	cd ./infra-live/bootstrap/ && \
+	cd $(INFRA_LIVE_DIR)/bootstrap/ && \
 	chmod +x cluster/scripts/bootstrap-cluster.sh && \
 	./cluster/scripts/bootstrap-cluster.sh
 	@echo "✅  <make init-gitops> done."
@@ -116,7 +151,7 @@ root-app:
 	fi
 
 	@echo "📦 正在套用根入口宣告並開啟自動剪枝 ..."
-	@kubectl apply -f "$(ROOT_APP_DIR)"
+	@kubectl apply -f "$(INFRA_LIVE_DIR)/argocd/root-app.yaml"
 	@kubectl patch application homelab-root -n argocd --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","ServerSideApply=true","PruneLast=true"]}}}' 2>/dev/null || true
 
 	# refresh=hard 能強制 Argo CD 丟棄 Git 快取，重新解析 Kustomization 的註解開關
@@ -130,10 +165,10 @@ root-app:
 
 upgrade-ingress:
 	@echo "* 初始化/更新 ingress-nginx"
-	kubectl apply -f "${INFRA_LIVE_BOOTSTRAP_DIR}/ingress-nginx/namespace.yaml"
+	kubectl apply -f "${INFRA_LIVE_DIR}/bootstrap/cluster/ingress-nginx/namespace.yaml"
 	helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
 	  --namespace ingress-nginx \
-	  -f "${INFRA_LIVE_BOOTSTRAP_DIR}/ingress-nginx/values.yaml"
+	  -f "${INFRA_LIVE_DIR}/bootstrap/cluster/ingress-nginx/values.yaml"
 	@echo "✅  <make upgrade-ingress> done."
 
 label-nodes:
@@ -224,23 +259,6 @@ k9s-fav:
 	cat ~/.local/share/k9s/clusters/default/default/config.yaml
 
 	@echo "✅  <make k9s-fav> done."
-
-deploy:
-	@echo "1. 檢查是否有版本號且不為空"
-	@if [ -z "$(ver)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make deploy ver=v1"; \
-		exit 1; \
-	fi
-
-	@# 如果沒有傳入 msg，就用預設訊息
-	$(eval MSG=$(if $(msg),"$(msg)","Deploy version $(ver)"))
-
-	@echo "* 僅安裝/更新 (不清理), changeCause: $(msg)"
-	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) \
- 		-f $(VALUES_PATH) \
-		--set image.tag=$(ver) \
-		--set 'annotations.changeCause=$(MSG)'
-	@echo "✅  <make deploy> done."
 
 init:
 	@echo "* [Terraform] 初始化配置"

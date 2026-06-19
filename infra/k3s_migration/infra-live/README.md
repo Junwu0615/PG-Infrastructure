@@ -27,17 +27,24 @@ Summary:
 ### *B.　VM 生命週期 ( Makefile )*
 ![PNG](../../../assets/png/k3s_vm.png)
 ```
-Terraform:
-    # 初始化配置
+⭐ VM 生命週期
+    1. 預載資源 => 預防封閉環境無法索取外網資源
+    make apt-source-prepare
+    
+    2. 初始化配置
     make init
     
-    # 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) → SSH 無密碼登入
+    3. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) → SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/homelab-test.tfvars
-    
+
+
+* 其他
+    # 清除預載資源佔用
+    make apt-source-clean
+
     # 拆除 VM 環境
     make destroy
     
-Ansible:
     # 檢視狀態 ( pods + nodes )
     make status
     

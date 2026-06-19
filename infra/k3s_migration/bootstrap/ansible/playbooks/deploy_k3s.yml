@@ -8,13 +8,35 @@
   hosts: masters
   become: yes
   tasks:
-    - name: Install Keepalived
-      apt:
-        name: keepalived
-        state: present
-        update_cache: yes
+    # [Keepalived] 本地套件安裝
+    - name: Create local directory for offline Keepalived packages
+      file:
+        path: /tmp/keepalived_packages
+        state: directory
+        mode: '0755'
       tags: [ install ]
 
+    - name: Copy offline Keepalived packages to Masters
+      copy:
+        # 對位 Makefile 下載的檔案路徑
+        src: files/keepalived_packages/
+        dest: /tmp/keepalived_packages/
+        mode: '0644'
+      tags: [ install ]
+
+    - name: Install Keepalived via dpkg (Block external apt)
+      shell: dpkg -i /tmp/keepalived_packages/*.deb
+      register: keepalived_dpkg_result
+      changed_when: "'Installing' in keepalived_dpkg_result.stdout or 'Upgrading' in keepalived_dpkg_result.stdout"
+      tags: [ install ]
+
+    - name: Cleanup temporary Keepalived package directory
+      file:
+        path: /tmp/keepalived_packages
+        state: absent
+      tags: [ install ]
+
+    # [Keepalived] 基礎配置維護
     - name: Configure Keepalived VRRP Instance
       copy:
         dest: /etc/keepalived/keepalived.conf
@@ -39,7 +61,7 @@
       tags: [ install, update ]
       notify: Restart Keepalived
 
-    # 強制刷新 Handler，確保 VIP 在進入 K3s 階段前百分之百已經在網路上存活
+    # [Keepalived] 強制刷新 Handler，確保 VIP 在進入 K3s 階段前百分之百已經在網路上存活
     - name: Flush handlers to bring up VIP immediately
       meta: flush_handlers
       tags: [ install, update ]

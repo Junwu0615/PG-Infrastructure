@@ -40,3 +40,4 @@ infra/docker-compose/docker/gitlab/logs
 infra/k3s/bootstrap/ansible/inventory.ini
 infra/k3s_migration/bootstrap/ansible/inventory.ini
 infra/k3s_migration/infra-live/*/*/*/charts
+infra/k3s_migration/bootstrap/files
