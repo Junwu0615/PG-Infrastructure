@@ -8,6 +8,7 @@ ANSIBLE_INI_PATH     := $(BOOTSTRAP_DIR)/ansible/inventory.ini
 ANSIBLE_SCRIPTS_PATH := $(BOOTSTRAP_DIR)/ansible/playbooks
 NFS_DIR              := $(FILES_DIR)/nfs_packages
 KEEPALIVED_DIR       := $(FILES_DIR)/keepalived_packages
+K3S_DIR              := $(FILES_DIR)/k3s_packages
 INFRA_LIVE_DIR       := ./infra-live
 
 ALL_CHART_DIRS := \
@@ -36,7 +37,7 @@ k9s-fav trigger-ansible-tag trigger-ansible-yml \
 root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
 
-apt-source-prepare: $(NFS_DIR) $(KEEPALIVED_DIR)
+apt-source-prepare: $(NFS_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
 	@echo "* 透過 Host 網路模式與容器 (${OS_IMAGE}) 動態下載目標 OS 相容套件 ..."
 	# 1. 動態下載符合 $(OS_IMAGE) 的 NFS 客戶端及其完整相依套件
 	@if [ -z "$$(ls -A $(NFS_DIR))" ]; then \
@@ -61,6 +62,16 @@ apt-source-prepare: $(NFS_DIR) $(KEEPALIVED_DIR)
 	else \
 		echo "  📦 Keepalived 離線套件已存在，跳過 ..."; \
 	fi
+	# 3. 抓取 K3s 離線安裝腳本與二進位檔 (以 v1.28.2+k3s1 為例，可自行更換版本)
+	@if [ -z "$$(ls -A $(K3S_DIR))" ]; then \
+		echo "  🚀 正在下載 K3s 離線安裝資源中 ..."; \
+		curl -sfL https://get.k3s.io -o $(K3S_DIR)/install.sh; \
+		curl -sfL https://github.com/k3s-io/k3s/releases/download/v1.28.2%2Bk3s1/k3s -o $(K3S_DIR)/k3s; \
+		chmod +x $(K3S_DIR)/k3s; \
+	else \
+		echo "  📦 K3s 離線資源已存在，跳過 ..."; \
+	fi
+
 	@echo "✅  <make apt-source-prepare> done."
 
 $(NFS_DIR):
@@ -70,6 +81,10 @@ $(NFS_DIR):
 $(KEEPALIVED_DIR):
 	@echo "* 幕等式創建檔案夾: $(KEEPALIVED_DIR)"
 	mkdir -p $(KEEPALIVED_DIR)
+
+$(K3S_DIR):
+	@echo "* 幕等式創建檔案夾: $(K3S_DIR)"
+	mkdir -p $(K3S_DIR)
 
 apt-source-clean:
 	@echo "* 進行離線資源快取清理 ..."

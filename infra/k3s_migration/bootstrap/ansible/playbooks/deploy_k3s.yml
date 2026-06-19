@@ -8,6 +8,9 @@
   hosts: masters
   become: yes
   tasks:
+    # ----------------------------------------------------------------------
+    # 【 全離線基建 】 分發 Keepalived 離線資產
+    # ----------------------------------------------------------------------
     # [Keepalived] 本地套件安裝
     - name: Create local directory for offline Keepalived packages
       file:
@@ -88,11 +91,42 @@
       register: k3s_installed
       tags: [ install, update ]
 
+    # ----------------------------------------------------------------------
+    # 【 全離線基建 】 分發 K3s 離線資產
+    # ----------------------------------------------------------------------
+    - name: Copy K3s binary to global bin
+      copy:
+        src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
+        dest: /usr/local/bin/k3s
+        owner: root
+        group: root
+        mode: "0755"
+      when: not k3s_installed.stat.exists
+      tags: [ install ]
+
+    - name: Create temporary directory for K3s install script
+      file:
+        path: /tmp/k3s_install
+        state: directory
+        mode: "0755"
+      when: not k3s_installed.stat.exists
+      tags: [ install ]
+
+    - name: Copy K3s install script to node
+      copy:
+        src: "{{ playbook_dir }}/../../files/k3s_packages/install.sh"
+        dest: /tmp/k3s_install/install.sh
+        mode: "0755"
+      when: not k3s_installed.stat.exists
+      tags: [ install ]
+
+    # ----------------------------------------------------------------------
+    # 0 號機離線初始化
+    # ----------------------------------------------------------------------
     # 只有 masters[0] 負責初始化，加入 --tls-san 確保憑證信任 VIP
-    - name: Initialize K3s Cluster on First Master
+    - name: Initialize K3s Cluster on First Master (Offline Mode)
       shell: >
-        curl -sfL https://get.k3s.io |
-        sh -s - server
+        INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/k3s_install/install.sh server
         --cluster-init
         --disable traefik
         --node-taint CriticalAddonsOnly=true:NoSchedule
@@ -112,7 +146,7 @@
       tags: [ update ]
       notify: Reload and Restart K3s Master
 
-    # 強制確保第一台 Master ( 0 號機 ) 沒有 .env 檔案干擾
+    # 強制確保 0 號機沒有 .env 檔案干擾
     - name: Ensure First Master has NO Service Environment File
       file:
         path: /etc/systemd/system/k3s.service.env
@@ -121,7 +155,6 @@
       tags: [ install, update ]
       notify: Reload and Restart K3s Master
 
-    # 獲取任意一台健康 Master 的 Token
     # 全新安裝向 0 號機拿；熱更新時，直接穿透 Keepalived VIP 去找當時在線的 Leader 拿（解耦 0 號機故障風險）
     # 同時固定為 run_once: true，只抓一次分發全場，效率最高
     - name: Get K3s Token from Cluster Masters
@@ -132,12 +165,14 @@
       run_once: true
       tags: [ install, update ]
 
-    # 初始化時 Master 先執行實體安裝 ( 如果有第 2、3 ... N 台 )，加入 --tls-san 確保憑證信任 VIP
+    # ----------------------------------------------------------------------
+    # 1-N 號機離線初始化
+    # ----------------------------------------------------------------------
+    # 執行實體安裝 + 加入 --tls-san 確保憑證信任 VIP
     # Additional Masters 安裝時必須阻斷自動啟動，否則會建立獨立叢集
-    - name: Install K3s Binary on Additional Masters (Skip Start)
+    - name: Install K3s Binary on Additional Masters (Offline Mode)
       shell: >
-        curl -sfL https://get.k3s.io | 
-        sh -s - server 
+        INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/k3s_install/install.sh server
         --disable traefik 
         --node-taint CriticalAddonsOnly=true:NoSchedule
         --tls-san {{ k3s_vip | default('10.88.0.99') }}
@@ -200,6 +235,37 @@
       register: agent_installed
       tags: [ install, update ]
 
+    # ----------------------------------------------------------------------
+    # 【 全離線基建 】 分發 Agent 離線資產
+    # ----------------------------------------------------------------------
+    - name: Copy K3s binary to Agent nodes
+      copy:
+        src: "{{ playbook_dir }}/../../../files/k3s_packages/k3s"
+        dest: /usr/local/bin/k3s
+        owner: root
+        group: root
+        mode: "0755"
+      when: not agent_installed.stat.exists
+      tags: [ install ]
+
+    - name: Create temporary directory for K3s Agent script
+      file:
+        path: /tmp/k3s_agent_install
+        state: directory
+        mode: "0755"
+      when: not agent_installed.stat.exists
+      tags: [ install ]
+
+    - name: Copy K3s install script to Agent nodes
+      copy:
+        src: "{{ playbook_dir }}/../../../files/k3s_packages/install.sh"
+        dest: /tmp/k3s_agent_install/install.sh
+        mode: "0755"
+      when: not agent_installed.stat.exists
+      tags: [ install ]
+
+
+
     # 抓取 Token 供 Agent 使用
     # 與 Master 階段邏輯對位。初始化時指定 0 號機，熱更新時隨機自 Masters 取得（此時 etcd 數據已同步，內容皆相同）
     - name: Get K3s Token for Agents
@@ -209,11 +275,14 @@
       delegate_to: "{{ groups['masters'][0] if not agent_installed.stat.exists else (groups['masters'] | random) }}"
       tags: [ install, update ]
 
+
+    # ----------------------------------------------------------------------
+    # Agent 初始化離線註冊加入
+    # ----------------------------------------------------------------------
     # 初始化時 Agent 先執行實體安裝 + 「不允許」自動啟動
     - name: Install K3s Agent Binary (Skip Start)
       shell: >
-        curl -sfL https://get.k3s.io | 
-        sh -s - agent
+        INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/k3s_agent_install/install.sh agent
       environment:
         INSTALL_K3S_SKIP_ENABLE: "true"
         INSTALL_K3S_SKIP_START: "true"

@@ -56,6 +56,11 @@
         - net.bridge.bridge-nf-call-iptables
       tags: [ install, update ]
 
+
+
+    # ----------------------------------------------------------------------
+    # 【 全離線基建 】 分發 NFS 離線資產
+    # ----------------------------------------------------------------------
     # [NFS] 離線套件分發與本地安裝
     - name: Create local directory for offline NFS packages
       file:
@@ -98,6 +103,8 @@
         enabled: yes
       when: ansible_os_family == "Debian"
       tags: [ install, update, storage ]
+
+
 
     # [Docker Registry] 私人產線資產配置
     - name: Ensure rancher directory exists
