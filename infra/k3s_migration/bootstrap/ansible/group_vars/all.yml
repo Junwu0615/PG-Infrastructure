@@ -32,6 +32,20 @@ keepalived_nodes:
     priority: 100
 
 
+keepalived_peers:
+  "10.88.0.10":
+    - "10.88.0.11"
+    - "10.88.0.12"
+
+  "10.88.0.11":
+    - "10.88.0.10"
+    - "10.88.0.12"
+
+  "10.88.0.12":
+    - "10.88.0.10"
+    - "10.88.0.11"
+
+
 # 註冊 host 變數清單
 ingress_path: "10.88.0.20"
 docker_registry_host: "docker-registry.k8s.local"

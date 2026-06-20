@@ -12,6 +12,16 @@ vrrp_instance VI_1 {
 
     advert_int 1
 
+    vrrp_version 3
+
+    unicast_src_ip {{ ansible_default_ipv4.address }}
+
+    unicast_peer {
+{% for peer in keepalived_peers[inventory_hostname] %}
+        {{ peer }}
+{% endfor %}
+    }
+
     authentication {
         auth_type PASS
         auth_pass {{ keepalived_auth_pass }}

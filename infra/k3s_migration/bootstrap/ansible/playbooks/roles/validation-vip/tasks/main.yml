@@ -12,9 +12,36 @@
 - name: Validate VIP
   assert:
     that:
-      - "'{{ k3s_vip }}' in vip_result.stdout"
+      - k3s_vip in vip_result.stdout
     fail_msg: |
       VIP {{ k3s_vip }} not found.
-
     success_msg: |
       VIP {{ k3s_vip }} detected.
+
+
+- name: Show VIP Raw Result
+  debug:
+    var: vip_result.stdout_lines
+
+
+- name: Check Keepalived State
+  shell: |
+    systemctl is-active keepalived
+  register: keepalived_state
+  changed_when: false
+
+- name: Validate Keepalived Service
+  assert:
+    that:
+      - keepalived_state.stdout == "active"
+
+
+- name: Count VIP
+  shell: |
+    ip -4 addr show | grep -c "{{ k3s_vip }}"
+  register: vip_count
+  changed_when: false
+  failed_when: false
+
+- debug:
+    msg: "{{ inventory_hostname }} => {{ vip_count.stdout }}"
