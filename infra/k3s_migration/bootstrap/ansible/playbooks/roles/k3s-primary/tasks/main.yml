@@ -50,6 +50,7 @@
     --disable traefik
     --node-taint CriticalAddonsOnly=true:NoSchedule
     --tls-san {{ k3s_vip }}
+    --write-kubeconfig-mode "0644"
   environment:
     INSTALL_K3S_SKIP_DOWNLOAD: "true"
     INSTALL_K3S_VERSION: "{{ k3s_version }}"

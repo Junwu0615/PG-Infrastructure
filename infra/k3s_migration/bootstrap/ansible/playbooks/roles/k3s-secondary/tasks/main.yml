@@ -41,17 +41,28 @@
 
 
 # ============================================================================
-# 手動建立 systemd 環境變數配置目錄與檔案
+# 階段一： 呼叫 install.sh 釋放 Systemd 服務（透過環境變數阻止其自動拉起）
 # ============================================================================
-- name: Create systemd service directory for K3s
-  ansible.builtin.file:
-    path: /etc/systemd/system
-    state: directory
-    mode: "0755"
+- name: Run K3s Installer to release Systemd Service (Skip Start)
+  ansible.builtin.shell: >
+    /tmp/k3s_install/install.sh server
+    --disable traefik
+    --node-taint CriticalAddonsOnly=true:NoSchedule
+    --tls-san {{ k3s_vip }}
+    --node-ip {{ ansible_default_ipv4.address }}
+    --node-external-ip {{ ansible_default_ipv4.address }}
+    --write-kubeconfig-mode "0644"
+  environment:
+    INSTALL_K3S_SKIP_DOWNLOAD: "true"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    INSTALL_K3S_SKIP_ENABLE: "true" # 不允許安裝腳本自動啟用
+    INSTALL_K3S_SKIP_START: "true"  # 不允許安裝腳本自動啟動，防止生出髒 etcd
   when: not k3s_secondary_installed.stat.exists
 
-
-- name: Explicitly Pre-configure K3s Service Environment File
+# ============================================================================
+# 階段二：奪回控制權 => 在 install.sh 之後，強制覆寫正確的 HA 註冊變數
+# ============================================================================
+- name: Enforce Correct K3s HA Environment Configuration
   ansible.builtin.copy:
     dest: /etc/systemd/system/k3s.service.env
     owner: root
@@ -60,37 +71,18 @@
     content: |
       K3S_URL=https://{{ groups['k3s_primary'][0] }}:{{ k3s_api_port }}
       K3S_TOKEN={{ hostvars[groups['k3s_primary'][0]]['shared_k3s_token'] }}
-  when: not k3s_secondary_installed.stat.exists
-
 
 # ============================================================================
-# 加入 --node-ip 防火牆路由鎖定，移除會產生內訌的 environment 變數
+# 階段三： 啟動並鎖定服務
 # ============================================================================
-- name: Join Secondary K3s Servers via VIP Entrance
-  ansible.builtin.shell: >
-    /tmp/k3s_install/install.sh server
-    --disable traefik
-    --node-taint CriticalAddonsOnly=true:NoSchedule
-    --tls-san {{ k3s_vip }}
-    --node-ip {{ ansible_default_ipv4.address }}
-    --node-external-ip {{ ansible_default_ipv4.address }}
-  environment:
-    INSTALL_K3S_SKIP_DOWNLOAD: "true"
-    INSTALL_K3S_VERSION: "{{ k3s_version }}"
-  when: not k3s_secondary_installed.stat.exists
-#  tags: [ install ]
-
-
-- name: Ensure Secondary K3s Service is Started and Enabled
+- name: Reload Systemd, Enable and Start K3s Secondary Service
   ansible.builtin.systemd:
     name: k3s
-    state: started
+    state: restarted  # 強制用 restarted 確保一定吃到剛寫入的 .env 檔案
     enabled: yes
-#  tags: [ install, update ]
-
+    daemon_reload: yes
 
 - name: Clean up local installer path
   ansible.builtin.file:
     path: /tmp/k3s_install
     state: absent
-#  tags: [ install ]
