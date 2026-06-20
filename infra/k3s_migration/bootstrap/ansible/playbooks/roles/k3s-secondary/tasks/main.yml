@@ -2,25 +2,56 @@
 ---
 
 # ============================================================================
-# Clean Wrong Structure
+# 擴容情境偵測 ( Day N )
 # ============================================================================
+- name: Check if K3s Binary Already Exists
+  stat:
+    path: /usr/local/bin/k3s
+  register: k3s_secondary_bin_check
+  tags: [ install, update ]
 
+
+# ============================================================================
+# 跨節點 Token 強韌性防禦 ( 徹底解決擴容時變數 undefined 崩潰 )
+# ============================================================================
+- name: Defensively fetch K3s Token from Primary if variable is missing
+  slurp:
+    src: "{{ k3s_node_token }}"
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
+  register: backup_k3s_token_base64
+  when: hostvars[groups['k3s_primary'][0]].shared_k3s_token is not defined
+  tags: [ install, update ]
+
+
+- name: Set local token fact from fallback collection
+  set_fact:
+    resolved_k3s_token: "{{ hostvars[groups['k3s_primary'][0]].shared_k3s_token if hostvars[groups['k3s_primary'][0]].shared_k3s_token is defined else backup_k3s_token_base64.content | b64decode | trim }}"
+  tags: [ install, update ]
+
+
+# ============================================================================
+# Clean Wrong Structure ( Day 0 )
+# ============================================================================
 - name: Remove Wrong K3s Directory
   file:
     path: /usr/local/bin/k3s
     state: absent
   when:
+    - not k3s_secondary_bin_check.stat.exists # 舊 Secondary 節點絕不動它
     - ansible_facts is defined
+  tags: [ install ]
+
 
 # ============================================================================
 # Binary
 # ============================================================================
-
 - name: Create Binary Directory
   file:
     path: /usr/local/bin
     state: directory
     mode: "0755"
+  tags: [ install, update ]
+
 
 - name: Install K3s Binary
   copy:
@@ -29,11 +60,13 @@
     owner: root
     group: root
     mode: "0755"
+  when: not k3s_secondary_bin_check.stat.exists # 舊 Secondary 節點直接跳過，免疫 Text file busy
+  tags: [ install ]
+
 
 # ============================================================================
-# Config
+# Config ( Day N 安全性： 配置變更必須是受控 )
 # ============================================================================
-
 - name: Create Config Directory
   file:
     path: /etc/rancher/k3s
@@ -41,6 +74,8 @@
     owner: root
     group: root
     mode: "0755"
+  tags: [ install, update ]
+
 
 - name: Deploy Config
   copy:
@@ -50,23 +85,22 @@
     mode: "0600"
     content: |
       server: https://{{ k3s_vip }}:{{ k3s_api_port }}
-      token: {{ hostvars[groups['k3s_primary'][0]].shared_k3s_token }}
-
+      token: {{ resolved_k3s_token }}
       disable:
         - traefik
-
       tls-san:
         - {{ k3s_vip }}
-
       node-ip: {{ ansible_default_ipv4.address }}
       node-external-ip: {{ ansible_default_ipv4.address }}
-
       write-kubeconfig-mode: "0644"
+
+  tags: [ install, update ]
+  notify: "Restart K3s Secondary" # Day N 優化： 配置若有改，允許在結尾觸發安全重啟
+
 
 # ============================================================================
 # Service
 # ============================================================================
-
 - name: Deploy K3s Service
   copy:
     dest: /etc/systemd/system/k3s.service
@@ -80,12 +114,9 @@
 
       [Service]
       Type=notify
-
       ExecStartPre=/sbin/modprobe br_netfilter
       ExecStartPre=/sbin/modprobe overlay
-
       ExecStart=/usr/local/bin/k3s server
-
       KillMode=process
       Delegate=yes
       LimitNOFILE=1048576
@@ -99,44 +130,61 @@
       [Install]
       WantedBy=multi-user.target
 
-# ============================================================================
-# Wait Primary API Ready
-# ============================================================================
+  tags: [ install, update ]
+  notify: "Restart K3s Secondary"
 
+
+# ============================================================================
+# Wait Primary API Ready ( 防呆等待：確保 VIP 通道與 Primary 活著 )
+# ============================================================================
 - name: Wait For Primary API Server Via VIP
   wait_for:
     host: "{{ k3s_vip }}"
     port: "{{ k3s_api_port | int }}"
     state: started
-    timeout: 180
-    delay: 15
+    timeout: 60
+    delay: 2
+  when: not k3s_secondary_bin_check.stat.exists
+  tags: [ install ]
+
 
 # ============================================================================
-# Systemd
+# Systemd & Service Engine
 # ============================================================================
-
 - name: Reload Systemd
   systemd:
     daemon_reload: yes
+  tags: [ install, update ]
 
 - name: Enable K3s
   systemd:
     name: k3s
     enabled: yes
+  tags: [ install, update ]
 
 - name: Start K3s
   systemd:
     name: k3s
     state: started
+  tags: [ install, update ]
+
+
+# ============================================================================
+# Flush Handlers ( 嚴格控管 Day N 服務重載時機 )
+# ============================================================================
+- name: Flush K3s Secondary Handlers Immediately
+  meta: flush_handlers
+  tags: [ install, update ]
+
 
 # ============================================================================
 # Wait Local API Ready
 # ============================================================================
-
 - name: Wait For Local K3s API Server Ready
   ansible.builtin.wait_for:
     host: "127.0.0.1"
     port: "{{ k3s_api_port | int }}"
     state: started
     timeout: 60
-    delay: 5
+    delay: 2
+  tags: [ install, update ]

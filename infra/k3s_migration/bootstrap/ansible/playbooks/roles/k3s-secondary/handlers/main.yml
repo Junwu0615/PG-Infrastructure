@@ -1,0 +1,19 @@
+# roles/k3s-secondary/handlers/main.yml
+---
+
+- name: Restart K3s Secondary
+  ansible.builtin.systemd:
+    name: k3s
+    state: restarted
+  register: k3s_secondary_restart_result
+
+# 防禦性同步：確保這台 Secondary 活過來了，才放行 Playbook 結束
+# 為了防止多台 Secondary 同時觸發重啟時，etcd 瞬間失去法定人數（Quorum）
+- name: Wait For Local Secondary API Post-Restart
+  ansible.builtin.wait_for:
+    host: "127.0.0.1"
+    port: "{{ k3s_api_port | int }}"
+    state: started
+    timeout: 90
+    delay: 5
+  when: k3s_secondary_restart_result is changed
