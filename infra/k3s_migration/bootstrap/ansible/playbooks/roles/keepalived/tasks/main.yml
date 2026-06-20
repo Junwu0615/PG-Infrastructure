@@ -1,6 +1,14 @@
 # roles/keepalived/tasks/main.yml
 ---
 
+- name: Allow Unicast VRRP Protocol for Keepalived
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: vrrp
+    jump: ACCEPT
+    comment: "Keepalived Unicast VRRP Traffic"
+
+
 # ============================================================================
 # 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】
 # ============================================================================
@@ -20,6 +28,7 @@
       {{ inventory_hostname }}
       Please update:
       group_vars/all.yml
+
 
 # ============================================================================
 # Offline Install

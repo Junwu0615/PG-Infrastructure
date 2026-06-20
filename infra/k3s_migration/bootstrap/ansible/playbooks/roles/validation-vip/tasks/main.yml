@@ -4,29 +4,15 @@
 # ----------------------------------------------------------------------
 # 【 K3s 配置 : Validation VIP 】
 # ----------------------------------------------------------------------
+# 1. 蒐集網卡狀態（保留：這是所有檢查的基礎底層數據）
 - name: Check VIP Exists
   shell: ip addr show
   register: vip_result
   changed_when: false
 
-- name: Validate VIP
-  assert:
-    that:
-      - k3s_vip in vip_result.stdout
-    fail_msg: |
-      VIP {{ k3s_vip }} not found.
-    success_msg: |
-      VIP {{ k3s_vip }} detected.
-
-
-- name: Show VIP Raw Result
-  debug:
-    var: vip_result.stdout_lines
-
-
+# 2. 檢查 Keepalived 服務狀態（保留：確保三台機器的 Daemon 都是活著的）
 - name: Check Keepalived State
-  shell: |
-    systemctl is-active keepalived
+  shell: systemctl is-active keepalived
   register: keepalived_state
   changed_when: false
 
@@ -34,14 +20,29 @@
   assert:
     that:
       - keepalived_state.stdout == "active"
+    fail_msg: "Keepalived service is NOT active on {{ inventory_hostname }}!"
 
+# 3. 動態驗證 VIP 拓撲（核心重構：告別一刀切，根據 group_vars 定義動態判定）
+- name: Validate VIP Ownership Based on Role
+  assert:
+    that:
+      - (keepalived_nodes[inventory_hostname].state == 'MASTER' and k3s_vip in vip_result.stdout) or
+        (keepalived_nodes[inventory_hostname].state == 'BACKUP' and k3s_vip not in vip_result.stdout)
+    fail_msg: |
+      [CRITICAL] VIP Routing Conflict! 
+      Expected State: {{ keepalived_nodes[inventory_hostname].state }}
+      But VIP {{ k3s_vip }} presence mismatched on {{ inventory_hostname }}.
+    success_msg: |
+      [SUCCESS] VIP Routing Topology is correct on {{ inventory_hostname }} (As {{ keepalived_nodes[inventory_hostname].state }}).
 
-- name: Count VIP
+# 4. 統計當前節點的 VIP 數量（保留並優化：這在未來 Debug 腦裂時是最直覺的指標）
+- name: Count VIP Instance
   shell: |
     ip -4 addr show | grep -c "{{ k3s_vip }}"
   register: vip_count
   changed_when: false
   failed_when: false
 
-- debug:
-    msg: "{{ inventory_hostname }} => {{ vip_count.stdout }}"
+- name: Report Topology Status
+  debug:
+    msg: "Node: {{ inventory_hostname }} | Role: {{ keepalived_nodes[inventory_hostname].state }} | VIP Count: {{ vip_count.stdout }}"

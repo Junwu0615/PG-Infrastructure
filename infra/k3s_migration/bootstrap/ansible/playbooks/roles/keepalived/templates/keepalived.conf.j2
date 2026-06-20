@@ -1,33 +1,39 @@
 # roles/keepalived/templates/keepalived.conf.j2
 
+global_defs {
+    router_id {{ inventory_hostname }}
+    enable_script_security
+    script_user root
+}
+
+vrrp_script check_master_ping {
+    script "/usr/bin/ping -c 1 -W 1 10.88.0.10 > /dev/null 2>&1"
+    interval 2
+    timeout 1
+}
+
 vrrp_instance VI_1 {
-
     state {{ keepalived_nodes[inventory_hostname].state }}
-
     interface {{ ansible_default_ipv4.interface }}
-
     virtual_router_id 51
-
     priority {{ keepalived_nodes[inventory_hostname].priority }}
-
     advert_int 1
-
-    vrrp_version 3
+    vrrp_version 2
 
     unicast_src_ip {{ ansible_default_ipv4.address }}
-
     unicast_peer {
 {% for peer in keepalived_peers[inventory_hostname] %}
         {{ peer }}
 {% endfor %}
     }
 
-    authentication {
-        auth_type PASS
-        auth_pass {{ keepalived_auth_pass }}
-    }
-
     virtual_ipaddress {
         {{ k3s_vip }}/{{ k3s_vip_cidr }}
     }
+
+{% if keepalived_nodes[inventory_hostname].state == 'BACKUP' %}
+    track_script {
+        check_master_ping
+    }
+{% endif %}
 }
