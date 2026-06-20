@@ -14,6 +14,8 @@ k3s_api_port: "6443"
 
 # Keepalived VIP 位置
 k3s_vip: "10.88.0.99"
+k3s_vip_cidr: "24"
+keepalived_auth_pass: "k3s_ha_secret"
 
 # 初始化 VIP 預先選定
 keepalived_nodes:

@@ -4,8 +4,6 @@
 # ----------------------------------------------------------------------
 # 【 物理抹殺 Swap 】
 # ----------------------------------------------------------------------
-
-# fstab
 - name: Disable Swap in fstab
   mount:
     name: "{{ item }}"
@@ -14,13 +12,14 @@
   loop: [ "none", "swap" ]
   tags: [ install, update ]
 
+
 - name: Check if swap is currently active
   shell: cat /proc/swaps | wc -l
   register: swap_check
   changed_when: false
   tags: [ install, update ]
 
-# 記憶體
+
 - name: Disable Swap in memory
   command: swapoff -a
   when: swap_check.stdout | int > 1
@@ -30,7 +29,6 @@
 # ----------------------------------------------------------------------
 # 【 K8s 核心模組 】
 # ----------------------------------------------------------------------
-
 - name: Enable Kernel Modules
   modprobe:
     name: "{{ item }}"
@@ -39,6 +37,7 @@
     - br_netfilter
     - overlay
   tags: [ install, update ]
+
 
 - name: Ensure Modules Load on boot
   copy:
@@ -52,7 +51,6 @@
 # ----------------------------------------------------------------------
 # 【 網路轉發 】
 # ----------------------------------------------------------------------
-
 # 確保 sysctl 變更重開機不丟失 => 強制寫入獨立設定檔 ( sysctl_file )
 - name: Enable IPv4 Forwarding
   sysctl:

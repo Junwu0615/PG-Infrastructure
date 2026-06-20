@@ -1,2 +1,71 @@
 # roles/keepalived/tasks/main.yml
 ---
+
+# ============================================================================
+# 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】
+# ============================================================================
+- name: Check if Keepalived is installed
+  command: which keepalived
+  register: keepalived_check
+  failed_when: false
+  changed_when: false
+
+
+- name: Validate keepalived node definition
+  assert:
+    that:
+      - inventory_hostname in keepalived_nodes
+    fail_msg: |
+      Missing keepalived_nodes definition:
+      {{ inventory_hostname }}
+      Please update:
+      group_vars/all.yml
+
+# ============================================================================
+# Offline Install
+# ============================================================================
+- name: Create package directory
+  file:
+    path: /tmp/keepalived_packages
+    state: directory
+    mode: "0755"
+  when: keepalived_check.rc != 0
+
+
+- name: Copy offline packages
+  copy:
+    src: "{{ playbook_dir }}/../../files/keepalived_packages/"
+    dest: /tmp/keepalived_packages/
+  when: keepalived_check.rc != 0
+
+
+- name: Install keepalived packages
+  shell: dpkg -i /tmp/keepalived_packages/*.deb
+  when: keepalived_check.rc != 0
+
+
+- name: Cleanup package directory
+  file:
+    path: /tmp/keepalived_packages
+    state: absent
+  when: keepalived_check.rc != 0
+
+
+# ============================================================================
+# Configuration
+# ============================================================================
+- name: Deploy keepalived config
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Keepalived
+
+
+# ============================================================================
+# Start Service
+# ============================================================================
+- name: Flush handlers immediately
+  meta: flush_handlers

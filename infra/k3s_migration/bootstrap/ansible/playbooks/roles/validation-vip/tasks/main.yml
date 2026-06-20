@@ -4,3 +4,17 @@
 # ----------------------------------------------------------------------
 # 【 K3s 配置 : Validation VIP 】
 # ----------------------------------------------------------------------
+- name: Check VIP Exists
+  shell: ip addr show
+  register: vip_result
+  changed_when: false
+
+- name: Validate VIP
+  assert:
+    that:
+      - "'{{ k3s_vip }}' in vip_result.stdout"
+    fail_msg: |
+      VIP {{ k3s_vip }} not found.
+
+    success_msg: |
+      VIP {{ k3s_vip }} detected.
