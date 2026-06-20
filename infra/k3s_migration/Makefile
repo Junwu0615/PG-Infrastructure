@@ -39,7 +39,8 @@ FILTER_CHART_DIRS := \
 
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
-AnsibleParameters :=
+AnsibleTags :=
+AnsibleDetail :=
 SHELL := /bin/bash
 
 .PHONY: apt-source-prepare apt-source-clean trigger-ansible k9s-fav \
@@ -401,7 +402,8 @@ trigger-ansible:
 		echo "Error: 必須指定服務名稱，ex: make trigger-ansible Files=[xxx.yml]"; \
 		exit 1; \
 	fi
-	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_ROOT_PATH)/$(Files) $(AnsibleParameters)
+	rm -rf ~/.ansible/tmp/* ~/.ansible/cp/*
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_ROOT_PATH)/$(Files) --tags $(AnsibleTags) $(AnsibleDetail)
 	@echo "✅  <make trigger-ansible yml=$(yml)> done."
 
 vm-power:

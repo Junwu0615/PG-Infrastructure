@@ -1,6 +1,30 @@
 # roles/k3s-primary/tasks/main.yml
 ---
 
+# ----------------------------------------------------------------------
+# 確保 Kubeconfig 與 Kubectl 軟連結就緒
+# ----------------------------------------------------------------------
+- name: Ensure Local Root Kubeconfig Symlink Exists
+  file:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /root/.kube/config
+    state: link
+    force: yes
+  run_once: true
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
+  tags: [ install, update ]
+
+- name: Ensure Global Kubectl Command Symlink Exists
+  file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/kubectl
+    state: link
+    force: yes
+  run_once: true
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
+  tags: [ install, update ]
+
+
 # ============================================================================
 # 擴容情境偵測 ( Day N )
 # ============================================================================

@@ -17,6 +17,7 @@
   shell: systemctl is-active keepalived
   register: keepalived_state
   changed_when: false
+  tags: [ install, update, validation ]
 
 - name: Validate Keepalived Service
   assert:

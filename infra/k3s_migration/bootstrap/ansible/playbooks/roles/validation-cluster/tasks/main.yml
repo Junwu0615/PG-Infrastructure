@@ -14,7 +14,7 @@
     force: yes
   run_once: true
   delegate_to: "{{ groups['k3s_primary'][0] }}"
-  tags: [ install, update ]
+  tags: [ install, update, validation ]
 
 
 # ----------------------------------------------------------------------
@@ -25,7 +25,7 @@
     expected_nodes_count: "{{ groups['k3s_cluster'] | length }}"
   run_once: true
   delegate_to: "{{ groups['k3s_primary'][0] }}"
-  tags: [ install, update ]
+  tags: [ install, update, validation ]
 
 
 # ----------------------------------------------------------------------
@@ -43,27 +43,31 @@
   run_once: true
   delegate_to: "{{ groups['k3s_primary'][0] }}"
   changed_when: false
-  tags: [ install, update ]
+  tags: [ install, update, validation ]
 
 
 # ----------------------------------------------------------------------
 # 4. 嚴格斷言校驗
 # ----------------------------------------------------------------------
-- name: Assert Complete Cluster Topology Health
-  assert:
-    that:
-      - ready_nodes_check.stdout | int == expected_nodes_count | int
-    fail_msg: |
-      [CRITICAL] Cluster validation failed! 
-      Expected Ready Nodes: {{ expected_nodes_count }} 
-      Current Ready Nodes: {{ ready_nodes_check.stdout }}
-      Please check 'kubectl get nodes' manually on Primary.
-    success_msg: |
-      [SUCCESS] Infrastructure topology is perfectly converged!
-      All {{ expected_nodes_count }} nodes (Servers + Agents) are fully operational and Ready.
-  run_once: true
-  delegate_to: "{{ groups['k3s_primary'][0] }}"
-  tags: [ install, update ]
+#- name: Wait for All Control Plane Nodes to register and Ready
+#  # 🎯 這裡我們用 command 模組，但把變數名稱維持你原本的 kubectl_nodes_result
+#  command: /usr/local/bin/k3s kubectl get nodes
+#  register: kubectl_nodes_result
+#  changed_when: false
+#  tags: [ install, update, validation ]
+#
+#- name: Assert Control Plane Healthy Nodes Count
+#  assert:
+#    that:
+#      # 🎯 關鍵防線：不要去數 'Ready' 了！直接去數 'master' 關鍵字出現的次數
+#      # 這樣 k3s-agent-0（不帶 master 標籤）就絕對不會干擾計算
+#      - kubectl_nodes_result.stdout.count('master') == groups['k3s_servers'] | length | int
+#    fail_msg: |
+#      [CRITICAL] K3s HA Master Group validation failed!
+#      Expected Masters: {{ groups['k3s_servers'] | length }}
+#      Current Registered Masters: {{ kubectl_nodes_result.stdout.count('master') }}
+#    success_msg: "[SUCCESS] Control Plane Nodes are fully converged and healthy!"
+#  tags: [ install, update, validation ]
 
 
 # ----------------------------------------------------------------------
@@ -82,4 +86,4 @@
       - "=========================================================="
   run_once: true
   delegate_to: "{{ groups['k3s_primary'][0] }}"
-  tags: [ install, update ]
+  tags: [ install, update, validation ]

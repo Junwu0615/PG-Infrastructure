@@ -65,26 +65,26 @@
     path: /tmp/keepalived_packages
     state: directory
     mode: "0755"
-  when: keepalived_check.rc != 0
+  when: keepalived_binary_check.rc != 0
   tags: [ install ]
 
 - name: Copy offline packages
   copy:
     src: "{{ playbook_dir }}/../../files/keepalived_packages/"
     dest: /tmp/keepalived_packages/
-  when: keepalived_check.rc != 0
+  when: keepalived_binary_check.rc != 0
   tags: [ install ]
 
 - name: Install keepalived packages
   shell: dpkg -i /tmp/keepalived_packages/*.deb
-  when: keepalived_check.rc != 0
+  when: keepalived_binary_check.rc != 0
   tags: [ install ]
 
 - name: Cleanup package directory
   file:
     path: /tmp/keepalived_packages
     state: absent
-  when: keepalived_check.rc != 0
+  when: keepalived_binary_check.rc != 0
   tags: [ install ]
 
 
