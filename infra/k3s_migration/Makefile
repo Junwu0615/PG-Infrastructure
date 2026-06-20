@@ -1,11 +1,14 @@
+LINUX_USER := pc
+
 # 需與 terraform 變數設定對齊
 OS_IMAGE := debian:12-slim
+K3S_VIP  := 10.88.0.99
 
 BOOTSTRAP_DIR        := ./bootstrap
 FILES_DIR            := $(BOOTSTRAP_DIR)/files
 TERRAFORM_PATH       := $(BOOTSTRAP_DIR)/terraform
 ANSIBLE_INI_PATH     := $(BOOTSTRAP_DIR)/ansible/inventory.ini
-ANSIBLE_SCRIPTS_PATH := $(BOOTSTRAP_DIR)/ansible/playbooks
+ANSIBLE_ROOT_PATH    := $(BOOTSTRAP_DIR)/ansible
 NFS_DIR              := $(FILES_DIR)/nfs_packages
 KEEPALIVED_DIR       := $(FILES_DIR)/keepalived_packages
 K3S_DIR              := $(FILES_DIR)/k3s_packages
@@ -29,11 +32,12 @@ FILTER_CHART_DIRS := \
 
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
+AnsibleParameters :=
 SHELL := /bin/bash
-.PHONY: apt-source-prepare apt-source-clean \
+
+.PHONY: apt-source-prepare apt-source-clean trigger-ansible k9s-fav \
 init apply destroy output terraform-list \
 status k-top label-nodes vm-format vm-power \
-k9s-fav trigger-ansible-tag trigger-ansible-yml \
 root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
 
@@ -277,7 +281,7 @@ k9s-fav:
 		echo "Error: 必須指定 ENV，ex: make k9s-fav ENV=homelab-test"; \
 		exit 1; \
 	fi
-	rm -rf /home/pc/.local/share/k9s/clusters/default/
+	rm -rf /home/$(LINUX_USER)/.local/share/k9s/clusters/default/
 	k9s --kubeconfig ~/.kube/config
 
 	sudo cp ./archive/k9s-fav/$(ENV).yaml ~/.local/share/k9s/clusters/default/default/config.yaml
@@ -301,6 +305,9 @@ destroy:
 	@echo "* [Terraform] 拆除 VM 環境"
 	cd $(TERRAFORM_PATH) && \
 	terraform destroy
+
+	@echo "* 清除 SSH 舊指紋 $(K3S_VIP)"
+	ssh-keygen -f '/home/$(LINUX_USER)/.ssh/known_hosts' -R '$(K3S_VIP)'
 	@echo "✅  <make destroy> done."
 
 output:
@@ -320,23 +327,14 @@ status:
 	kubectl get nodes -o wide
 	kubectl get pods -A -o wide
 
-trigger-ansible-tag:
-	@echo "* 觸發指定 Ansible 標籤 ..."
-	@if [ -z "$(tag)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make trigger-ansible-tag tag=[registry/storage]"; \
-		exit 1; \
-	fi
-	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/site.yml --tags $(tag)
-	@echo "✅  <make trigger-ansible-tag --tags $(tag)> done."
-
-trigger-ansible-yml:
+trigger-ansible:
 	@echo "* 觸發指定 Ansible 腳本 ..."
-	@if [ -z "$(yml)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make trigger-ansible-yml yml=[xxx.yml]"; \
+	@if [ -z "$(Files)" ]; then \
+		echo "Error: 必須指定服務名稱，ex: make trigger-ansible Files=[xxx.yml]"; \
 		exit 1; \
 	fi
-	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_SCRIPTS_PATH)/$(yml)
-	@echo "✅  <make trigger-ansible-yml yml=$(yml)> done."
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_ROOT_PATH)/$(Files) $(AnsibleParameters)
+	@echo "✅  <make trigger-ansible yml=$(yml)> done."
 
 vm-power:
 	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"

@@ -1,168 +1,41 @@
 # ansible/playbooks/init_nodes.yml
 
 ---
-- name: Prepare Nodes Base Infrastructure
-  hosts: k3s_cluster
+# ============================================================================
+# Phase 1
+# 【 物理抹殺 Swap 】 + 【 K8s 必要核心模組 】 + 【 網路轉發 】
+# ============================================================================
+- hosts: k3s_cluster
   become: yes
-  tasks:
-#    - name: Gather service facts
-#      # 收集 systemd 服務 供後續判斷
-#      ansible.builtin.service_facts:
+#  pre_tasks:
+#    - name: "====== 執行 init_nodes - Phase 1： 初始化節點 【 物理抹殺 Swap 】 + 【 K8s 必要核心模組 】 + 【 網路轉發 】 ======"
+#      debug:
+#        msg: "開始執行 roles/init"
+  roles:
+    - "roles/init"
 
-    # [物理抹殺 Swap] fstab
-    - name: Disable Swap in fstab
-      mount:
-        name: "{{ item }}"
-        fstype: swap
-        state: absent
-      loop: [ "none", "swap" ]
-      tags: [ install, update ]
+# ============================================================================
+# Phase 2
+# 【 分發 NFS 離線資產 】
+# ============================================================================
+- hosts: k3s_cluster
+  become: yes
+#  pre_tasks:
+#    - name: "====== 執行 init_nodes - Phase 2： 【 分發 NFS 離線資產 】 ======"
+#      debug:
+#        msg: "開始執行 roles/storage"
+  roles:
+    - "roles/storage"
 
-    # [物理抹殺 Swap] 記憶體
-    - name: Disable Swap in current memory (Immediate)
-      command: swapoff -a
-      changed_when: false # 避免每次都回報 changed
-      tags: [ install, update ]
-
-    # [K8s 必要核心模組]
-    - name: Enable Kernel Modules
-      modprobe:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - br_netfilter
-        - overlay
-      tags: [ install, update ]
-
-    - name: Ensure modules load on boot
-      copy:
-        content: |
-          br_netfilter
-          overlay
-        dest: /etc/modules-load.d/k8s.conf
-      tags: [ install, update ]
-
-    # [網路轉發]
-    - name: Enable IPv4 Forwarding
-      sysctl:
-        name: "{{ item }}"
-        value: '1'
-        state: present
-        # 確保 sysctl 變更重開機不丟失
-        sysctl_file: /etc/sysctl.d/99-kubernetes.conf # 強制寫入獨立設定檔
-        reload: yes
-      loop:
-        - net.ipv4.ip_forward
-        - net.bridge.bridge-nf-call-iptables
-      tags: [ install, update ]
-
-
-
-    # ----------------------------------------------------------------------
-    # 【 全離線基建 】 分發 NFS 離線資產
-    # ----------------------------------------------------------------------
-    # [NFS] 離線套件分發與本地安裝
-    - name: Create local directory for offline NFS packages
-      file:
-        path: /tmp/nfs_packages
-        state: directory
-        mode: '0755'
-      when: ansible_os_family == "Debian"
-      tags: [ install, update, storage ]
-
-    - name: Copy offline NFS packages to nodes
-      copy:
-        src: "{{ playbook_dir }}/../../files/nfs_packages/"
-        dest: /tmp/nfs_packages/
-        mode: '0644'
-      when: ansible_os_family == "Debian"
-      tags: [ install, update, storage ]
-
-    # [NFS] 使用 dpkg 繞過所有 APT 網路快取與 sources.list 檢查，直接硬核安裝
-    - name: Install NFS client via dpkg (Air-gapped standard)
-      shell: dpkg -i /tmp/nfs_packages/*.deb
-      register: dpkg_result
-      # 透過 check_mode 或藉由 command 檢查來維持冪等性（若已安裝則不視為變更）
-      changed_when: "'Installing' in dpkg_result.stdout or 'Upgrading' in dpkg_result.stdout"
-      when: ansible_os_family == "Debian"
-      tags: [ install, update, storage ]
-
-    # [NFS] 清理暫存檔案，保持節點乾淨
-    - name: Cleanup temporary NFS package directory
-      file:
-        path: /tmp/nfs_packages
-        state: absent
-      when: ansible_os_family == "Debian"
-      tags: [ install, update, storage ]
-
-    # [NFS] 服務激活與維護
-    - name: Ensure RPC bind services are running and enabled
-      systemd:
-        name: rpcbind
-        state: started
-        enabled: yes
-      when: ansible_os_family == "Debian"
-      tags: [ install, update, storage ]
-
-
-
-    # [Docker Registry] 私人產線資產配置
-    - name: Ensure rancher directory exists
-      file:
-        path: /etc/rancher/k3s
-        state: directory
-        mode: "0755"
-      tags: [ install, update, registry ]
-
-    - name: Add registry host to /etc/hosts
-      lineinfile:
-        path: /etc/hosts
-        regexp: '.*docker-registry\.k8s\.local.*'
-        line: "{{ ingress_path }} {{ registry_host }}"
-        state: present
-      tags: [ install, update, registry ]
-
-    - name: Create registries.yaml
-      template:
-        src: registries.yml.j2
-        dest: /etc/rancher/k3s/registries.yaml
-        owner: root
-        group: root
-        mode: "0644"
-      tags: [ install, update, registry ]
-
-
-
-    # ----------------------------------------------------------------------
-    # 防止 deploy_k3s.yml 初始化失敗 提前清理
-    # ----------------------------------------------------------------------
-    # 允許綁定非本地 IP 徹底解決 Keepalived VIP 離線初始化死鎖
-    - name: Allow applications to bind to nonlocal IP addresses
-      sysctl:
-        name: net.ipv4.ip_nonlocal_bind
-        value: '1'
-        sysctl_set: yes
-        state: present
-        reload: yes
-      tags: [ install, update ]
-
-    # 就地檢查 K3s 是否已安裝，解耦全域變數相依性
-    - name: Check if K3s binary exists locally
-      stat:
-        path: /usr/local/bin/k3s
-      register: local_k3s_check
-      tags: [ install ]
-
-    # 如果是全新安裝且之前失敗過，徹底鏟平 1-N 號機的 etcd 髒數據
-    - name: Clean up corrupted etcd storage on Additional Masters if not successfully installed
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /var/lib/rancher/k3s/server/db
-        - /var/lib/rancher/k3s/server/tls
-      when:
-        - not local_k3s_check.stat.exists
-        - inventory_hostname in groups['masters'] | default([])
-        - inventory_hostname != (groups['masters'] | default(['']))[0]
-      tags: [ install ]
+# ============================================================================
+# Phase 3
+# 【 私人 Host 域名資產配置 】
+# ============================================================================
+- hosts: k3s_cluster
+  become: yes
+#  pre_tasks:
+#    - name: "====== 執行 init_nodes - Phase 3： 【 私人 Host 域名資產配置 】 ======"
+#      debug:
+#        msg: "開始執行 roles/registries"
+  roles:
+    - "roles/registries"

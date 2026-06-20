@@ -46,6 +46,9 @@ Summary:
     # 拆除 VM 環境
     make destroy
     
+    # 手動執行 ansible 總入口
+    make trigger-ansible Files=site.yml AnsibleParameters=-vv
+    
     # 檢視狀態 ( pods + nodes )
     make status
     
@@ -325,38 +328,44 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
     make helm-chart-build
     
     4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
-    # 切換環境: 透過 appset/*/app.ymal 調整環境 (註解)
+    # 切換環境: 透過 appset/*/app.ymal 調整環境 ( 註解 )
     make root-app ENV=homelab-test
 
 
 ☆ 其他
-    # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
-    make k-top
-    
-    # [ ⭐ VM 初始化即一步到位 ] 啟動 ingress-nginx → 已將其加入正式定義 無須用此方式
-    make upgrade-ingress
-    
-    # 檢視 Secrets 明文 ( ex: homelab-test )
-    make see-secrets ENV=homelab-test
-    
-    # [ ⭐ VM 初始化即一步到位 ] 更新 K3s Master 選舉設定熱更新
-    make trigger-ansible-tag tag=update
-    
-    # [ ⭐ VM 初始化即一步到位 ] 更新 VM Host 設定 => 可以拉取 registry images
-    make trigger-ansible-tag tag=registry
-    
-    # 更新 VM Storage 設定 => SQLite 持久化
-    make trigger-ansible-yml yml=deploy_storage.yml
+    ☆ Ansible [ ⭐ VM 初始化即一步到位 ] 
+        # 更新 K3s Master 選舉設定熱更新
+        make trigger-ansible Files=site.yml AnsibleParameters=--tags update -vv
+        
+        # 更新 VM Host 設定 => 可以拉取 registry images
+        make trigger-ansible Files=site.yml AnsibleParameters=--tags registry -vv
+        
+        # 更新 VM Storage 設定 => SQLite 持久化
+        make trigger-ansible Files=playbooks/deploy_storage.yml AnsibleParameters=-vv
+        
+        # 手動初始化節點
+        make trigger-ansible Files=playbooks/init_nodes.yml AnsibleParameters=-vv
 
-    # 更新 k9s 最愛設定
-        - 備份原先設定
+    ☆ 更新 k9s 最愛設定
+        # 備份原先設定
         cp /home/pc/.config/k9s/config.yaml /home/pc/.config/k9s/config.yaml.bak
         
-        - 還原設定
+        # 還原設定
         cp /home/pc/.config/k9s/config.yaml.bak /home/pc/.config/k9s/config.yaml
         
         ⭐ 一鍵替換設定
         make k9s-fav ENV=homelab-test
+        
+
+    # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
+    make k-top
+    
+    # 檢視 Secrets 明文 ( ex: homelab-test )
+    make see-secrets ENV=homelab-test
+    
+    # 啟動 ingress-nginx [ ⭐ VM 初始化即一步到位 ]
+    # 已將其加入正式定義 無須用此方式 → 棄用
+    make upgrade-ingress
 ```
 
 </ul>
@@ -885,7 +894,7 @@ tempo-homelab-test              tempo                                   nginx   
 
 [ ⭐ VM 初始化即一步到位 ] NFS 掛載測試
 
-make trigger-ansible-tag tag=storage
+make trigger-ansible Files=site.yml AnsibleParameters=--tags storage -vv
 $ kubectl get pvc -n pg-apps-homelab-test
 NAME             STATUS   VOLUME                            CAPACITY   ACCESS MODES   STORAGECLASS                                 VOLUMEATTRIBUTESCLASS   AGE
 sqlite-nfs-pvc   Bound    nfs-storage-homelab-test-nfs-pv   2Gi        RWO            nfs-storage-homelab-test-nfs-storage-class   <unset>                 83m

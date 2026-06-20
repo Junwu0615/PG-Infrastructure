@@ -1,354 +1,66 @@
 # ansible/playbooks/deploy_k3s.yml
 
 ---
-# ==========================================================================
-# 階段一：配置 Masters 的 Keepalived 虛擬 IP (VIP)
-# ==========================================================================
-- name: Configure High-Availability VIP via Keepalived
-  hosts: masters
-  become: yes
-  tasks:
-    # ----------------------------------------------------------------------
-    # 【 全離線基建 】 分發 Keepalived 離線資產
-    # ----------------------------------------------------------------------
-    - name: Check if Keepalived is already installed
-      command: which keepalived
-      register: keepalived_check
-      failed_when: false
-      changed_when: false
-      tags: [ install, update ]
+# ============================================================================
+# Phase 1
+# COPY local-source TO VM
+# ============================================================================
+#- hosts: k3s_cluster
+#  roles:
+#    - local-source
 
-    # [Keepalived] 本地套件安裝
-    - name: Create local directory for offline Keepalived packages
-      file:
-        path: /tmp/keepalived_packages
-        state: directory
-        mode: '0755'
-      when: keepalived_check.rc != 0
-      tags: [ install ]
+# ============================================================================
+# Phase 2
+# VIP / Keepalived
+# ============================================================================
+#- hosts: masters
+#  roles:
+#    - keepalived
 
-    - name: Copy offline Keepalived packages to Masters
-      copy:
-        # 對位 Makefile 下載的檔案路徑
-        src: "{{ playbook_dir }}/../../files/keepalived_packages/"
-        dest: /tmp/keepalived_packages/
-        mode: '0644'
-      when: keepalived_check.rc != 0
-      tags: [ install ]
+# ============================================================================
+# Phase 3
+# Bootstrap First Master
+# ============================================================================
+#- hosts: master_primary
+#  roles:
+#    - k3s-server
 
-    - name: Install Keepalived via dpkg (Block external apt)
-      shell: dpkg -i /tmp/keepalived_packages/*.deb
-      register: keepalived_dpkg_result
-      changed_when: "'Installing' in keepalived_dpkg_result.stdout or 'Upgrading' in keepalived_dpkg_result.stdout"
-      when: keepalived_check.rc != 0
-      tags: [ install ]
+# ============================================================================
+# Phase 4
+# Join Additional Masters
+# ============================================================================
+#- hosts: master_secondary
+#  roles:
+#    - k3s-server
 
-    - name: Cleanup temporary Keepalived package directory
-      file:
-        path: /tmp/keepalived_packages
-        state: absent
-      when: keepalived_check.rc != 0
-      tags: [ install ]
+# ============================================================================
+# Phase 5
+# Join Agents
+# ============================================================================
+#- hosts: agents
+#  roles:
+#    - k3s-agent
 
-    # [Keepalived] 基礎配置維護
-    - name: Configure Keepalived VRRP Instance
-      copy:
-        dest: /etc/keepalived/keepalived.conf
-        owner: root
-        group: root
-        mode: '0644'
-        content: |
-          vrrp_instance VI_1 {
-              state BACKUP
-              interface {{ ansible_default_ipv4.interface }}
-              virtual_router_id 51
-              priority {{ '101' if inventory_hostname == groups['masters'][0] else '100' }}
-              advert_int 1
-              authentication {
-                  auth_type PASS
-                  auth_pass k3s_ha_secret
-              }
-              virtual_ipaddress {
-                  {{ k3s_vip | default('10.88.0.99') }}/24
-              }
-          }
-      tags: [ install, update ]
-      notify: Restart Keepalived
+# ============================================================================
+# Phase 6
+# Validation
+# ============================================================================
+#- hosts: master_primary
+#  roles:
+#    - validation
 
-    # [Keepalived] 強制刷新 Handler，確保 VIP 在進入 K3s 階段前百分之百已經在網路上存活
-    - name: Flush handlers to bring up VIP immediately
-      meta: flush_handlers
-      tags: [ install, update ]
-
-  handlers:
-    - name: Restart Keepalived
-      systemd:
-        name: keepalived
-        state: restarted
-        enabled: yes
-        daemon_reload: yes
-
-
-# ==========================================================================
-# 階段二：安裝或更新 K3s 控制面 (Masters)
-# ==========================================================================
-- name: Install or Update K3s Server
-  hosts: masters
-  become: yes
-  tasks:
-    - name: Check if K3s is already installed
-      stat:
-        path: "{{ k3s_bin_dir | default('/usr/local/bin/k3s') }}"
-      register: k3s_installed
-      tags: [ install, update ]
-
-    # ----------------------------------------------------------------------
-    # 【 全離線基建 】 分發 K3s 離線資產
-    # ----------------------------------------------------------------------
-    - name: Copy K3s binary to global bin
-      copy:
-        src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
-        dest: /usr/local/bin/k3s
-        owner: root
-        group: root
-        mode: "0755"
-      tags: [ install ]
-
-    - name: Create temporary directory for K3s install script
-      file:
-        path: /tmp/k3s_install
-        state: directory
-        mode: "0755"
-      tags: [ install ]
-
-    - name: Copy K3s install script to node
-      copy:
-        src: "{{ playbook_dir }}/../../files/k3s_packages/install.sh"
-        dest: /tmp/k3s_install/install.sh
-        mode: "0755"
-      tags: [ install ]
-
-    # ----------------------------------------------------------------------
-    # 0 號機離線初始化
-    # ----------------------------------------------------------------------
-    # 只有 masters[0] 負責初始化，加入 --tls-san 確保憑證信任 VIP
-    - name: Initialize K3s Cluster on First Master (Offline Mode)
-      shell: >
-        INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/k3s_install/install.sh server
-        --cluster-init
-        --disable traefik
-        --node-taint CriticalAddonsOnly=true:NoSchedule
-        --tls-san {{ k3s_vip | default('10.88.0.99') }}
-      when:
-        - not k3s_installed.stat.exists
-        - inventory_hostname == groups['masters'][0]
-      tags: [ install ]
-
-    # 將 0 號機的 --tls-san 熱更新納入冪等性管轄，避免手動改壞 service
-    - name: Ensure --tls-san is present in First Master Systemd Configuration
-      replace:
-        path: /etc/systemd/system/k3s.service
-        regexp: '^(ExecStart=.*server(?!.*--tls-san).*)$'
-        replace: '\1 --tls-san {{ k3s_vip | default("10.88.0.99") }}'
-      when: inventory_hostname == groups['masters'][0]
-      tags: [ update ]
-      notify: Reload and Restart K3s Master
-
-    # 強制確保 0 號機沒有 .env 檔案干擾
-    - name: Ensure First Master has NO Service Environment File
-      file:
-        path: /etc/systemd/system/k3s.service.env
-        state: absent
-      when: inventory_hostname == groups['masters'][0]
-      tags: [ install, update ]
-      notify: Reload and Restart K3s Master
-
-    # 全新安裝向 0 號機拿；熱更新時，直接穿透 Keepalived VIP 去找當時在線的 Leader 拿（解耦 0 號機故障風險）
-    # 同時固定為 run_once: true，只抓一次分發全場，效率最高
-    - name: Get K3s Token from Cluster Masters
-      command: cat "{{ k3s_node_token | default('/var/lib/rancher/k3s/server/node-token') }}"
-      register: k3s_token
-      changed_when: false
-      delegate_to: "{{ groups['masters'][0] if not k3s_installed.stat.exists else k3s_vip | default('10.88.0.99') }}"
-      run_once: true
-      tags: [ install, update ]
-
-    # ----------------------------------------------------------------------
-    # 1-N 號機離線初始化
-    # ----------------------------------------------------------------------
-    # 執行實體安裝 + 加入 --tls-san 確保憑證信任 VIP
-    # Additional Masters 安裝時必須阻斷自動啟動，否則會建立獨立叢集
-    # 安裝時透過變數注入，讓 K3s 腳本自動生成 Systemd 配置
-    # 不使用 environment 塞 K3S_URL，直接 --server 傳遞 install.sh => /etc/systemd/system/k3s.service 寫入完全合規的 ExecStart 啟動參數
-    - name: Install K3s Binary on Additional Masters (Offline Mode)
-      shell: >
-        INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/k3s_install/install.sh server
-        --server https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}
-        --disable traefik 
-        --node-taint CriticalAddonsOnly=true:NoSchedule
-        --tls-san {{ k3s_vip | default('10.88.0.99') }}
-      environment:
-        K3S_TOKEN: "{{ k3s_token.stdout | trim }}"
-      when:
-        - not k3s_installed.stat.exists
-        - inventory_hostname != groups['masters'][0]
-      tags: [ install ]
-
-    # 確保新加入的 Master 被正確拉起
-    - name: Flush Master handlers immediately
-      meta: flush_handlers
-      tags: [ install, update ]
-
-    - name: Enable Additional Master Services
-      systemd:
-        name: k3s
-        enabled: yes
-        state: started
-      when: inventory_hostname != groups['masters'][0]
-      tags: [ install ]
-
-  handlers:
-    - name: Reload and Restart K3s Master
-      systemd:
-        name: k3s
-        state: restarted
-        daemon_reload: yes
-
-
-# ==========================================================================
-# 階段三：組態與更新 K3s 資料面 (Agents)
-# ==========================================================================
-- name: Configure and Update K3s Agents
-  hosts: agents
-  become: yes
-  tasks:
-    - name: Check if K3s Agent is already installed
-      stat:
-        path: /etc/systemd/system/k3s-agent.service
-      register: agent_installed
-      tags: [ install, update ]
-
-    # ----------------------------------------------------------------------
-    # 【 全離線基建 】 分發 Agent 離線資產
-    # ----------------------------------------------------------------------
-    - name: Copy K3s binary to Agent nodes
-      copy:
-        src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
-        dest: /usr/local/bin/k3s
-        owner: root
-        group: root
-        mode: "0755"
-      when: not agent_installed.stat.exists
-      tags: [ install ]
-
-    - name: Create temporary directory for K3s Agent script
-      file:
-        path: /tmp/k3s_agent_install
-        state: directory
-        mode: "0755"
-      when: not agent_installed.stat.exists
-      tags: [ install ]
-
-    - name: Copy K3s install script to Agent nodes
-      copy:
-        src: "{{ playbook_dir }}/../../files/k3s_packages/install.sh"
-        dest: /tmp/k3s_agent_install/install.sh
-        mode: "0755"
-      when: not agent_installed.stat.exists
-      tags: [ install ]
+# ============================================================================
+# Phase 7
+# Kubeconfig Export
+# ============================================================================
+#- hosts: master_primary
 
 
 
-    # 抓取 Token 供 Agent 使用
-    # 與 Master 階段邏輯對位。初始化時指定 0 號機，熱更新時隨機自 Masters 取得（此時 etcd 數據已同步，內容皆相同）
-    - name: Get K3s Token for Agents
-      command: cat "{{ k3s_node_token | default('/var/lib/rancher/k3s/server/node-token') }}"
-      register: k3s_agent_token
-      changed_when: false
-      delegate_to: "{{ groups['masters'][0] if not agent_installed.stat.exists else (groups['masters'] | random) }}"
-      tags: [ install, update ]
-
-
-    # ----------------------------------------------------------------------
-    # Agent 初始化離線註冊加入
-    # ----------------------------------------------------------------------
-    # 初始化時 Agent 先執行實體安裝 + 安裝完直接由官方腳本拉起，回歸標準生命週期
-    - name: Install and Start K3s Agent (Offline Mode)
-      shell: >
-        INSTALL_K3S_SKIP_DOWNLOAD=true /tmp/k3s_agent_install/install.sh agent
-      environment:
-        K3S_URL: "https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}"
-        K3S_TOKEN: "{{ k3s_agent_token.stdout | trim }}"
-      when: not agent_installed.stat.exists
-      tags: [ install ]
-
-    # 熱更新/二刷維護：如果未來 VIP 或 Token 有變動，透過 lineinfile 進行動態更新
-    # 只有當「已經安裝過」且「配置真的有改」時，才會觸發重啟 Handler
-    - name: Configure K3s Service Environment Variables (Agents Update Only)
-      lineinfile:
-        path: /etc/systemd/system/k3s-agent.service.env
-        create: yes
-        owner: root
-        group: root
-        mode: '0600'
-        regexp: "{{ item.regexp }}"
-        line: "{{ item.line }}"
-      loop:
-        - { regexp: '^K3S_URL=', line: "K3S_URL=https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}" }
-        - { regexp: '^K3S_TOKEN=', line: "K3S_TOKEN={{ k3s_agent_token.stdout | trim }}" }
-      when: agent_installed.stat.exists
-      tags: [ update ]
-      notify: Reload and Restart K3s Agent
-
-    # 強迫立刻執行被 notify 的 Handler ( 僅在 update 標籤或二刷配置改變時才會真正耗時重啟 )
-    # 若是 update 會在這裡立刻重啟服務
-    # 若是 install 因為服務還沒啟動，Handler 執行 restarted 剛好直接把服務拉起來
-    - name: Flush handlers to apply config changes immediately
-      meta: flush_handlers
-      tags: [ install, update ]
-
-    # 確保服務無論如何都是開機自啟，且狀態維持在 started
-    - name: Enable K3s Agent Service
-      systemd:
-        name: k3s-agent
-        enabled: yes
-        state: started
-      tags: [ install ]
-
-  handlers:
-    - name: Reload and Restart K3s Agent
-      systemd:
-        name: k3s-agent
-        state: restarted
-        daemon_reload: yes
-
-
-# ==========================================================================
-# 階段四：本地端 Kubeconfig 權限提取與 VIP 對位
-# ==========================================================================
-- name: Setup local kubectl access
-  hosts: masters
-  become: yes
-  run_once: true
-  tasks:
-    - name: Wait for K3s config
-      wait_for:
-        path: "{{ k3s_conf_dir | default('/etc/rancher/k3s/k3s.yaml') }}"
-        timeout: 60
-      tags: [ install, update ]
-
-    - name: Fetch K3s config
-      fetch:
-        src: "{{ k3s_conf_dir | default('/etc/rancher/k3s/k3s.yaml') }}"
-        dest: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
-        flat: yes
-      tags: [ install, update ]
-
-    - name: Fix Kubeconfig IP to VIP Entrance
-      delegate_to: localhost
-      become: no
-      replace:
-        path: "{{ lookup('env', 'HOME') }}/.kube/config-k3s"
-        regexp: "server: https://.*:{{ k3s_api_port | default(6443) }}"
-        replace: "server: https://{{ k3s_vip | default('10.88.0.99') }}:{{ k3s_api_port | default(6443) }}"
-      tags: [ install, update ]
+# ============================================================================
+# Phase 8
+# Registries Host ( docker-registry.k8s.local" )
+# ============================================================================
+- hosts: k3s_cluster
+  roles:
+    - "{{ playbook_dir }}/../roles/registries"

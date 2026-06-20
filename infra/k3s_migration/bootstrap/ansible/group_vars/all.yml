@@ -4,20 +4,25 @@
 # K3s 版本與安裝參數
 k3s_version: "v1.29.3+k3s1"
 
+
 # 定義 K3s 相關路徑
 k3s_bin_dir: "/usr/local/bin/k3s"
-k3s_node_token: "/var/lib/rancher/k3s/server/node-token"
 k3s_conf_dir: "/etc/rancher/k3s/k3s.yaml"
+k3s_node_token: "/var/lib/rancher/k3s/server/node-token"
+
 
 # 網路設定
 k3s_api_port: "6443"
 
+
 # Keepalived VIP 位置
 k3s_vip: "10.88.0.99"
 
+
 # 註冊 host 變數清單
 ingress_path: "10.88.0.20"
-registry_host: "docker-registry.k8s.local"
+docker_registry_host: "docker-registry.k8s.local"
+
 
 # NFS 版本
 k3s_subnet_path: "10.88.0.0/24"

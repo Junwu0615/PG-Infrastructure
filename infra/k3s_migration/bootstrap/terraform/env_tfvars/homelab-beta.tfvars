@@ -7,7 +7,8 @@ net_segment = "10.88.0"
 net_segment_master_start = 10
 net_segment_agent_start = 20
 
-master_count = 2
+# master_count = 2
+master_count = 1
 agent_count = 1
 
 node_config = {

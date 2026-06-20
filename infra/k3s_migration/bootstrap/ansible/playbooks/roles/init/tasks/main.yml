@@ -1,0 +1,61 @@
+# roles/init/tasks/main.yml
+---
+
+# ----------------------------------------------------------------------
+# 【 物理抹殺 Swap 】
+# ----------------------------------------------------------------------
+
+# fstab
+- name: Disable Swap in fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  loop: [ "none", "swap" ]
+  tags: [ install, update ]
+
+# 記憶體 + 避免每次都回報 changed ( changed_when )
+- name: Disable Swap in memory
+  command: swapoff -a
+  changed_when: false
+  tags: [ install, update ]
+
+
+# ----------------------------------------------------------------------
+# 【 K8s 必要核心模組 】
+# ----------------------------------------------------------------------
+
+- name: Enable Kernel Modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - br_netfilter
+    - overlay
+  tags: [ install, update ]
+
+- name: Ensure Modules Load on boot
+  copy:
+    content: |
+      br_netfilter
+      overlay
+    dest: /etc/modules-load.d/k8s.conf
+  tags: [ install, update ]
+
+
+# ----------------------------------------------------------------------
+# 【 網路轉發 】
+# ----------------------------------------------------------------------
+
+# 確保 sysctl 變更重開機不丟失 => 強制寫入獨立設定檔 ( sysctl_file )
+- name: Enable IPv4 Forwarding
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    state: present
+    sysctl_file: /etc/sysctl.d/99-kubernetes.conf
+    reload: yes
+  loop:
+    - net.ipv4.ip_forward
+    - net.bridge.bridge-nf-call-iptables
+  tags: [ install, update ]

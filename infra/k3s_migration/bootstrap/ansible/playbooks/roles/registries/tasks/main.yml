@@ -1,0 +1,34 @@
+# roles/registries/tasks/main.yml
+---
+
+# ----------------------------------------------------------------------
+# 【 私人 Host 域名資產配置 】
+# ----------------------------------------------------------------------
+
+# [1] -------- Docker Registry --------
+- name: Ensure rancher directory exists
+  file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: "0755"
+  tags: [ install, update, registry ]
+
+
+- name: Add registry host to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: '.*docker-registry\.k8s\.local.*'
+    line: "{{ ingress_path }} {{ docker_registry_host }}"
+    state: present
+  tags: [ install, update, registry ]
+
+
+- name: Create registries.yaml
+  template:
+    src: "registries.yml.j2"
+    dest: /etc/rancher/k3s/registries.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  tags: [ install, update, registry ]
+# [1] -------- Docker Registry --------

@@ -1,7 +1,3 @@
-# 定義 TCP 轉發 (對應到 PostgreSQL Service)
-tcp:
-  5432: "databases/postgresql:5432"
-
 controller:
   replicaCount: 1
   kind: Deployment
@@ -13,11 +9,9 @@ controller:
     ports:
       http: 80
       https: 443
-      postgresql: 5432
     targetPorts:
       http: 80
       https: 443
-      postgresql: 5432
 
   global:
     image:
@@ -37,7 +31,6 @@ controller:
   containerPorts:
     http: 80
     https: 443
-    postgresql: 5432
 
   metrics:
     enabled: true
