@@ -1,10 +1,6 @@
 # roles/keepalived/handlers/main.yml
 ---
 
-# ============================================================================
-# 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】
-# ============================================================================
-
 - name: Restart Keepalived
   systemd:
     name: keepalived

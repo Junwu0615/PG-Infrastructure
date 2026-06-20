@@ -1,2 +1,146 @@
 # roles/k3s-agent/tasks/main.yml
 ---
+
+# ============================================================================
+# 擴容情境偵測 ( Day N )
+# ============================================================================
+- name: Check if K3s Agent Binary Already Exists
+  stat:
+    path: /usr/local/bin/k3s
+  register: k3s_agent_bin_check
+  tags: [ install, update ]
+
+
+# ============================================================================
+# 跨節點 Token 強韌性防禦 (徹底解決盲敲 --tags install 時變數斷軌)
+# ============================================================================
+- name: Defensively fetch K3s Token from Primary if memory variable is missing
+  slurp:
+    src: "{{ k3s_node_token }}"
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
+  register: agent_fallback_token_base64
+  when: hostvars[groups['k3s_primary'][0]].shared_k3s_token is not defined
+  tags: [ install, update ]
+
+- name: Set local token fact for Agent Config
+  set_fact:
+    resolved_agent_token: "{{ hostvars[groups['k3s_primary'][0]].shared_k3s_token if hostvars[groups['k3s_primary'][0]].shared_k3s_token is defined else agent_fallback_token_base64.content | b64decode | trim }}"
+  tags: [ install, update ]
+
+
+# ============================================================================
+# Clean Wrong Structure ( Day 0 首次安裝防呆 )
+# ============================================================================
+- name: Remove Wrong K3s Directory
+  file:
+    path: /usr/local/bin/k3s
+    state: absent
+  when:
+    - not k3s_agent_bin_check.stat.exists # 舊 Agent 絕不動
+    - ansible_facts is defined
+  tags: [ install ]
+
+
+# ============================================================================
+# Binary
+# ============================================================================
+- name: Create Binary Directory
+  file:
+    path: /usr/local/bin
+    state: directory
+    mode: "0755"
+  tags: [ install, update ]
+
+- name: Install K3s Agent Binary
+  copy:
+    src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
+    dest: /usr/local/bin/k3s
+    owner: root
+    group: root
+    mode: "0755"
+  when: not k3s_agent_bin_check.stat.exists # 舊 Agent 跳過，免疫 Text file busy
+  tags: [ install ]
+
+
+# ============================================================================
+# Config ( Agent 專屬配置：走 K3s VIP 註冊進叢集 )
+# ============================================================================
+- name: Create Config Directory
+  file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags: [ install, update ]
+
+- name: Deploy K3s Agent Config
+  copy:
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      server: https://{{ k3s_vip }}:{{ k3s_api_port }}
+      token: {{ resolved_agent_token }}
+
+      node-ip: {{ ansible_default_ipv4.address }}
+      node-external-ip: {{ ansible_default_ipv4.address }}
+  tags: [ install, update ]
+  notify: "Restart K3s Agent" # Day N 優化： 配置若有更動，在結尾安全重啟
+
+
+# ============================================================================
+# Service ( Agent 模式核心：k3s agent )
+# ============================================================================
+- name: Deploy K3s Agent Service
+  copy:
+    dest: /etc/systemd/system/k3s-agent.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Lightweight Kubernetes Agent
+      Documentation=https://k3s.io
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      Type=notify
+      ExecStartPre=/sbin/modprobe br_netfilter
+      ExecStartPre=/sbin/modprobe overlay
+      ExecStart=/usr/local/bin/k3s agent
+      KillMode=process
+      Delegate=yes
+      LimitNOFILE=1048576
+      LimitNPROC=infinity
+      LimitCORE=infinity
+      TasksMax=infinity
+      TimeoutStartSec=0
+      Restart=always
+      RestartSec=5s
+
+      [Install]
+      WantedBy=multi-user.target
+  tags: [ install, update ]
+  notify: "Restart K3s Agent"
+
+
+# ============================================================================
+# Systemd & Service Engine
+# ============================================================================
+- name: Reload Systemd
+  systemd:
+    daemon_reload: yes
+  tags: [ install, update ]
+
+- name: Enable K3s Agent
+  systemd:
+    name: k3s-agent
+    enabled: yes
+  tags: [ install, update ]
+
+- name: Start K3s Agent
+  systemd:
+    name: k3s-agent
+    state: started
+  tags: [ install, update ]

@@ -4,7 +4,6 @@
 # ----------------------------------------------------------------------
 # 【 K3s 配置 : Validation Control Plane 】
 # ----------------------------------------------------------------------
-
 - name: Wait for All Control Plane Nodes to register and Ready
   ansible.builtin.command: "{{ k3s_bin_dir }} kubectl get nodes"
   register: kubectl_nodes_result
@@ -16,7 +15,7 @@
   delay: 5
   changed_when: false
   run_once: true
-  tags: [ validation ]
+  tags: [ install, update, validation ]
 
 
 - name: Assert Control Plane Healthy Nodes Count
@@ -26,7 +25,7 @@
     fail_msg: "[CRITICAL] K3s HA Master Group validation failed! Check etcd log."
     success_msg: "[SUCCESS] All 3 K3s Masters are registered in topology with 'Ready' status."
   run_once: true
-  tags: [ validation ]
+  tags: [ install, update, validation ]
 
 
 - name: Print Control Plane Cluster Status summary
@@ -37,4 +36,4 @@
       - "  Cluster VIP Entrance: https://{{ k3s_vip }}:{{ k3s_api_port }} "
       - "=========================================================="
   run_once: true
-  tags: [ validation ]
+  tags: [ install, update, validation ]

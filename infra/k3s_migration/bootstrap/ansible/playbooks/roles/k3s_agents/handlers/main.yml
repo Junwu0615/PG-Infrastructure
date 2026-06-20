@@ -1,2 +1,14 @@
 # roles/k3s-agent/handlers/main.yml
 ---
+
+- name: Restart K3s Agent
+  ansible.builtin.systemd:
+    name: k3s-agent
+    state: restarted
+  register: k3s_agent_restart_result
+
+# 確保重啟後的 Agent 內部的 kubelet 能正常向 Master 建立心跳通訊
+- name: Post-Restart Agent Health Cool Down
+  ansible.builtin.pause:
+    seconds: 5
+  when: k3s_agent_restart_result is changed

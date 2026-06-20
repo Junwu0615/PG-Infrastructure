@@ -52,6 +52,9 @@ Summary:
     ⭐ 手動更新整包 Ansible ( Day N )
     make trigger-ansible Files=site.yml AnsibleParameters=--tags update -vv
     
+    ⭐ 驗證 Iac 狀態
+    make trigger-ansible Files=site.yml AnsibleParameters=--tags validate
+    
     # 檢視狀態 ( pods + nodes )
     make status
     

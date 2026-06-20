@@ -9,7 +9,8 @@
   shell: ip addr show
   register: vip_result
   changed_when: false
-
+  tags: [ install, update, validation ]
+  
 
 # 2. 檢查 Keepalived 服務狀態（確保三台機器的 Daemon 都是活著）
 - name: Check Keepalived State
@@ -22,6 +23,7 @@
     that:
       - keepalived_state.stdout == "active"
     fail_msg: "Keepalived service is NOT active on {{ inventory_hostname }}!"
+  tags: [ install, update, validation ]
 
 
 # 3. 動態驗證 VIP 拓撲（根據 group_vars 定義動態判定）
@@ -36,6 +38,7 @@
       But VIP {{ k3s_vip }} presence mismatched on {{ inventory_hostname }}.
     success_msg: |
       [SUCCESS] VIP Routing Topology is correct on {{ inventory_hostname }} (As {{ keepalived_nodes[inventory_hostname].state }}).
+  tags: [ install, update, validation ]
 
 
 # 4. 統計當前節點的 VIP 數量（未來 Debug 腦裂時的指標）
@@ -45,7 +48,10 @@
   register: vip_count
   changed_when: false
   failed_when: false
+  tags: [ install, update, validation ]
+
 
 - name: Report Topology Status
   debug:
     msg: "Node: {{ inventory_hostname }} | Role: {{ keepalived_nodes[inventory_hostname].state }} | VIP Count: {{ vip_count.stdout }}"
+  tags: [ install, update, validation ]

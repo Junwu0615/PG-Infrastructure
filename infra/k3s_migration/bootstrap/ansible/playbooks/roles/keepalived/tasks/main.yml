@@ -22,7 +22,6 @@
     comment: "Keepalived Unicast VRRP Traffic"
   tags: [ install, update ]
 
-
 - name: Optimize ARP Behavior for VIP Binding
   sysctl:
     name: "{{ item.name }}"
@@ -49,7 +48,6 @@
   failed_when: false
   changed_when: false
   tags: [ install, update ]
-
 
 - name: Validate keepalived node definition
   assert:
@@ -110,13 +108,11 @@
   meta: flush_handlers
   tags: [ install ]
 
-
 - name: Enable Keepalived
   ansible.builtin.systemd:
     name: keepalived
     enabled: yes
   tags: [ install, update ]
-
 
 - name: Ensure Keepalived Is Running
   ansible.builtin.systemd:

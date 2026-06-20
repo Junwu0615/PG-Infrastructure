@@ -22,7 +22,6 @@
   when: hostvars[groups['k3s_primary'][0]].shared_k3s_token is not defined
   tags: [ install, update ]
 
-
 - name: Set local token fact from fallback collection
   set_fact:
     resolved_k3s_token: "{{ hostvars[groups['k3s_primary'][0]].shared_k3s_token if hostvars[groups['k3s_primary'][0]].shared_k3s_token is defined else backup_k3s_token_base64.content | b64decode | trim }}"
@@ -52,7 +51,6 @@
     mode: "0755"
   tags: [ install, update ]
 
-
 - name: Install K3s Binary
   copy:
     src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
@@ -75,7 +73,6 @@
     group: root
     mode: "0755"
   tags: [ install, update ]
-
 
 - name: Deploy Config
   copy:

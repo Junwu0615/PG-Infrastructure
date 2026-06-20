@@ -2,36 +2,48 @@
 ---
 
 # ----------------------------------------------------------------------
-# 【 基礎網路與偵錯工具 】
+# 【 基礎網路與偵錯工具 】 狀態偵測 + 離線安裝
 # ----------------------------------------------------------------------
+- name: Check if base tools are already installed
+  command: which socat
+  register: base_tools_check
+  failed_when: false
+  changed_when: false
+  tags: [ install ]
+
 - name: Create Offline Tools Directory
   file:
     path: /tmp/init_packages
     state: directory
     mode: "0755"
-
+  when: base_tools_check.rc != 0
+  tags: [ install ]
 
 - name: Copy Offline Base Tools (net-tools, etc)
   copy:
     src: "{{ playbook_dir }}/../../files/init_packages/"
     dest: /tmp/init_packages/
-  failed_when: false
-
+  when: base_tools_check.rc != 0
+  tags: [ install ]
 
 - name: Install Offline Base Packages
   shell: dpkg -i /tmp/init_packages/*.deb
+  register: dpkg_install_result
+  changed_when: "base_tools_check.rc != 0 and dpkg_install_result.rc == 0"
   failed_when: false
-  changed_when: false
-
+  when: base_tools_check.rc != 0
+  tags: [ install ]
 
 - name: Cleanup Offline Tools Directory
   file:
     path: /tmp/init_packages
     state: absent
+  when: base_tools_check.rc != 0
+  tags: [ install ]
 
 
 # ----------------------------------------------------------------------
-# 【 物理抹殺 Swap 】
+# 【 物理抹殺 Swap 具備冪等性 】
 # ----------------------------------------------------------------------
 - name: Disable Swap in fstab
   mount:
@@ -41,23 +53,29 @@
   loop: [ "none", "swap" ]
   tags: [ install, update ]
 
-
 - name: Check if swap is currently active
   shell: cat /proc/swaps | wc -l
   register: swap_check
   changed_when: false
   tags: [ install, update ]
 
-
 - name: Disable Swap in memory
   command: swapoff -a
-  when: swap_check.stdout | int > 1
+  when: swap_check.stdout | int > 1 # 只有活著的 Swap 才會觸發變更，否則 ok 掠過
   tags: [ install, update ]
 
 
 # ----------------------------------------------------------------------
-# 【 K8s 核心模組 】
+# 【 K8s 核心模組 : 先持久化再進記憶體，確保重開機安全 】
 # ----------------------------------------------------------------------
+- name: Ensure Modules Load on boot
+  copy:
+    content: |
+      br_netfilter
+      overlay
+    dest: /etc/modules-load.d/k8s.conf
+  tags: [ install, update ]
+
 - name: Enable Kernel Modules
   modprobe:
     name: "{{ item }}"
@@ -65,15 +83,6 @@
   loop:
     - br_netfilter
     - overlay
-  tags: [ install, update ]
-
-
-- name: Ensure Modules Load on boot
-  copy:
-    content: |
-      br_netfilter
-      overlay
-    dest: /etc/modules-load.d/k8s.conf
   tags: [ install, update ]
 
 
