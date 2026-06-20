@@ -53,7 +53,7 @@ Summary:
     make trigger-ansible Files=site.yml AnsibleParameters=--tags update -vv
     
     ⭐ 驗證 Iac 狀態
-    make trigger-ansible Files=site.yml AnsibleParameters=--tags validate
+    make trigger-ansible Files=site.yml AnsibleParameters=--tags validation
     
     # 檢視狀態 ( pods + nodes )
     make status

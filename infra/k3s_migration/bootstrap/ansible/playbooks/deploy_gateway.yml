@@ -1,24 +1,25 @@
 # ansible/playbooks/gateway.yml
-
 ---
+
 - name: Setup Gateway Reverse Proxy
   hosts: gateway
   become: yes
-
   tasks:
     - name: Install nginx
       apt:
         name: nginx
         state: present
         update_cache: yes
-      tags: [ install ]
+      tags: [ install, gateway ]
+
 
     - name: Enable nginx
       systemd:
         name: nginx
         enabled: yes
         state: started
-      tags: [ install ]
+      tags: [ install, gateway ]
+
 
     - name: Configure portainer reverse proxy
       copy:
@@ -36,10 +37,11 @@
                   proxy_set_header X-Forwarded-Proto $scheme;
               }
           }
-      tags: [ install ]
+      tags: [ install, gateway ]
+
 
     - name: Restart nginx
       systemd:
         name: nginx
         state: restarted
-      tags: [ install ]
+      tags: [ install, gateway ]
