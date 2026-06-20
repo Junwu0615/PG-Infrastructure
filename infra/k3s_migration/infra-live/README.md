@@ -45,9 +45,12 @@ Summary:
 
     # 拆除 VM 環境
     make destroy
+
+    ⭐ 手動安裝整包 Ansible ( Day 0 )
+    make trigger-ansible Files=site.yml AnsibleParameters=--tags install -vv
     
-    # 手動執行 ansible 總入口
-    make trigger-ansible Files=site.yml AnsibleParameters=-vv
+    ⭐ 手動更新整包 Ansible ( Day N )
+    make trigger-ansible Files=site.yml AnsibleParameters=--tags update -vv
     
     # 檢視狀態 ( pods + nodes )
     make status
@@ -334,9 +337,6 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 
 ☆ 其他
     ☆ Ansible [ ⭐ VM 初始化即一步到位 ] 
-        # 更新 K3s Master 選舉設定熱更新
-        make trigger-ansible Files=site.yml AnsibleParameters=--tags update -vv
-        
         # 更新 VM Host 設定 => 可以拉取 registry images
         make trigger-ansible Files=site.yml AnsibleParameters=--tags registry -vv
         

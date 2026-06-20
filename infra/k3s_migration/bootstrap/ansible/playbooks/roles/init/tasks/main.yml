@@ -2,7 +2,7 @@
 ---
 
 # ----------------------------------------------------------------------
-# 【 離線安裝基礎網路與偵錯工具 】
+# 【 基礎網路與偵錯工具 】
 # ----------------------------------------------------------------------
 - name: Create Offline Tools Directory
   file:
@@ -89,8 +89,8 @@
     sysctl_file: /etc/sysctl.d/99-kubernetes.conf
     reload: yes
   loop:
-    - { name: 'net.ipv4.ip_forward', value: '1' }
     - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { name: 'net.ipv4.ip_forward', value: '1' }
     - { name: 'net.ipv4.conf.all.rp_filter', value: '0' }
     - { name: 'net.ipv4.conf.default.rp_filter', value: '0' }
   tags: [ install, update ]

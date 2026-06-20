@@ -319,7 +319,7 @@ resource "null_resource" "ansible_trigger" {
 
       # 執行 Ansible
       export ANSIBLE_HOST_KEY_CHECKING=False
-      ansible-playbook -i ../ansible/inventory.ini ../ansible/site.yml
+      ansible-playbook -i ../ansible/inventory.ini ../ansible/site.yml --tags install
     EOT
   }
 }

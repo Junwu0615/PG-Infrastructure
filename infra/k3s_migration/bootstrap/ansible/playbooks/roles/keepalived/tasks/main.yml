@@ -1,12 +1,26 @@
 # roles/keepalived/tasks/main.yml
 ---
 
+# ============================================================================
+# 擴容情境偵測 ( Day N )
+# ============================================================================
+- name: Check if Keepalived Service Configuration Exists
+  stat:
+    path: /etc/keepalived/keepalived.conf
+  register: keepalived_config_check
+  tags: [ install, update ]
+
+
+# ============================================================================
+# 網路與核心優化
+# ============================================================================
 - name: Allow Unicast VRRP Protocol for Keepalived
   ansible.builtin.iptables:
     chain: INPUT
     protocol: vrrp
     jump: ACCEPT
     comment: "Keepalived Unicast VRRP Traffic"
+  tags: [ install, update ]
 
 
 - name: Optimize ARP Behavior for VIP Binding
@@ -23,30 +37,30 @@
     # arp_announce = 2: 核心在發送 ARP 宣告時，強迫使用最合適的本地實體 IP，防止交換器 MAC 混淆
     - { name: 'net.ipv4.conf.all.arp_announce', value: '2' }
     - { name: 'net.ipv4.conf.default.arp_announce', value: '2' }
+  tags: [ install, update ]
+
 
 # ============================================================================
 # 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】
 # ============================================================================
-- name: Check if Keepalived is installed
+- name: Check if Keepalived Binary is installed
   command: which keepalived
-  register: keepalived_check
+  register: keepalived_binary_check
   failed_when: false
   changed_when: false
+  tags: [ install, update ]
 
 
 - name: Validate keepalived node definition
   assert:
     that:
       - inventory_hostname in keepalived_nodes
-    fail_msg: |
-      Missing keepalived_nodes definition:
-      {{ inventory_hostname }}
-      Please update:
-      group_vars/all.yml
+    fail_msg: "Missing keepalived_nodes definition for {{ inventory_hostname }}"
+  tags: [ install, update ]
 
 
 # ============================================================================
-# Offline Install
+# Offline Install ( Day 0 )
 # ============================================================================
 - name: Create package directory
   file:
@@ -54,29 +68,30 @@
     state: directory
     mode: "0755"
   when: keepalived_check.rc != 0
-
+  tags: [ install ]
 
 - name: Copy offline packages
   copy:
     src: "{{ playbook_dir }}/../../files/keepalived_packages/"
     dest: /tmp/keepalived_packages/
   when: keepalived_check.rc != 0
-
+  tags: [ install ]
 
 - name: Install keepalived packages
   shell: dpkg -i /tmp/keepalived_packages/*.deb
   when: keepalived_check.rc != 0
-
+  tags: [ install ]
 
 - name: Cleanup package directory
   file:
     path: /tmp/keepalived_packages
     state: absent
   when: keepalived_check.rc != 0
+  tags: [ install ]
 
 
 # ============================================================================
-# Configuration
+# Configuration ( Day 0-N )
 # ============================================================================
 - name: Deploy keepalived config
   template:
@@ -85,23 +100,42 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Restart Keepalived
-
+  tags: [ install, update ]
+  notify: "{{ 'Restart Keepalived' if 'install' in ansible_run_tags and not keepalived_config_check.stat.exists else [] }}"
 
 # ============================================================================
 # Start Service
 # ============================================================================
 - name: Flush handlers immediately
   meta: flush_handlers
+  tags: [ install ]
 
 
 - name: Enable Keepalived
   ansible.builtin.systemd:
     name: keepalived
     enabled: yes
+  tags: [ install, update ]
 
 
 - name: Ensure Keepalived Is Running
   ansible.builtin.systemd:
     name: keepalived
     state: started
+  tags: [ install, update ]
+
+
+# ============================================================================
+# Wait VIP Interface Ready ( Day 0-N 防護重啟與擴容假死 )
+# ============================================================================
+- name: Wait for VIP Address to be enforced on Net Interface
+  shell: ip addr show | grep -q "{{ k3s_vip }}"
+  register: vip_bind_check
+  retries: 10
+  delay: 2
+  until: vip_bind_check.rc == 0
+  changed_when: false
+  when:
+    - not keepalived_config_check.stat.exists
+    - keepalived_nodes[inventory_hostname].state == 'MASTER'
+  tags: [ install ]
