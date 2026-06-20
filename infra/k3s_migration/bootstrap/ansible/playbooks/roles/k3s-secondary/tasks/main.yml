@@ -49,7 +49,7 @@
     group: root
     mode: "0600"
     content: |
-      server: https://{{ k3s_vip }}:6443
+      server: https://{{ k3s_vip }}:{{ k3s_api_port }}
       token: {{ hostvars[groups['k3s_primary'][0]].shared_k3s_token }}
 
       disable:
@@ -106,7 +106,7 @@
 - name: Wait For Primary API Server Via VIP
   wait_for:
     host: "{{ k3s_vip }}"
-    port: 6443
+    port: "{{ k3s_api_port | int }}"
     state: started
     timeout: 180
     delay: 15
@@ -127,16 +127,16 @@
 - name: Start K3s
   systemd:
     name: k3s
-    state: restarted
+    state: started
 
 # ============================================================================
-# Wait
+# Wait Local API Ready
 # ============================================================================
 
-- name: Wait K3s Process
-  shell: pgrep -f k3s-server
-  register: k3s_process
-  retries: 30
-  delay: 5
-  until: k3s_process.rc == 0
-  changed_when: false
+- name: Wait For Local K3s API Server Ready
+  ansible.builtin.wait_for:
+    host: "127.0.0.1"
+    port: "{{ k3s_api_port | int }}"
+    state: started
+    timeout: 60
+    delay: 5

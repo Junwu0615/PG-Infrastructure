@@ -50,7 +50,7 @@
     mode: "0600"
     content: |
       cluster-init: true
-      
+
       disable:
         - traefik
 
@@ -114,32 +114,30 @@
 - name: Start K3s
   systemd:
     name: k3s
-    state: restarted
+    state: started
 
 # ============================================================================
 # Wait & Token Fetch
 # ============================================================================
 
-- name: Wait K3s Process
-  shell: pgrep -f k3s-server
-  register: k3s_process
-  retries: 30
-  delay: 5
-  until: k3s_process.rc == 0
-  changed_when: false
-
+- name: Wait For K3s API Server Local Ready
+  ansible.builtin.wait_for:
+    host: "127.0.0.1"
+    port: "{{ k3s_api_port | int }}"
+    state: started
+    timeout: 60
+    delay: 5
 
 - name: Wait For Token File
   wait_for:
-    path: /var/lib/rancher/k3s/server/node-token
+    path: "{{ k3s_node_token }}"
     state: started
-    timeout: 120
+    timeout: 60
 
 - name: Read K3s Token
   slurp:
-    src: /var/lib/rancher/k3s/server/node-token
+    src: "{{ k3s_node_token }}"
   register: k3s_token_base64
-
 
 - name: Share Token To Factor
   set_fact:

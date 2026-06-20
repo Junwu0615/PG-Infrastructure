@@ -2,6 +2,35 @@
 ---
 
 # ----------------------------------------------------------------------
+# 【 離線安裝基礎網路與偵錯工具 】
+# ----------------------------------------------------------------------
+- name: Create Offline Tools Directory
+  file:
+    path: /tmp/init_packages
+    state: directory
+    mode: "0755"
+
+
+- name: Copy Offline Base Tools (net-tools, etc)
+  copy:
+    src: "{{ playbook_dir }}/../../files/init_packages/"
+    dest: /tmp/init_packages/
+  failed_when: false
+
+
+- name: Install Offline Base Packages
+  shell: dpkg -i /tmp/init_packages/*.deb
+  failed_when: false
+  changed_when: false
+
+
+- name: Cleanup Offline Tools Directory
+  file:
+    path: /tmp/init_packages
+    state: absent
+
+
+# ----------------------------------------------------------------------
 # 【 物理抹殺 Swap 】
 # ----------------------------------------------------------------------
 - name: Disable Swap in fstab
@@ -52,14 +81,16 @@
 # 【 網路轉發 】
 # ----------------------------------------------------------------------
 # 確保 sysctl 變更重開機不丟失 => 強制寫入獨立設定檔 ( sysctl_file )
-- name: Enable IPv4 Forwarding
+- name: Enable IPv4 Forwarding and Adjust Network Security
   sysctl:
-    name: "{{ item }}"
-    value: '1'
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
     state: present
     sysctl_file: /etc/sysctl.d/99-kubernetes.conf
     reload: yes
   loop:
-    - net.ipv4.ip_forward
-    - net.bridge.bridge-nf-call-iptables
+    - { name: 'net.ipv4.ip_forward', value: '1' }
+    - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { name: 'net.ipv4.conf.all.rp_filter', value: '0' }
+    - { name: 'net.ipv4.conf.default.rp_filter', value: '0' }
   tags: [ install, update ]

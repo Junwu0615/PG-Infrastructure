@@ -1,16 +1,19 @@
 LINUX_USER := pc
 
 # 需與 terraform 變數設定對齊
-IOS_IMAGE := debian-12-generic-amd64.qcow2
-DEBIAN_IMAGE_URL = https://cloud.debian.org/images/cloud/bookworm/latest/$(IOS_IMAGE)
-OS_IMAGE := debian:12-slim
-K3S_VIP  := 10.88.0.99
+IOS_IMAGE        := debian-12-generic-amd64.qcow2
+DEBIAN_IMAGE_URL := https://cloud.debian.org/images/cloud/bookworm/latest/$(IOS_IMAGE)
+OS_IMAGE         := debian:12-slim
+K3S_VIP          := 10.88.0.99
+
+K3S_VERSION      := v1.28.2%2Bk3s1
 
 BOOTSTRAP_DIR        := ./bootstrap
 FILES_DIR            := $(BOOTSTRAP_DIR)/files
 TERRAFORM_PATH       := $(BOOTSTRAP_DIR)/terraform
 ANSIBLE_INI_PATH     := $(BOOTSTRAP_DIR)/ansible/inventory.ini
 ANSIBLE_ROOT_PATH    := $(BOOTSTRAP_DIR)/ansible
+INIT_DIR             := $(FILES_DIR)/init_packages
 NFS_DIR              := $(FILES_DIR)/nfs_packages
 NFS_SERVER_DIR       := $(FILES_DIR)/nfs_server_packages
 ISO_DIR              := $(FILES_DIR)/iso_images
@@ -45,7 +48,7 @@ status k-top label-nodes vm-format vm-power \
 root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
 
-apt-source-prepare: $(ISO_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
+apt-source-prepare: $(ISO_DIR) $(INIT_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
 	@echo "* 透過 Host 網路模式與容器 (${OS_IMAGE}) 動態下載目標 OS 相容套件 ..."
 
 	# 1. 地端預載 $(IOS_IMAGE) 基礎鏡像
@@ -56,7 +59,29 @@ apt-source-prepare: $(ISO_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(
 	   echo "  📦 IOS IMAGE 離線套件已存在，跳過 ..."; \
 	fi
 
-	# 2. 地端預載 $(OS_IMAGE) 的 NFS 客戶端及其完整相依套件
+
+	# 2. 地端預載 $(OS_IMAGE) 之 K3s 核心依賴與基礎網絡偵錯工具
+	@if [ -z "$$(ls -A $(INIT_DIR))" ]; then \
+	   echo "  🚀 正在下載 系統初始化與偵錯工具 離線套件 ..."; \
+	   docker run --rm \
+	      --network host \
+	      -v $(shell pwd)/$(INIT_DIR):/download \
+	      ${OS_IMAGE} \
+	      sh -c "apt-get update && apt-get install -y --download-only \
+	         net-tools \
+	         tcpdump \
+	         iputils-ping \
+	         socat \
+	         conntrack \
+	         ipset \
+	         curl \
+	         jq \
+	         open-iscsi && cp /var/cache/apt/archives/*.deb /download/"; \
+	else \
+	   echo "  📦 系統初始化與偵錯工具已存在，跳過 ..."; \
+	fi
+
+	# 3. 地端預載 $(OS_IMAGE) 之 NFS 客戶端及其完整相依套件
 	@if [ -z "$$(ls -A $(NFS_DIR))" ]; then \
 		echo "  🚀 正在下載 $(OS_IMAGE) 相容之 NFS 離線套件 ..."; \
 		docker run --rm \
@@ -69,7 +94,7 @@ apt-source-prepare: $(ISO_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(
 	fi
 
 
-	# 3. 地端預載 $(OS_IMAGE) 的 NFS 服務端（Server）及其完整相依套件
+	# 4. 地端預載 $(OS_IMAGE) 之 NFS 服務端（Server）及其完整相依套件
 	@if [ -z "$$(ls -A $(NFS_SERVER_DIR))" ]; then \
 	   echo "  🚀 正在下載 $(OS_IMAGE) 相容之 NFS Server 離線套件 ..."; \
 	   docker run --rm \
@@ -81,7 +106,7 @@ apt-source-prepare: $(ISO_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(
 	   echo "  📦 NFS Server 離線套件已存在，跳過 ..."; \
 	fi
 
-	# 4. 地端預載 $(OS_IMAGE) 的 Keepalived 及其完整相依套件
+	# 5. 地端預載 $(OS_IMAGE) 之 Keepalived 及其完整相依套件
 	@if [ -z "$$(ls -A $(KEEPALIVED_DIR))" ]; then \
 		echo "  🚀 正在下載 $(OS_IMAGE) 相容之 Keepalived 離線套件 ..."; \
 		docker run --rm \
@@ -93,11 +118,11 @@ apt-source-prepare: $(ISO_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(
 		echo "  📦 Keepalived 離線套件已存在，跳過 ..."; \
 	fi
 
-	# 5. 地端預載 K3s 離線安裝腳本與二進位檔 (以 v1.28.2+k3s1 為例，可自行更換版本)
+	# 6. 地端預載 K3s 離線安裝腳本與二進位檔 ( 版本: $(K3S_VERSION) )
 	@if [ -z "$$(ls -A $(K3S_DIR))" ]; then \
 		echo "  🚀 正在下載 K3s 離線安裝資源中 ..."; \
 		curl -sfL https://get.k3s.io -o $(K3S_DIR)/install.sh; \
-		curl -sfL https://github.com/k3s-io/k3s/releases/download/v1.28.2%2Bk3s1/k3s -o $(K3S_DIR)/k3s; \
+		curl -sfL https://github.com/k3s-io/k3s/releases/download/$(K3S_VERSION)/k3s -o $(K3S_DIR)/k3s; \
 		chmod +x $(K3S_DIR)/k3s; \
 	else \
 		echo "  📦 K3s 離線資源已存在，跳過 ..."; \
@@ -108,6 +133,10 @@ apt-source-prepare: $(ISO_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(
 $(ISO_DIR):
 	@echo "* 幕等式創建檔案夾: $(ISO_DIR)"
 	mkdir -p $(ISO_DIR)
+
+$(INIT_DIR):
+	@echo "* 幕等式創建檔案夾: $(INIT_DIR)"
+	mkdir -p $(INIT_DIR)
 
 $(NFS_DIR):
 	@echo "* 幕等式創建檔案夾: $(NFS_DIR)"
@@ -127,8 +156,12 @@ $(K3S_DIR):
 
 apt-source-clean:
 	@echo "* 進行離線資源快取清理 ..."
-	rm -rf $(FILES_DIR)/nfs_packages
-	rm -rf $(FILES_DIR)/keepalived_packages
+	rm -rf $(ISO_DIR)
+	rm -rf $(INIT_DIR)
+	rm -rf $(NFS_DIR)
+	rm -rf $(NFS_SERVER_DIR)
+	rm -rf $(KEEPALIVED_DIR)
+	rm -rf $(K3S_DIR)
 	@echo "✅  <make apt-source-clean> done."
 
 k-top:

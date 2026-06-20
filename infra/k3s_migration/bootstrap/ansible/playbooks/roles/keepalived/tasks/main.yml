@@ -9,6 +9,21 @@
     comment: "Keepalived Unicast VRRP Traffic"
 
 
+- name: Optimize ARP Behavior for VIP Binding
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_file: /etc/sysctl.d/98-keepalived-vip.conf
+    reload: yes
+  loop:
+    # arp_ignore = 1: 回應 ARP 請求時，目的 IP 必須完全符合接收網卡上配置的實體或虛擬 IP
+    - { name: 'net.ipv4.conf.all.arp_ignore', value: '1' }
+    - { name: 'net.ipv4.conf.default.arp_ignore', value: '1' }
+    # arp_announce = 2: 核心在發送 ARP 宣告時，強迫使用最合適的本地實體 IP，防止交換器 MAC 混淆
+    - { name: 'net.ipv4.conf.all.arp_announce', value: '2' }
+    - { name: 'net.ipv4.conf.default.arp_announce', value: '2' }
+
 # ============================================================================
 # 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】
 # ============================================================================
@@ -78,3 +93,15 @@
 # ============================================================================
 - name: Flush handlers immediately
   meta: flush_handlers
+
+
+- name: Enable Keepalived
+  ansible.builtin.systemd:
+    name: keepalived
+    enabled: yes
+
+
+- name: Ensure Keepalived Is Running
+  ansible.builtin.systemd:
+    name: keepalived
+    state: started
