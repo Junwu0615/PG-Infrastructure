@@ -1,92 +1,146 @@
 # roles/k3s-primary/tasks/main.yml
 ---
 
-- name: Check if K3s Primary is already installed
-  ansible.builtin.stat:
-    path: "{{ k3s_bin_dir }}"
-  register: k3s_installed
-#  tags: [ install, update ]
+# ============================================================================
+# Clean Wrong Structure
+# ============================================================================
 
+- name: Remove Wrong K3s Directory
+  file:
+    path: /usr/local/bin/k3s
+    state: absent
+  when:
+    - ansible_facts is defined
 
 # ============================================================================
-# 離線資產維護 (Air-gapped Local Assets Provision)
+# Binary
 # ============================================================================
-- name: Copy K3s binary to global bin
-  ansible.builtin.copy:
+
+- name: Create Binary Directory
+  file:
+    path: /usr/local/bin
+    state: directory
+    mode: "0755"
+
+- name: Install K3s Binary
+  copy:
     src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
-    dest: "{{ k3s_bin_dir }}"
+    dest: /usr/local/bin/k3s
     owner: root
     group: root
     mode: "0755"
-  when: not k3s_installed.stat.exists
-#  tags: [ install ]
 
+# ============================================================================
+# Config
+# ============================================================================
 
-- name: Create temporary directory for K3s install script
-  ansible.builtin.file:
-    path: /tmp/k3s_install
+- name: Create Config Directory
+  file:
+    path: /etc/rancher/k3s
     state: directory
+    owner: root
+    group: root
     mode: "0755"
-  when: not k3s_installed.stat.exists
-#  tags: [ install ]
 
+- name: Deploy Config
+  copy:
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      cluster-init: true
+      
+      disable:
+        - traefik
 
-- name: Copy K3s install script to node
-  ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../../files/k3s_packages/install.sh"
-    dest: /tmp/k3s_install/install.sh
-    mode: "0755"
-  when: not k3s_installed.stat.exists
-#  tags: [ install ]
+      tls-san:
+        - {{ k3s_vip }}
 
+      node-ip: {{ ansible_default_ipv4.address }}
+      node-external-ip: {{ ansible_default_ipv4.address }}
+
+      write-kubeconfig-mode: "0644"
 
 # ============================================================================
-# K3s 叢集初始化 (Cluster Init)
+# Service
 # ============================================================================
-- name: Initialize K3s Primary Server (etcd Local Init)
-  ansible.builtin.shell: >
-    /tmp/k3s_install/install.sh server
-    --cluster-init
-    --disable traefik
-    --node-taint CriticalAddonsOnly=true:NoSchedule
-    --tls-san {{ k3s_vip }}
-    --write-kubeconfig-mode "0644"
-  environment:
-    INSTALL_K3S_SKIP_DOWNLOAD: "true"
-    INSTALL_K3S_VERSION: "{{ k3s_version }}"
-  when: not k3s_installed.stat.exists
-#  tags: [ install ]
 
+- name: Deploy K3s Service
+  copy:
+    dest: /etc/systemd/system/k3s.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Lightweight Kubernetes
+      Documentation=https://k3s.io
+      Wants=network-online.target
+      After=network-online.target
 
-- name: Ensure K3s Primary Service is Started and Enabled
-  ansible.builtin.systemd:
+      [Service]
+      Type=notify
+
+      ExecStartPre=/sbin/modprobe br_netfilter
+      ExecStartPre=/sbin/modprobe overlay
+
+      ExecStart=/usr/local/bin/k3s server
+
+      KillMode=process
+      Delegate=yes
+      LimitNOFILE=1048576
+      LimitNPROC=infinity
+      LimitCORE=infinity
+      TasksMax=infinity
+      TimeoutStartSec=0
+      Restart=always
+      RestartSec=5s
+
+      [Install]
+      WantedBy=multi-user.target
+
+# ============================================================================
+# Systemd
+# ============================================================================
+
+- name: Reload Systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Enable K3s
+  systemd:
     name: k3s
-    state: started
     enabled: yes
-#  tags: [ install, update ]
 
+- name: Start K3s
+  systemd:
+    name: k3s
+    state: restarted
 
 # ============================================================================
-# Token 聯邦共享 (Federated Token Sharing)
+# Wait & Token Fetch
 # ============================================================================
-- name: Fetch K3s Node Token from Primary
-  ansible.builtin.command: "cat {{ k3s_node_token }}"
-  register: primary_token
+
+- name: Wait K3s Process
+  shell: pgrep -f k3s-server
+  register: k3s_process
+  retries: 30
+  delay: 5
+  until: k3s_process.rc == 0
   changed_when: false
-#  tags: [ install, update ]
 
 
-- name: Share K3s Token with Global Inventory Memory
-  ansible.builtin.set_fact:
-    shared_k3s_token: "{{ primary_token.stdout | trim }}"
-  delegate_to: "{{ item }}"
-  delegate_facts: true
-  loop: "{{ groups['k3s_servers'] }}"
-#  tags: [ install, update ]
+- name: Wait For Token File
+  wait_for:
+    path: /var/lib/rancher/k3s/server/node-token
+    state: started
+    timeout: 120
+
+- name: Read K3s Token
+  slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  register: k3s_token_base64
 
 
-- name: Clean up local installer path
-  ansible.builtin.file:
-    path: /tmp/k3s_install
-    state: absent
-#  tags: [ install ]
+- name: Share Token To Factor
+  set_fact:
+    shared_k3s_token: "{{ k3s_token_base64.content | b64decode | trim }}"

@@ -17,27 +17,27 @@
 # ============================================================================
 # Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】
 # ============================================================================
-#- hosts: k3s_servers
-#  become: yes
-#  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】"
-#      debug:
-#        msg: "開始執行 roles/keepalived"
-#  roles:
-#    - keepalived
+- hosts: k3s_servers
+  become: yes
+  pre_tasks:
+    - name: "執行 deploy_k3s - Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】"
+      debug:
+        msg: "開始執行 roles/keepalived"
+  roles:
+    - keepalived
 
 
 # ============================================================================
 # Phase 2.5. 【 K3s 配置 : Validation VIP 】
 # ============================================================================
-#- hosts: k3s_servers
-#  gather_facts: no
-#  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 2.5. 【 K3s 配置 : Validation VIP 】"
-#      debug:
-#        msg: "開始執行 roles/validation-vip"
-#  roles:
-#    - validation-vip
+- hosts: k3s_servers
+  gather_facts: no
+  pre_tasks:
+    - name: "執行 deploy_k3s - Phase 2.5. 【 K3s 配置 : Validation VIP 】"
+      debug:
+        msg: "開始執行 roles/validation-vip"
+  roles:
+    - validation-vip
 
 
 # ============================================================================

@@ -1,88 +1,142 @@
 # roles/k3s-secondary/tasks/main.yml
 ---
 
-- name: Check if K3s Secondary is already installed
-  ansible.builtin.stat:
-    path: "{{ k3s_bin_dir }}"
-  register: k3s_secondary_installed
-#  tags: [ install, update ]
+# ============================================================================
+# Clean Wrong Structure
+# ============================================================================
 
+- name: Remove Wrong K3s Directory
+  file:
+    path: /usr/local/bin/k3s
+    state: absent
+  when:
+    - ansible_facts is defined
 
 # ============================================================================
-# 離線資產維護 (Air-gapped Local Assets Provision)
+# Binary
 # ============================================================================
-- name: Copy K3s binary to global bin
-  ansible.builtin.copy:
+
+- name: Create Binary Directory
+  file:
+    path: /usr/local/bin
+    state: directory
+    mode: "0755"
+
+- name: Install K3s Binary
+  copy:
     src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
-    dest: "{{ k3s_bin_dir }}"
+    dest: /usr/local/bin/k3s
     owner: root
     group: root
     mode: "0755"
-  when: not k3s_secondary_installed.stat.exists
-#  tags: [ install ]
 
+# ============================================================================
+# Config
+# ============================================================================
 
-- name: Create temporary directory for K3s install script
-  ansible.builtin.file:
-    path: /tmp/k3s_install
+- name: Create Config Directory
+  file:
+    path: /etc/rancher/k3s
     state: directory
+    owner: root
+    group: root
     mode: "0755"
-  when: not k3s_secondary_installed.stat.exists
-#  tags: [ install ]
 
-
-- name: Copy K3s install script to node
-  ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../../files/k3s_packages/install.sh"
-    dest: /tmp/k3s_install/install.sh
-    mode: "0755"
-  when: not k3s_secondary_installed.stat.exists
-#  tags: [ install ]
-
-
-# ============================================================================
-# 階段一： 呼叫 install.sh 釋放 Systemd 服務（透過環境變數阻止其自動拉起）
-# ============================================================================
-- name: Run K3s Installer to release Systemd Service (Skip Start)
-  ansible.builtin.shell: >
-    /tmp/k3s_install/install.sh server
-    --disable traefik
-    --node-taint CriticalAddonsOnly=true:NoSchedule
-    --tls-san {{ k3s_vip }}
-    --node-ip {{ ansible_default_ipv4.address }}
-    --node-external-ip {{ ansible_default_ipv4.address }}
-    --write-kubeconfig-mode "0644"
-  environment:
-    INSTALL_K3S_SKIP_DOWNLOAD: "true"
-    INSTALL_K3S_VERSION: "{{ k3s_version }}"
-    INSTALL_K3S_SKIP_ENABLE: "true" # 不允許安裝腳本自動啟用
-    INSTALL_K3S_SKIP_START: "true"  # 不允許安裝腳本自動啟動，防止生出髒 etcd
-  when: not k3s_secondary_installed.stat.exists
-
-# ============================================================================
-# 階段二：奪回控制權 => 在 install.sh 之後，強制覆寫正確的 HA 註冊變數
-# ============================================================================
-- name: Enforce Correct K3s HA Environment Configuration
-  ansible.builtin.copy:
-    dest: /etc/systemd/system/k3s.service.env
+- name: Deploy Config
+  copy:
+    dest: /etc/rancher/k3s/config.yaml
     owner: root
     group: root
     mode: "0600"
     content: |
-      K3S_URL=https://{{ groups['k3s_primary'][0] }}:{{ k3s_api_port }}
-      K3S_TOKEN={{ hostvars[groups['k3s_primary'][0]]['shared_k3s_token'] }}
+      server: https://{{ k3s_vip }}:6443
+      token: {{ hostvars[groups['k3s_primary'][0]].shared_k3s_token }}
+
+      disable:
+        - traefik
+
+      tls-san:
+        - {{ k3s_vip }}
+
+      node-ip: {{ ansible_default_ipv4.address }}
+      node-external-ip: {{ ansible_default_ipv4.address }}
+
+      write-kubeconfig-mode: "0644"
 
 # ============================================================================
-# 階段三： 啟動並鎖定服務
+# Service
 # ============================================================================
-- name: Reload Systemd, Enable and Start K3s Secondary Service
-  ansible.builtin.systemd:
-    name: k3s
-    state: restarted  # 強制用 restarted 確保一定吃到剛寫入的 .env 檔案
-    enabled: yes
+
+- name: Deploy K3s Service
+  copy:
+    dest: /etc/systemd/system/k3s.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Lightweight Kubernetes
+      Documentation=https://k3s.io
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      Type=notify
+
+      ExecStartPre=/sbin/modprobe br_netfilter
+      ExecStartPre=/sbin/modprobe overlay
+
+      ExecStart=/usr/local/bin/k3s server
+
+      KillMode=process
+      Delegate=yes
+      LimitNOFILE=1048576
+      LimitNPROC=infinity
+      LimitCORE=infinity
+      TasksMax=infinity
+      TimeoutStartSec=0
+      Restart=always
+      RestartSec=5s
+
+      [Install]
+      WantedBy=multi-user.target
+
+# ============================================================================
+# Wait Primary API Ready
+# ============================================================================
+
+- name: Wait For Primary API Server Via VIP
+  wait_for:
+    host: "{{ k3s_vip }}"
+    port: 6443
+    state: started
+    timeout: 180
+    delay: 15
+
+# ============================================================================
+# Systemd
+# ============================================================================
+
+- name: Reload Systemd
+  systemd:
     daemon_reload: yes
 
-- name: Clean up local installer path
-  ansible.builtin.file:
-    path: /tmp/k3s_install
-    state: absent
+- name: Enable K3s
+  systemd:
+    name: k3s
+    enabled: yes
+
+- name: Start K3s
+  systemd:
+    name: k3s
+    state: restarted
+
+# ============================================================================
+# Wait
+# ============================================================================
+
+- name: Wait K3s Process
+  shell: pgrep -f k3s-server
+  register: k3s_process
+  retries: 30
+  delay: 5
+  until: k3s_process.rc == 0
+  changed_when: false
