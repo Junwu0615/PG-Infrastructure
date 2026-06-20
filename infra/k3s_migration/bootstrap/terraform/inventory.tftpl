@@ -1,8 +1,11 @@
 # terraform/inventory.tftpl
 
-[masters]
-%{ for ip in masters ~}
-${ip} ansible_user=${user}
+[k3s_primary]
+${element(masters, 0)} ansible_user=${user}
+
+[k3s_secondary]
+%{ for i in range(1, master_count) ~}
+${element(masters, i)} ansible_user=${user}
 %{ endfor ~}
 
 [agents]
@@ -11,11 +14,16 @@ ${ip} ansible_user=${user}
 %{ endfor ~}
 
 [k3s_cluster:children]
-masters
+k3s_primary
+k3s_secondary
 agents
 
-# [gateway]
-# ${gateway_ip} ansible_user=${user}
+[k3s_servers:children]
+k3s_primary
+k3s_secondary
 
 [storage]
 ${element(masters, 0)} ansible_user=${user}
+
+# [gateway]
+# ${gateway_ip} ansible_user=${user}

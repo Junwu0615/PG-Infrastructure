@@ -4,14 +4,14 @@
 # ============================================================================
 # Phase 1. 【 基礎建設： NFS Server 配置 】
 # ============================================================================
-- hosts: storage
-  become: yes
-  pre_tasks:
-    - name: "執行 init_nodes - Phase 1. 【 基礎建設： NFS Server 配置 】"
-      debug:
-        msg: "開始執行 roles/nfs-server"
-  roles:
-    - nfs-server
+#- hosts: storage
+#  become: yes
+#  pre_tasks:
+#    - name: "執行 init_nodes - Phase 1. 【 基礎建設： NFS Server 配置 】"
+#      debug:
+#        msg: "開始執行 roles/nfs-server"
+#  roles:
+#    - nfs-server
 
 # ============================================================================
 # Phase 2. 【 物理抹殺 Swap 】 + 【 K8s 必要核心模組 】 + 【 網路轉發 】
@@ -29,11 +29,11 @@
 # ============================================================================
 # Phase 3. 【 分發 NFS 離線資產 】
 # ============================================================================
-- hosts: k3s_cluster
-  become: yes
-  pre_tasks:
-    - name: "執行 init_nodes - Phase 3. 【 分發 NFS 離線資產 】"
-      debug:
-        msg: "開始執行 roles/storage"
-  roles:
-    - storage
+#- hosts: k3s_cluster
+#  become: yes
+#  pre_tasks:
+#    - name: "執行 init_nodes - Phase 3. 【 分發 NFS 離線資產 】"
+#      debug:
+#        msg: "開始執行 roles/storage"
+#  roles:
+#    - storage

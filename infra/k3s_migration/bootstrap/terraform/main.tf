@@ -221,7 +221,8 @@ resource "libvirt_domain" "k3s_agents" {
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/inventory.tftpl", {
     gateway_ip = "${var.net_segment}.10"
-    user       = var.vm_user
+    user           = var.vm_user
+    master_count   = var.master_count
     masters    = [for i in range(var.master_count) : "${var.net_segment}.${var.net_segment_master_start + i}"]
     agents     = [for i in range(var.agent_count) : "${var.net_segment}.${var.net_segment_agent_start + i}"]
   })
