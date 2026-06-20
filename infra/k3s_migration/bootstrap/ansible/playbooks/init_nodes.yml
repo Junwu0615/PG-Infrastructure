@@ -3,12 +3,12 @@
 ---
 
 # ============================================================================
-# Phase 1. 【 物理抹殺 Swap 】 + 【 K8s 必要核心模組 】 + 【 網路轉發 】
+# Phase 1. 【 基礎建設配置 : 物理抹殺 Swap + K8s 核心模組 + 網路轉發 】
 # ============================================================================
 - hosts: k3s_cluster
   become: yes
   pre_tasks:
-    - name: "執行 init_nodes - Phase 1. 【 物理抹殺 Swap 】 + 【 K8s 必要核心模組 】 + 【 網路轉發 】"
+    - name: "執行 init_nodes - Phase 1. 【 基礎建設配置 : 物理抹殺 Swap + K8s 核心模組 + 網路轉發 】"
       debug:
         msg: "開始執行 roles/init"
   roles:
@@ -16,12 +16,12 @@
 
 
 # ============================================================================
-# Phase 2. 【 基礎建設 NFS-Server 配置 】
+# Phase 2. 【 基礎建設配置 : NFS-Server 】
 # ============================================================================
 #- hosts: storage
 #  become: yes
 #  pre_tasks:
-#    - name: "執行 init_nodes - Phase 2. 【 基礎建設 NFS-Server 配置 】"
+#    - name: "執行 init_nodes - Phase 2. 【 基礎建設配置 : NFS-Server 】"
 #      debug:
 #        msg: "開始執行 roles/nfs-server"
 #  roles:
@@ -29,12 +29,12 @@
 
 
 # ============================================================================
-# Phase 3. 【 基礎建設 NFS-Common 配置 】
+# Phase 3. 【 基礎建設配置 : NFS-Common 】
 # ============================================================================
 #- hosts: k3s_cluster
 #  become: yes
 #  pre_tasks:
-#    - name: "執行 init_nodes - Phase 3. 【 基礎建設 NFS-Common 配置 】"
+#    - name: "執行 init_nodes - Phase 3. 【 基礎建設配置 : NFS-Common 】"
 #      debug:
 #        msg: "開始執行 roles/nfs-common"
 #  roles:

@@ -8,7 +8,7 @@ ${element(masters, 0)} ansible_user=${user}
 ${element(masters, i)} ansible_user=${user}
 %{ endfor ~}
 
-[agents]
+[k3s_agents]
 %{ for ip in agents ~}
 ${ip} ansible_user=${user}
 %{ endfor ~}
@@ -16,7 +16,7 @@ ${ip} ansible_user=${user}
 [k3s_cluster:children]
 k3s_primary
 k3s_secondary
-agents
+k3s_agents
 
 [k3s_servers:children]
 k3s_primary
