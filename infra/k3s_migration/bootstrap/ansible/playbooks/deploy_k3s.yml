@@ -28,51 +28,12 @@
 
 
 # ============================================================================
-# Phase 3. 【 K3s 配置 : K3s Primary Server 】
-# ============================================================================
-#- hosts: k3s_primary
-#  become: yes
-#  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 3. 【 K3s 配置 : K3s Primary Server 】"
-#      debug:
-#        msg: "開始執行 roles/k3s-primary"
-#  roles:
-#    - k3s-primary
-
-
-# ============================================================================
-# Phase 4. 【 K3s 配置 : K3s Secondary Server 】
-# ============================================================================
-#- hosts: k3s_secondary
-#  become: yes
-#  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 4. 【 K3s 配置 : K3s Secondary Server 】"
-#      debug:
-#        msg: "開始執行 roles/k3s-secondary"
-#  roles:
-#    - k3s-secondary
-
-
-# ============================================================================
-# Phase 5. 【 K3s 配置 : K3s Agent 】
-# ============================================================================
-#- hosts: k3s_agents
-#  become: yes
-#  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 5. 【 K3s 配置 : K3s Agent 】"
-#      debug:
-#        msg: "開始執行 roles/k3s_agents"
-#  roles:
-#    - k3s_agents
-
-
-# ============================================================================
-# Phase 6.1. 【 K3s 配置 : Validation VIP 】
+# Phase 2.5. 【 K3s 配置 : Validation VIP 】
 # ============================================================================
 #- hosts: k3s_servers
 #  gather_facts: no
 #  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 6.1. 【 K3s 配置 : Validation VIP 】"
+#    - name: "執行 deploy_k3s - Phase 2.5. 【 K3s 配置 : Validation VIP 】"
 #      debug:
 #        msg: "開始執行 roles/validation-vip"
 #  roles:
@@ -80,12 +41,38 @@
 
 
 # ============================================================================
-# Phase 6.2. 【 K3s 配置 : Validation Control Plane 】
+# Phase 3.1. 【 K3s 配置 : K3s Primary Server 】
+# ============================================================================
+#- hosts: k3s_primary
+#  become: yes
+#  pre_tasks:
+#    - name: "執行 deploy_k3s - Phase 3.1. 【 K3s 配置 : K3s Primary Server 】"
+#      debug:
+#        msg: "開始執行 roles/k3s-primary"
+#  roles:
+#    - k3s-primary
+
+
+# ============================================================================
+# Phase 3.2. 【 K3s 配置 : K3s Secondary Server 】
+# ============================================================================
+#- hosts: k3s_secondary
+#  become: yes
+#  pre_tasks:
+#    - name: "執行 deploy_k3s - Phase 3.2. 【 K3s 配置 : K3s Secondary Server 】"
+#      debug:
+#        msg: "開始執行 roles/k3s-secondary"
+#  roles:
+#    - k3s-secondary
+
+
+# ============================================================================
+# Phase 3.3. 【 K3s 配置 : Validation Control Plane 】
 # ============================================================================
 #- hosts: k3s_servers
 #  gather_facts: no
 #  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 6.2. 【 K3s 配置 : Validation Control Plane 】"
+#    - name: "執行 deploy_k3s - Phase 3.3. 【 K3s 配置 : Validation Control Plane 】"
 #      debug:
 #        msg: "開始執行 roles/validation-control-plane"
 #  roles:
@@ -93,12 +80,25 @@
 
 
 # ============================================================================
-# Phase 6.3. 【 K3s 配置 : Validation Cluster 】
+# Phase 4. 【 K3s 配置 : K3s Agent 】
+# ============================================================================
+#- hosts: k3s_agents
+#  become: yes
+#  pre_tasks:
+#    - name: "執行 deploy_k3s - Phase 4. 【 K3s 配置 : K3s Agent 】"
+#      debug:
+#        msg: "開始執行 roles/k3s_agents"
+#  roles:
+#    - k3s_agents
+
+
+# ============================================================================
+# Phase 5. 【 K3s 配置 : Validation Cluster 】
 # ============================================================================
 #- hosts: k3s_cluster
 #  gather_facts: no
 #  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 6.3. 【 K3s 配置 : Validation Cluster 】"
+#    - name: "執行 deploy_k3s - Phase 5. 【 K3s 配置 : Validation Cluster 】"
 #      debug:
 #        msg: "開始執行 roles/validation-cluster"
 #  roles:
