@@ -2,40 +2,38 @@
 
 ---
 # ============================================================================
-# Phase 1
-# 【 物理抹殺 Swap 】 + 【 K8s 必要核心模組 】 + 【 網路轉發 】
+# Phase 1. 【 基礎建設： NFS Server 配置 】
 # ============================================================================
-- hosts: k3s_cluster
+- hosts: storage
   become: yes
-#  pre_tasks:
-#    - name: "====== 執行 init_nodes - Phase 1： 初始化節點 【 物理抹殺 Swap 】 + 【 K8s 必要核心模組 】 + 【 網路轉發 】 ======"
-#      debug:
-#        msg: "開始執行 roles/init"
+  pre_tasks:
+    - name: "執行 init_nodes - Phase 1. 【 基礎建設： NFS Server 配置 】"
+      debug:
+        msg: "開始執行 roles/nfs-server"
   roles:
-    - "roles/init"
+    - nfs-server
 
 # ============================================================================
-# Phase 2
-# 【 分發 NFS 離線資產 】
+# Phase 2. 【 物理抹殺 Swap 】 + 【 K8s 必要核心模組 】 + 【 網路轉發 】
 # ============================================================================
 - hosts: k3s_cluster
   become: yes
-#  pre_tasks:
-#    - name: "====== 執行 init_nodes - Phase 2： 【 分發 NFS 離線資產 】 ======"
-#      debug:
-#        msg: "開始執行 roles/storage"
+  pre_tasks:
+    - name: "執行 init_nodes - Phase 2. 【 物理抹殺 Swap 】 + 【 K8s 必要核心模組 】 + 【 網路轉發 】"
+      debug:
+        msg: "開始執行 roles/init"
   roles:
-    - "roles/storage"
+    - init
+
 
 # ============================================================================
-# Phase 3
-# 【 私人 Host 域名資產配置 】
+# Phase 3. 【 分發 NFS 離線資產 】
 # ============================================================================
 - hosts: k3s_cluster
   become: yes
-#  pre_tasks:
-#    - name: "====== 執行 init_nodes - Phase 3： 【 私人 Host 域名資產配置 】 ======"
-#      debug:
-#        msg: "開始執行 roles/registries"
+  pre_tasks:
+    - name: "執行 init_nodes - Phase 3. 【 分發 NFS 離線資產 】"
+      debug:
+        msg: "開始執行 roles/storage"
   roles:
-    - "roles/registries"
+    - storage

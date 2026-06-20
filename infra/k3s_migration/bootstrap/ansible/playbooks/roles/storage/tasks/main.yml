@@ -2,45 +2,58 @@
 ---
 
 # ----------------------------------------------------------------------
-# 【 分發 NFS 離線資產 】
+# 【 分發離線資產 + 安裝 】 nfs-common
 # ----------------------------------------------------------------------
 
-# VM 創建讀寫目錄
-- name: Create local directory for offline NFS packages
-  file:
-    path: /tmp/nfs_packages
-    state: directory
-    mode: '0755'
+# 確認是否已安裝
+- name: Check if nfs-common is already installed
+  command: dpkg-query -W -f='${Status}' nfs-common
+  register: nfs_check
+  failed_when: false
+  changed_when: false
   when: ansible_os_family == "Debian"
   tags: [ install, update, storage ]
 
 
-# 資源複製到 VM
-- name: Copy offline NFS packages to nodes
-  copy:
-    src: "{{ playbook_dir }}/../../files/nfs_packages/"
-    dest: /tmp/nfs_packages/
-    mode: '0644'
-  when: ansible_os_family == "Debian"
-  tags: [ install, update, storage ]
+# 安裝流程，僅在 nfs-common 未成功安裝時執行 (not in stdout)
+- block:
+    # VM 創建讀寫目錄
+    - name: Create local directory for offline NFS packages
+      file:
+        path: /tmp/nfs_packages
+        state: directory
+        mode: '0755'
 
+    # 資源複製到 VM
+    - name: Copy offline NFS packages to nodes
+      copy:
+        src: "../../../../files/nfs_packages/"
+        dest: /tmp/nfs_packages/
+        mode: '0644'
 
-# 使用 dpkg 繞過所有 APT 網路快取與 sources.list 檢查，直接硬核安裝
-- name: Install NFS client via dpkg (Air-gapped standard)
-  shell: dpkg -i /tmp/nfs_packages/*.deb
-  register: dpkg_result
-  # 透過 check_mode 或藉由 command 檢查來維持冪等性（若已安裝則不視為變更）
-  changed_when: "'Installing' in dpkg_result.stdout or 'Upgrading' in dpkg_result.stdout"
-  when: ansible_os_family == "Debian"
-  tags: [ install, update, storage ]
+    # 使用 apt 模組直接指定 local .deb 檔案，比 shell dpkg -i 更具備冪等性感知
+    - name: Find copied deb files
+      find:
+        paths: /tmp/nfs_packages
+        patterns: "*.deb"
+      register: deb_files
 
+    - name: Install NFS client via local deb files
+      apt:
+#        deb: "{{ item.path }}"
+        deb: "{{ item }}"
+#      loop: "{{ deb_files.files }}"
+      loop: "{{ deb_files.files | map(attribute='path') | list }}"
 
-# 清理暫存檔案，保持節點乾淨
-- name: Cleanup temporary NFS package directory
-  file:
-    path: /tmp/nfs_packages
-    state: absent
-  when: ansible_os_family == "Debian"
+    # 清理暫存檔案，保持節點乾淨
+    - name: Cleanup temporary NFS package directory
+      file:
+        path: /tmp/nfs_packages
+        state: absent
+
+  when:
+    - ansible_os_family == "Debian"
+    - "'ok installed' not in nfs_check.stdout"
   tags: [ install, update, storage ]
 
 

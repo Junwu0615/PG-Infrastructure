@@ -25,7 +25,9 @@ docker_registry_host: "docker-registry.k8s.local"
 
 
 # NFS 版本
+container_uid: "1001"
 k3s_subnet_path: "10.88.0.0/24"
 nfs_sqlite_ver: "test-sqlite"
 #nfs_sqlite_ver: "stage-sqlite"
 #nfs_sqlite_ver: "prod-sqlite"
+nfs_export_dir: "/data/nfs/{{ nfs_sqlite_ver }}"

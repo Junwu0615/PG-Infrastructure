@@ -1,6 +1,8 @@
 LINUX_USER := pc
 
 # 需與 terraform 變數設定對齊
+IOS_IMAGE := debian-12-generic-amd64.qcow2
+DEBIAN_IMAGE_URL = https://cloud.debian.org/images/cloud/bookworm/latest/$(IOS_IMAGE)
 OS_IMAGE := debian:12-slim
 K3S_VIP  := 10.88.0.99
 
@@ -10,6 +12,8 @@ TERRAFORM_PATH       := $(BOOTSTRAP_DIR)/terraform
 ANSIBLE_INI_PATH     := $(BOOTSTRAP_DIR)/ansible/inventory.ini
 ANSIBLE_ROOT_PATH    := $(BOOTSTRAP_DIR)/ansible
 NFS_DIR              := $(FILES_DIR)/nfs_packages
+NFS_SERVER_DIR       := $(FILES_DIR)/nfs_server_packages
+ISO_DIR              := $(FILES_DIR)/iso_images
 KEEPALIVED_DIR       := $(FILES_DIR)/keepalived_packages
 K3S_DIR              := $(FILES_DIR)/k3s_packages
 INFRA_LIVE_DIR       := ./infra-live
@@ -41,9 +45,18 @@ status k-top label-nodes vm-format vm-power \
 root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
 
 
-apt-source-prepare: $(NFS_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
+apt-source-prepare: $(ISO_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
 	@echo "* 透過 Host 網路模式與容器 (${OS_IMAGE}) 動態下載目標 OS 相容套件 ..."
-	# 1. 動態下載符合 $(OS_IMAGE) 的 NFS 客戶端及其完整相依套件
+
+	# 1. 地端預載 $(IOS_IMAGE) 基礎鏡像
+	@if [ -z "$$(ls -A $(ISO_DIR))" ]; then \
+	   echo "  🚀 正在下載 $(IOS_IMAGE) Cloud Image ..."; \
+	   curl -L $(DEBIAN_IMAGE_URL) -o $(ISO_DIR)/$(IOS_IMAGE); \
+	else \
+	   echo "  📦 IOS IMAGE 離線套件已存在，跳過 ..."; \
+	fi
+
+	# 2. 地端預載 $(OS_IMAGE) 的 NFS 客戶端及其完整相依套件
 	@if [ -z "$$(ls -A $(NFS_DIR))" ]; then \
 		echo "  🚀 正在下載 $(OS_IMAGE) 相容之 NFS 離線套件 ..."; \
 		docker run --rm \
@@ -55,7 +68,20 @@ apt-source-prepare: $(NFS_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
 		echo "  📦 NFS 離線套件已存在，跳過 ..."; \
 	fi
 
-	# 2. 動態下載符合 $(OS_IMAGE) 的 Keepalived 及其完整相依套件
+
+	# 3. 地端預載 $(OS_IMAGE) 的 NFS 服務端（Server）及其完整相依套件
+	@if [ -z "$$(ls -A $(NFS_SERVER_DIR))" ]; then \
+	   echo "  🚀 正在下載 $(OS_IMAGE) 相容之 NFS Server 離線套件 ..."; \
+	   docker run --rm \
+	      --network host \
+	      -v $(shell pwd)/$(NFS_SERVER_DIR):/download \
+	      ${OS_IMAGE} \
+	      sh -c "apt-get update && apt-get install -y --download-only nfs-kernel-server && cp /var/cache/apt/archives/*.deb /download/"; \
+	else \
+	   echo "  📦 NFS Server 離線套件已存在，跳過 ..."; \
+	fi
+
+	# 4. 地端預載 $(OS_IMAGE) 的 Keepalived 及其完整相依套件
 	@if [ -z "$$(ls -A $(KEEPALIVED_DIR))" ]; then \
 		echo "  🚀 正在下載 $(OS_IMAGE) 相容之 Keepalived 離線套件 ..."; \
 		docker run --rm \
@@ -66,7 +92,8 @@ apt-source-prepare: $(NFS_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
 	else \
 		echo "  📦 Keepalived 離線套件已存在，跳過 ..."; \
 	fi
-	# 3. 抓取 K3s 離線安裝腳本與二進位檔 (以 v1.28.2+k3s1 為例，可自行更換版本)
+
+	# 5. 地端預載 K3s 離線安裝腳本與二進位檔 (以 v1.28.2+k3s1 為例，可自行更換版本)
 	@if [ -z "$$(ls -A $(K3S_DIR))" ]; then \
 		echo "  🚀 正在下載 K3s 離線安裝資源中 ..."; \
 		curl -sfL https://get.k3s.io -o $(K3S_DIR)/install.sh; \
@@ -78,9 +105,17 @@ apt-source-prepare: $(NFS_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
 
 	@echo "✅  <make apt-source-prepare> done."
 
+$(ISO_DIR):
+	@echo "* 幕等式創建檔案夾: $(ISO_DIR)"
+	mkdir -p $(ISO_DIR)
+
 $(NFS_DIR):
 	@echo "* 幕等式創建檔案夾: $(NFS_DIR)"
 	mkdir -p $(NFS_DIR)
+
+$(NFS_SERVER_DIR):
+	@echo "* 幕等式創建檔案夾: $(NFS_SERVER_DIR)"
+	mkdir -p $(NFS_SERVER_DIR)
 
 $(KEEPALIVED_DIR):
 	@echo "* 幕等式創建檔案夾: $(KEEPALIVED_DIR)"

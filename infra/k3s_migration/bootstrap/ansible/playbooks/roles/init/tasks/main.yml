@@ -14,15 +14,21 @@
   loop: [ "none", "swap" ]
   tags: [ install, update ]
 
-# 記憶體 + 避免每次都回報 changed ( changed_when )
+- name: Check if swap is currently active
+  shell: cat /proc/swaps | wc -l
+  register: swap_check
+  changed_when: false
+  tags: [ install, update ]
+
+# 記憶體
 - name: Disable Swap in memory
   command: swapoff -a
-  changed_when: false
+  when: swap_check.stdout | int > 1
   tags: [ install, update ]
 
 
 # ----------------------------------------------------------------------
-# 【 K8s 必要核心模組 】
+# 【 K8s 核心模組 】
 # ----------------------------------------------------------------------
 
 - name: Enable Kernel Modules

@@ -16,9 +16,10 @@ provider "libvirt" {
 
 # 1. 取得現有的 Storage Pool (通常 KVM 預設為 default)
 resource "libvirt_volume" "debian_base" {
-  name   = "debian12_base.qcow2"
+  name   = "debian_base.qcow2"
   pool   = "default"
-  source = "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2"
+  # source = "https://cloud.debian.org/images/cloud/bookworm/latest/${var.iso_image}"
+  source = "${path.module}/../files/iso_images/${var.iso_image}"
   format = "qcow2"
 }
 

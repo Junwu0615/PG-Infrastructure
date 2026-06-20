@@ -1,6 +1,7 @@
 # terraform/terraform.tfvars
 
 vm_user    = "debian"
+iso_image  = "debian-12-generic-amd64.qcow2"
 ssh_public_key_path = "~/.ssh/id_rsa.pub"
 
 net_segment = "10.88.0"

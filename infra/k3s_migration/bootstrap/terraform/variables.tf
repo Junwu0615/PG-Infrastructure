@@ -1,13 +1,18 @@
 # terraform/variables.tf
 
-variable "ssh_public_key_path" {
-  description = "SSH KEY 位置"
-  default = "~/.ssh/id_rsa.pub"
-}
-
 variable "vm_user" {
   description = "VM USER NAME"
   default = "debian"
+}
+
+variable "iso_image" {
+  description = "ISO IMAGE"
+  default = "debian-12-generic-amd64.qcow2"
+}
+
+variable "ssh_public_key_path" {
+  description = "SSH KEY 位置"
+  default = "~/.ssh/id_rsa.pub"
 }
 
 variable "net_segment" {

@@ -1,0 +1,20 @@
+# roles/nfs-server/handlers/main.yml
+---
+
+# ----------------------------------------------------------------------
+# 【 nfs-server 】
+# ----------------------------------------------------------------------
+
+- name: Reload NFS Exports Table
+  command: exportfs -arv
+  changed_when: true
+  notify: Ensure NFS Server Service Is Running
+
+
+- name: Ensure NFS Server Service Is Running
+  systemd:
+    name: nfs-kernel-server
+    state: started
+    enabled: yes
+  when:
+    - ansible_facts.services['nfs-kernel-server.service'] is defined
