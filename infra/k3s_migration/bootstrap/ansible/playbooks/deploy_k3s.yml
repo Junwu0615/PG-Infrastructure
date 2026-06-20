@@ -17,66 +17,66 @@
 # ============================================================================
 # Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】
 # ============================================================================
-- hosts: k3s_servers
-  become: yes
-  pre_tasks:
-    - name: "執行 deploy_k3s - Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】"
-      debug:
-        msg: "開始執行 roles/keepalived"
-  roles:
-    - keepalived
+#- hosts: k3s_servers
+#  become: yes
+#  pre_tasks:
+#    - name: "執行 deploy_k3s - Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】"
+#      debug:
+#        msg: "開始執行 roles/keepalived"
+#  roles:
+#    - keepalived
 
 
 # ============================================================================
 # Phase 2.5. 【 K3s 配置 : Validation VIP 】
 # ============================================================================
-- hosts: k3s_servers
-  gather_facts: no
-  pre_tasks:
-    - name: "執行 deploy_k3s - Phase 2.5. 【 K3s 配置 : Validation VIP 】"
-      debug:
-        msg: "開始執行 roles/validation-vip"
-  roles:
-    - validation-vip
+#- hosts: k3s_servers
+#  gather_facts: no
+#  pre_tasks:
+#    - name: "執行 deploy_k3s - Phase 2.5. 【 K3s 配置 : Validation VIP 】"
+#      debug:
+#        msg: "開始執行 roles/validation-vip"
+#  roles:
+#    - validation-vip
 
 
 # ============================================================================
 # Phase 3.1. 【 K3s 配置 : K3s Primary Server 】
 # ============================================================================
-#- hosts: k3s_primary
-#  become: yes
-#  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 3.1. 【 K3s 配置 : K3s Primary Server 】"
-#      debug:
-#        msg: "開始執行 roles/k3s-primary"
-#  roles:
-#    - k3s-primary
+- hosts: k3s_primary
+  become: yes
+  pre_tasks:
+    - name: "執行 deploy_k3s - Phase 3.1. 【 K3s 配置 : K3s Primary Server 】"
+      debug:
+        msg: "開始執行 roles/k3s-primary"
+  roles:
+    - k3s-primary
 
 
 # ============================================================================
 # Phase 3.2. 【 K3s 配置 : K3s Secondary Server 】
 # ============================================================================
-#- hosts: k3s_secondary
-#  become: yes
-#  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 3.2. 【 K3s 配置 : K3s Secondary Server 】"
-#      debug:
-#        msg: "開始執行 roles/k3s-secondary"
-#  roles:
-#    - k3s-secondary
+- hosts: k3s_secondary
+  become: yes
+  pre_tasks:
+    - name: "執行 deploy_k3s - Phase 3.2. 【 K3s 配置 : K3s Secondary Server 】"
+      debug:
+        msg: "開始執行 roles/k3s-secondary"
+  roles:
+    - k3s-secondary
 
 
 # ============================================================================
 # Phase 3.3. 【 K3s 配置 : Validation Control Plane 】
 # ============================================================================
-#- hosts: k3s_servers
-#  gather_facts: no
-#  pre_tasks:
-#    - name: "執行 deploy_k3s - Phase 3.3. 【 K3s 配置 : Validation Control Plane 】"
-#      debug:
-#        msg: "開始執行 roles/validation-control-plane"
-#  roles:
-#    - validation-control-plane
+- hosts: k3s_servers
+  become: yes
+  pre_tasks:
+    - name: "執行 deploy_k3s - Phase 3.3. 【 K3s 配置 : Validation Control Plane 】"
+      debug:
+        msg: "開始執行 roles/validation-control-plane"
+  roles:
+    - validation-control-plane
 
 
 # ============================================================================

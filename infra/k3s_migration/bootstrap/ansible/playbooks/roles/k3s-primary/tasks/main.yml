@@ -1,2 +1,91 @@
 # roles/k3s-primary/tasks/main.yml
 ---
+
+- name: Check if K3s Primary is already installed
+  ansible.builtin.stat:
+    path: "{{ k3s_bin_dir }}"
+  register: k3s_installed
+#  tags: [ install, update ]
+
+
+# ============================================================================
+# 離線資產維護 (Air-gapped Local Assets Provision)
+# ============================================================================
+- name: Copy K3s binary to global bin
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
+    dest: "{{ k3s_bin_dir }}"
+    owner: root
+    group: root
+    mode: "0755"
+  when: not k3s_installed.stat.exists
+#  tags: [ install ]
+
+
+- name: Create temporary directory for K3s install script
+  ansible.builtin.file:
+    path: /tmp/k3s_install
+    state: directory
+    mode: "0755"
+  when: not k3s_installed.stat.exists
+#  tags: [ install ]
+
+
+- name: Copy K3s install script to node
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../files/k3s_packages/install.sh"
+    dest: /tmp/k3s_install/install.sh
+    mode: "0755"
+  when: not k3s_installed.stat.exists
+#  tags: [ install ]
+
+
+# ============================================================================
+# K3s 叢集初始化 (Cluster Init)
+# ============================================================================
+- name: Initialize K3s Primary Server (etcd Local Init)
+  ansible.builtin.shell: >
+    /tmp/k3s_install/install.sh server
+    --cluster-init
+    --disable traefik
+    --node-taint CriticalAddonsOnly=true:NoSchedule
+    --tls-san {{ k3s_vip }}
+  environment:
+    INSTALL_K3S_SKIP_DOWNLOAD: "true"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+  when: not k3s_installed.stat.exists
+#  tags: [ install ]
+
+
+- name: Ensure K3s Primary Service is Started and Enabled
+  ansible.builtin.systemd:
+    name: k3s
+    state: started
+    enabled: yes
+#  tags: [ install, update ]
+
+
+# ============================================================================
+# Token 聯邦共享 (Federated Token Sharing)
+# ============================================================================
+- name: Fetch K3s Node Token from Primary
+  ansible.builtin.command: "cat {{ k3s_node_token }}"
+  register: primary_token
+  changed_when: false
+#  tags: [ install, update ]
+
+
+- name: Share K3s Token with Global Inventory Memory
+  ansible.builtin.set_fact:
+    shared_k3s_token: "{{ primary_token.stdout | trim }}"
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['k3s_servers'] }}"
+#  tags: [ install, update ]
+
+
+- name: Clean up local installer path
+  ansible.builtin.file:
+    path: /tmp/k3s_install
+    state: absent
+#  tags: [ install ]

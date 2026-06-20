@@ -1,2 +1,96 @@
 # roles/k3s-secondary/tasks/main.yml
 ---
+
+- name: Check if K3s Secondary is already installed
+  ansible.builtin.stat:
+    path: "{{ k3s_bin_dir }}"
+  register: k3s_secondary_installed
+#  tags: [ install, update ]
+
+
+# ============================================================================
+# 離線資產維護 (Air-gapped Local Assets Provision)
+# ============================================================================
+- name: Copy K3s binary to global bin
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
+    dest: "{{ k3s_bin_dir }}"
+    owner: root
+    group: root
+    mode: "0755"
+  when: not k3s_secondary_installed.stat.exists
+#  tags: [ install ]
+
+
+- name: Create temporary directory for K3s install script
+  ansible.builtin.file:
+    path: /tmp/k3s_install
+    state: directory
+    mode: "0755"
+  when: not k3s_secondary_installed.stat.exists
+#  tags: [ install ]
+
+
+- name: Copy K3s install script to node
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../files/k3s_packages/install.sh"
+    dest: /tmp/k3s_install/install.sh
+    mode: "0755"
+  when: not k3s_secondary_installed.stat.exists
+#  tags: [ install ]
+
+
+# ============================================================================
+# 手動建立 systemd 環境變數配置目錄與檔案
+# ============================================================================
+- name: Create systemd service directory for K3s
+  ansible.builtin.file:
+    path: /etc/systemd/system
+    state: directory
+    mode: "0755"
+  when: not k3s_secondary_installed.stat.exists
+
+
+- name: Explicitly Pre-configure K3s Service Environment File
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/k3s.service.env
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      K3S_URL=https://{{ groups['k3s_primary'][0] }}:{{ k3s_api_port }}
+      K3S_TOKEN={{ hostvars[groups['k3s_primary'][0]]['shared_k3s_token'] }}
+  when: not k3s_secondary_installed.stat.exists
+
+
+# ============================================================================
+# 加入 --node-ip 防火牆路由鎖定，移除會產生內訌的 environment 變數
+# ============================================================================
+- name: Join Secondary K3s Servers via VIP Entrance
+  ansible.builtin.shell: >
+    /tmp/k3s_install/install.sh server
+    --disable traefik
+    --node-taint CriticalAddonsOnly=true:NoSchedule
+    --tls-san {{ k3s_vip }}
+    --node-ip {{ ansible_default_ipv4.address }}
+    --node-external-ip {{ ansible_default_ipv4.address }}
+  environment:
+    INSTALL_K3S_SKIP_DOWNLOAD: "true"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+  when: not k3s_secondary_installed.stat.exists
+#  tags: [ install ]
+
+
+- name: Ensure Secondary K3s Service is Started and Enabled
+  ansible.builtin.systemd:
+    name: k3s
+    state: started
+    enabled: yes
+#  tags: [ install, update ]
+
+
+- name: Clean up local installer path
+  ansible.builtin.file:
+    path: /tmp/k3s_install
+    state: absent
+#  tags: [ install ]
