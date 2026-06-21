@@ -6,8 +6,10 @@
 # ============================================================================
 - hosts: k3s_cluster
   become: yes
+  tags: [ install, update ]
   pre_tasks:
     - name: "執行 init_nodes - Phase 1. 【 基礎建設配置 : 物理抹殺 Swap + K8s 核心模組 + 網路轉發 】"
+      tags: [ install, update ]
       debug:
         msg: "開始執行 roles/init"
   roles:
@@ -19,8 +21,10 @@
 # ============================================================================
 - hosts: storage
   become: yes
+  tags: [ install, update, nfs_server ]
   pre_tasks:
     - name: "執行 init_nodes - Phase 2. 【 基礎建設配置 : NFS-Server 】"
+      tags: [ install, update, nfs_server ]
       debug:
         msg: "開始執行 roles/nfs-server"
   roles:
@@ -32,8 +36,10 @@
 # ============================================================================
 - hosts: k3s_cluster
   become: yes
+  tags: [ install, update, storage ]
   pre_tasks:
     - name: "執行 init_nodes - Phase 3. 【 基礎建設配置 : NFS-Common 】"
+      tags: [ install, update, storage ]
       debug:
         msg: "開始執行 roles/nfs-common"
   roles:

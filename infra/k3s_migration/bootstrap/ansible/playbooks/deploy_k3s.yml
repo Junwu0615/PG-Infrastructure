@@ -6,8 +6,10 @@
 # ============================================================================
 - hosts: k3s_cluster
   become: yes
+  tags: [ install, update, registry ]
   pre_tasks:
     - name: "執行 deploy_k3s - Phase 1. 【 K3s 配置 : 私人 Host 域名資產配置 】"
+      tags: [ install, update, registry ]
       debug:
         msg: "開始執行 roles/registries"
   roles:
@@ -19,8 +21,10 @@
 # ============================================================================
 - hosts: k3s_servers
   become: yes
+  tags: [ install, update ]
   pre_tasks:
     - name: "執行 deploy_k3s - Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP ( VIP ) 】"
+      tags: [ install, update ]
       debug:
         msg: "開始執行 roles/keepalived"
   roles:
@@ -32,8 +36,10 @@
 # ============================================================================
 - hosts: k3s_servers
   gather_facts: no
+  tags: [ install, update, validation ]
   pre_tasks:
     - name: "執行 deploy_k3s - Phase 2.5. 【 K3s 配置 : Validation VIP 】"
+      tags: [ install, update, validation ]
       debug:
         msg: "開始執行 roles/validation-vip"
   roles:
@@ -45,8 +51,10 @@
 # ============================================================================
 - hosts: k3s_primary
   become: yes
+  tags: [ install, update ]
   pre_tasks:
     - name: "執行 deploy_k3s - Phase 3.1. 【 K3s 配置 : K3s Primary Server 】"
+      tags: [ install, update ]
       debug:
         msg: "開始執行 roles/k3s-primary"
   roles:
@@ -58,8 +66,10 @@
 # ============================================================================
 - hosts: k3s_secondary
   become: yes
+  tags: [ install, update ]
   pre_tasks:
     - name: "執行 deploy_k3s - Phase 3.2. 【 K3s 配置 : K3s Secondary Server 】"
+      tags: [ install, update ]
       debug:
         msg: "開始執行 roles/k3s-secondary"
   roles:
@@ -71,8 +81,10 @@
 # ============================================================================
 - hosts: k3s_servers
   become: yes
+  tags: [ install, update, validation ]
   pre_tasks:
     - name: "執行 deploy_k3s - Phase 3.3. 【 K3s 配置 : Validation Control Plane 】"
+      tags: [ install, update, validation ]
       debug:
         msg: "開始執行 roles/validation-control-plane"
   roles:
@@ -84,8 +96,10 @@
 # ============================================================================
 - hosts: k3s_agents
   become: yes
+  tags: [ install, update ]
   pre_tasks:
     - name: "執行 deploy_k3s - Phase 4. 【 K3s 配置 : K3s Agent 】"
+      tags: [ install, update ]
       debug:
         msg: "開始執行 roles/k3s_agents"
   roles:
@@ -97,9 +111,11 @@
 # ============================================================================
 - hosts: k3s_primary[0]
   become: yes
+  tags: [ install, update, validation ]
   gather_facts: no
   pre_tasks:
     - name: "執行 deploy_k3s - Phase 5. 【 K3s 配置 : Validation Cluster 叢集全域動態拓撲驗證 】"
+      tags: [ install, update, validation ]
       debug:
         msg: "開始執行 roles/validation-cluster"
   roles:
