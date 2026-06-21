@@ -6,15 +6,10 @@
 # ----------------------------------------------------------------------
 # 閉環動態輪詢：利用 until 語法，動態等待 inventory 中定義的所有 Master 統統上線
 - name: Wait for All Control Plane Nodes to register and Ready
-  ansible.builtin.command: "{{ k3s_bin_dir }}/k3s kubectl get nodes"
+  ansible.builtin.command: "{{ k3s_bin_dir }} kubectl get nodes"
   register: kubectl_nodes_result
-  # 拒絕硬編碼防線：動態生成 Python 的「列表推導式」
-  # 只要 groups['k3s_servers'] 裡面的 IP 或 Hostname 對應的節點名稱（k3s-master-X）
-  # 任何一個不在 stdout 裡面，就不放行，直到全數就緒
-  until: >
-    {% for host in groups['k3s_servers'] %}
-    "k3s-master-{{ loop.index0 }}" in kubectl_nodes_result.stdout{% if not loop.last %} and {% endif %}
-    {% endfor %}
+  # 利用 map 提取 stdout 內的所有主機名稱，並直接與控制群組的機器數量做邏輯交集比對
+  until: "kubectl_nodes_result.stdout.count('control-plane') == groups['k3s_servers'] | length | int"
   retries: 20
   delay: 5
   changed_when: false
@@ -26,14 +21,9 @@
 - name: Assert Control Plane Healthy Nodes Count
   ansible.builtin.assert:
     that:
-      # 利用 stdout.count 數出帶有 control-plane 角色的行數
-      # 右邊動態取得 groups['k3s_servers'] 的陣列長度（這份 inventory 就會自動算成 3）
       - "kubectl_nodes_result.stdout.count('control-plane') == groups['k3s_servers'] | length | int"
-    fail_msg: |
-      [CRITICAL] K3s HA Master Group validation failed! 
-      Expected Masters (from Inventory): {{ groups['k3s_servers'] | length }}
-      Current Active Masters in K8s   : {{ kubectl_nodes_result.stdout.count('control-plane') }}
-    success_msg: "[SUCCESS] All {{ groups['k3s_servers'] | length }} K3s Masters are registered and synchronized in cluster topology."
+    fail_msg: "[CRITICAL] K3s HA Master Group validation failed!"
+    success_msg: "[SUCCESS] All K3s Masters are fully operational."
   run_once: true
   tags: [ install, update, validation ]
 

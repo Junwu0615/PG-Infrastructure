@@ -15,12 +15,12 @@
 
 
 # ============================================================================
-# Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】
+# Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP ( VIP ) 】
 # ============================================================================
 - hosts: k3s_servers
   become: yes
   pre_tasks:
-    - name: "執行 deploy_k3s - Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP (VIP) 】"
+    - name: "執行 deploy_k3s - Phase 2. 【 K3s 配置 : 配置 Masters 的 Keepalived 虛擬 IP ( VIP ) 】"
       debug:
         msg: "開始執行 roles/keepalived"
   roles:

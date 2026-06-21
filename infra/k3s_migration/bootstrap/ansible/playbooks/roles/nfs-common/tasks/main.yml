@@ -15,7 +15,7 @@
   tags: [ install, update, storage ]
 
 
-# 安裝流程，僅在 nfs-common 未成功安裝時執行 (not in stdout)
+# 安裝流程，僅在 nfs-common 未成功安裝時執行 ( not in stdout )
 - block:
     # VM 創建讀寫目錄
     - name: Create local directory for offline NFS packages

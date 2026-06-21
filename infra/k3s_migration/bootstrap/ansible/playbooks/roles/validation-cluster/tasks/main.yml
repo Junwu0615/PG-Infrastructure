@@ -4,7 +4,7 @@
 # ----------------------------------------------------------------------
 # 【 K3s 配置 : Validation Cluster 叢集全域動態拓撲驗證 】
 # ----------------------------------------------------------------------
-# 1. 確保 Kubeconfig 權限與軟連結就緒 (Day N 確保防呆)
+# 1. 確保 Kubeconfig 權限與軟連結就緒 ( Day N 確保防呆 )
 # ----------------------------------------------------------------------
 - name: Ensure Local Root Kubeconfig Symlink Exists
   file:
@@ -32,24 +32,6 @@
 # 3. 閉環輪詢： 等待所有節點成功註冊且狀態為 Ready
 # ----------------------------------------------------------------------
 - name: Wait for all Dynamic Nodes to register and report Ready status
-  # 抓出目前 K8s 叢集中 Status.Condition 為 Ready 且為 True 的節點數量
-  shell: |
-    kubectl get nodes -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' | tr ' ' '\n' | grep -c '^True$'
-  register: ready_nodes_check
-  # 核心防線：給予 12 次 * 5 秒 = 60 秒的寬裕收斂時間，適應地端硬碟 I/O 延遲
-  retries: 12
-  delay: 5
-  until: ready_nodes_check.stdout | int == expected_nodes_count | int
-  run_once: true
-  delegate_to: "{{ groups['k3s_primary'][0] }}"
-  changed_when: false
-  tags: [ install, update, validation ]
-
-
-# ----------------------------------------------------------------------
-# 閉環輪詢： 等待所有節點成功註冊且狀態為 Ready
-# ----------------------------------------------------------------------
-- name: Wait for all Dynamic Nodes to register and report Ready status
   shell: |
     {{ k3s_bin_dir }} kubectl get nodes -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' | tr ' ' '\n' | grep -c '^True$'
   register: ready_nodes_check
@@ -63,19 +45,15 @@
 
 
 # ----------------------------------------------------------------------
-# 嚴格斷言校驗 ( 對齊全域叢集動態長度 )
+# 4. 嚴格斷言校驗 ( 對齊全域叢集動態長度 )
 # ----------------------------------------------------------------------
 - name: Assert Complete Cluster Topology Health
   assert:
     that:
       # 「全叢集 Ready 數」對齊「Inventory 全叢集總主機數」
       - ready_nodes_check.stdout | int == expected_nodes_count | int
-    fail_msg: |
-      [CRITICAL] Cluster validation failed! 
-      Expected Dynamic Ready Nodes: {{ expected_nodes_count }} 
-      Current Ready Nodes in K8s   : {{ ready_nodes_check.stdout | trim }}
-      Please check 'k3s kubectl get nodes' manually on Primary.
-    success_msg: "[SUCCESS] Infrastructure cluster topology perfectly converged! All {{ expected_nodes_count }} nodes are Ready."
+    fail_msg: "[CRITICAL] Cluster validation failed!"
+    success_msg: "[SUCCESS] Infrastructure cluster topology perfectly converged!"
   run_once: true
   delegate_to: "{{ groups['k3s_primary'][0] }}"
   tags: [ install, update, validation ]

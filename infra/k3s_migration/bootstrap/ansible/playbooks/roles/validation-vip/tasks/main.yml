@@ -4,7 +4,7 @@
 # ----------------------------------------------------------------------
 # 【 K3s 配置 : Validation VIP 】
 # ----------------------------------------------------------------------
-# 1. 蒐集網卡狀態（所有檢查的基礎底層數據）
+# 1. 蒐集網卡狀態（ 所有檢查的基礎底層數據 ）
 - name: Check VIP Exists
   shell: ip addr show
   register: vip_result
@@ -12,7 +12,7 @@
   tags: [ install, update, validation ]
   
 
-# 2. 檢查 Keepalived 服務狀態（確保三台機器的 Daemon 都是活著）
+# 2. 檢查 Keepalived 服務狀態（ 確保三台機器的 Daemon 都是活著 ）
 - name: Check Keepalived State
   shell: systemctl is-active keepalived
   register: keepalived_state
@@ -27,7 +27,7 @@
   tags: [ install, update, validation ]
 
 
-# 3. 動態驗證 VIP 拓撲（根據 group_vars 定義動態判定）
+# 3. 動態驗證 VIP 拓撲（ 根據 group_vars 定義動態判定 ）
 - name: Validate VIP Ownership Based on Role
   assert:
     that:
@@ -42,7 +42,7 @@
   tags: [ install, update, validation ]
 
 
-# 4. 統計當前節點的 VIP 數量（未來 Debug 腦裂時的指標）
+# 4. 統計當前節點的 VIP 數量（ 未來 Debug 腦裂時的指標 ）
 - name: Count VIP Instance
   shell: |
     ip -4 addr show | grep -c "{{ k3s_vip }}"

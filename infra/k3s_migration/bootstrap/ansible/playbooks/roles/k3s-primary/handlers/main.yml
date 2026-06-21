@@ -7,6 +7,7 @@
     state: restarted
   register: k3s_primary_restart_result
 
+
 # 防禦性同步：既然重啟了 Primary，就必須在 Handler 內原地等待 6443 埠口重新吐出流量
 # 否則 Ansible 會直接跳到下一個 Role，此時 Secondary 會因為找不到 Primary API 而直接炸裂
 - name: Wait For Primary API Post-Restart
