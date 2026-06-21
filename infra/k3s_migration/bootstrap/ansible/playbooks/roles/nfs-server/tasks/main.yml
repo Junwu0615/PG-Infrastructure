@@ -39,11 +39,11 @@
         patterns: "*.deb"
       register: server_deb_files
 
-    # 使用不佔日誌空間的極簡精準 loop 寫法
-    - name: Install NFS Server via local deb files (Bulk Install)
-      apt:
-        deb: "{{ item }}"
-      with_items: "{{ server_deb_files.files | map(attribute='path') | list }}"
+    # 使用 dpkg 批次安裝，並連跑兩次以自動解除迴圈依賴 ( Dependency Hell )
+    - name: Install NFS Server via local deb files (Bulk Install via dpkg)
+      shell: "dpkg -i /tmp/nfs_server_packages/*.deb || dpkg -i /tmp/nfs_server_packages/*.deb"
+      register: dpkg_result
+      changed_when: "'Setting up' in dpkg_result.stdout"
 
     - name: Cleanup temporary NFS Server package directory
       file:
