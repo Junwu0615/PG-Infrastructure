@@ -230,7 +230,7 @@ resource "local_file" "ansible_inventory" {
 }
 
 # 7. wait_for_ssh
-resource "null_resource" "wait_for_ssh" {
+resource "terraform_data" "wait_for_ssh" {
   depends_on = [
     local_file.ansible_inventory,
     libvirt_domain.k3s_masters,
@@ -286,17 +286,17 @@ resource "null_resource" "wait_for_ssh" {
 }
 
 # 8. 執行佈署
-resource "null_resource" "ansible_trigger" {
+resource "terraform_data" "ansible_trigger" {
   depends_on = [
     local_file.ansible_inventory,
     libvirt_domain.k3s_masters,
     libvirt_domain.k3s_agents,
     # libvirt_domain.gateway,
-    null_resource.wait_for_ssh,
+    terraform_data.wait_for_ssh,
   ]
 
   # 當節點數量改變時，強制重新觸發 Ansible
-  triggers = {
+  triggers_replace = {
     master_count = var.master_count
     agent_count  = var.agent_count
     inventory_config = local_file.ansible_inventory.content
