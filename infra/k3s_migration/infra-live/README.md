@@ -1,26 +1,22 @@
 ## *K3s Migration*
 
-### *A.　部署框架演進*
-```
-Evolution: MiniKube ➔ K3d ➔ K3s ➔ ✅ K3s Migration ➔ Kubeadm ➔ GKE
+<br>
 
-Summary:
-    # GitOps 架構 需極嚴謹考量 ( 包括: 服務依賴 / 環境切換 / 後期維運 / ... ) → 期間重構 3 次結構樹
-        - Namespace
-        - AppProject
-        - Application
-        - ApplicationSet
-    # 遇到 OOM Kill 問題 → 折衷改為 Docker Compose + K3s 混合架構
-    # Argo 同步機制坑 ( CRD / validatingwebhookconfigurations )
-    # Helm Chart「諸侯割據」踩雷現象 → search: 渲染大法
-    # 原生服務遷移坑 → 無法由 compose 先行體驗 而是直用 k8s 架起 → 注意力易發散
-    # 各類狀況如何 DEBUG
-        - configmap 設定檔
-        - pod describe 病歷表
-        - o yaml 查看實際部署設定
-        - ...
-    # 完整實施 k8s 框架下各類嘗試 ( E.　收斂階段 )
-```
+### *A.　部署框架演進*
+- #### *Evolution*
+  - #### *✔　MiniKube*
+  - #### *✔　K3d*
+  - #### *✔　K3s*
+  - #### *✅　K3s Migration*
+  - #### *✘　Kubeadm*
+  - #### *✘　GKE*
+
+- #### *Summary*
+  - #### *完成 GitOps Repository 架構重構與標準化*
+  - #### *建立 Docker Compose + K3s 混合部署模型*
+  - #### *深入理解 ArgoCD、Helm 與 Kubernetes 維運機制*
+  - #### *建立系統化故障排查與驗證流程*
+  - #### *完成平台復原、部署治理與 GitOps 量化驗證*
 
 <br>
 

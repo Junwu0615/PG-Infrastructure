@@ -1,29 +1,21 @@
 ## *K3d*
 
+<br>
 
 ### *A.　部署框架演進*
-```
-Evolution: MiniKube ➔ ✅ K3d ➔ K3s ➔ K3s Migration ➔ Kubeadm ➔ GKE
+- #### *Evolution*
+  - #### *✔　MiniKube*
+  - #### *✅　K3d*
+  - #### *✘　K3s*
+  - #### *✘　K3s Migration*
+  - #### *✘　Kubeadm*
+  - #### *✘　GKE*
 
-Summary:
-    # 👁️ 測試 10 - 14
-
-------
-
-# 開始叢集
-k3d cluster start mycluster
-
-# 停止叢集 ( 正常關機 )
-k3d cluster stop mycluster
-
-# 刪除叢集（ 所有 Pod, Service, ConfigMap ）
-k3d cluster delete mycluster
-
-# 檢查狀態
-k3d cluster list
-
-# ⚠️ 實際上線 / 遇到異常斷電 ... 等 ( 大概依賴工具的強壯性ㄌ )
-```
+- #### *Summary*
+  - #### *完成多節點 Kubernetes 調度與服務治理驗證*
+  - #### *驗證 Node Affinity、Readiness Probe 與負載平衡機制*
+  - #### *建立高可用部署與零停機更新實踐經驗*
+  - #### *深化 Kubernetes 工作負載運行模型理解*
 
 <br>
 

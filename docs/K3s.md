@@ -1,30 +1,22 @@
 ## *K3s*
 
+<br>
 
 ### *A.　部署框架演進*
-```
-Evolution: MiniKube ➔ K3d ➔ ✅ K3s ➔ K3s Migration ➔ Kubeadm ➔ GKE
+- #### *Evolution*
+  - #### *✔　MiniKube*
+  - #### *✔　K3d*
+  - #### *✅　K3s*
+  - #### *✘　K3s Migration*
+  - #### *✘　Kubeadm*
+  - #### *✘　GKE*
 
-Summary:
-    # Ingress 坑: 如何讓對外開放服務打通管道
-    # 👁️ 測試 15 - 16
-
-------
-
-當從 MiniKube 進化到 K3s + VM 時，生命週期的管理對象會改變：
-    - Terraform 階段：負責機器的「生與死」（ 建立 VM 或銷毀 VM ）
-    - Ansible 階段：負責機器的「初始化」（ 安裝 K3s、設定 Ingress ）
-    - K8s 本身：一旦機器開著，K8s 服務就是常駐的（ Daemon ），不再需要手動 start 它
-    
-
-k3d → k3s
-* K3d： 適合開發、測試 Helm 邏輯、練習節點調度
-* K3s： 適合部署在 VM 或實體機（ 如 Raspberry Pi ）上
-* 差異點：
-    - 網路： K3s 在真實環境中會接觸到 SSH、實體網路介面、Firewall ( ufw/iptables )
-    - 儲存： K3d 的 Persistent Volume 是掛載 Docker Volume，K3s 則會直接掛載 Linux 主機的目錄
-    - 負載平衡： K3s 內建 Service LB，但在實體環境可能需要搭配 MetalLB 才能獲得真實的 External IP
-```
+- #### *Summary*
+  - #### *完成 Kubernetes 從容器模擬環境遷移至 VM 基礎設施*
+  - #### *建立 Terraform + Ansible 自動化佈建流程*
+  - #### *完成 K3s 多節點叢集建置與節點管理*
+  - #### *打通 Ingress、網路轉發與外部存取鏈路*
+  - #### *建立 Homelab Kubernetes 平台基礎架構*
 
 <br>
 

@@ -1,27 +1,24 @@
 ## *MiniKube*
 
+<br>
 
 ### *A.　部署框架演進*
-```
-Evolution: ✅ MiniKube ➔ K3d ➔ K3s ➔ K3s Migration ➔ Kubeadm ➔ GKE
+- #### *Evolution*
+  - #### *✅　MiniKube*
+  - #### *✘　K3d*
+  - #### *✘　K3s*
+  - #### *✘　K3s Migration*
+  - #### *✘　Kubeadm*
+  - #### *✘　GKE*
 
-Summary:
-    # 👁️ 測試 0 - 5
+- #### *Summary*
+  - #### *建立 Kubernetes 核心概念與資源模型認知*
+  - #### *完成 Helm 部署流程與應用生命週期驗證*
+  - #### *驗證 Pod 自癒、滾動更新與配置管理機制*
+  - #### *建立 Kubernetes 基礎故障排查能力*
 
-------
+<br>
 
-k8s-manifests : 原始部署方式
-helm : 進階抽象部署方式 → ⚠️ 優先體驗
-
-# [ Con't Makefile ] 進入虛擬環境
-eval $(minikube docker-env)
-
-# [ Con't Makefile ] 退出虛擬環境
-eval $(minikube docker-env -u)
-
-# 確認當前環境位置
-docker info | grep Name
-```
 
 | 組件 | 對應項目 | 若更新是否<br>自動重啟 Pod | 核心作用 |
 |--:|:--:|:--:|:--|
