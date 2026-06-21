@@ -16,7 +16,7 @@
 
 - name: Ensure Global Kubectl Command Symlink Exists
   file:
-    src: /usr/local/bin/k3s
+    src: "{{ k3s_bin_dir }}"
     dest: /usr/local/bin/kubectl
     state: link
     force: yes
@@ -30,7 +30,7 @@
 # ============================================================================
 - name: Check if K3s Binary Already Exists
   stat:
-    path: /usr/local/bin/k3s
+    path: "{{ k3s_bin_dir }}"
   register: k3s_bin_check
   tags: [ install, update ]
 
@@ -40,7 +40,7 @@
 # ============================================================================
 - name: Remove Wrong K3s Directory
   file:
-    path: /usr/local/bin/k3s
+    path: "{{ k3s_bin_dir }}"
     state: absent
   when:
     - not k3s_bin_check.stat.exists
@@ -61,7 +61,7 @@
 - name: Install K3s Binary
   copy:
     src: "{{ playbook_dir }}/../../files/k3s_packages/k3s"
-    dest: /usr/local/bin/k3s
+    dest: "{{ k3s_bin_dir }}"
     owner: root
     group: root
     mode: "0755"
@@ -123,7 +123,7 @@
       ExecStartPre=/sbin/modprobe br_netfilter
       ExecStartPre=/sbin/modprobe overlay
 
-      ExecStart=/usr/local/bin/k3s server
+      ExecStart={{ k3s_bin_dir }} server
 
       KillMode=process
       Delegate=yes
