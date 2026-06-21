@@ -51,34 +51,33 @@ keepalived_auth_pass: "k3s_ha_secret"
 # ============================================================================
 # 1. 動態生成節點角色與權重
 # 規則：k3s_primary[0] 強制鎖定為 MASTER (Priority: 150)，其餘 secondary 依序遞減權重
-keepalived_nodes: >
+keepalived_nodes: >-
   {% set nodes = {} %}
   {% for host in groups['k3s_servers'] %}
     {% if host in groups['k3s_primary'] %}
-      {% re = nodes.update({ host: {'state': 'MASTER', 'priority': 150} }) %}
+      {% if nodes.update({ host: {'state': 'MASTER', 'priority': 150} }) %}{% endif %}
     {% else %}
-      {# 其餘次要節點權重依序遞減，確保競選順序：120, 110, 100... #}
       {% set priority = 130 - (loop.index * 10) %}
-      {% re = nodes.update({ host: {'state': 'BACKUP', 'priority': priority} }) %}
+      {% if nodes.update({ host: {'state': 'BACKUP', 'priority': priority} }) %}{% endif %}
     {% endif %}
   {% endfor %}
-  {{ nodes }}
+  {{ nodes | to_json }}
 
 # 2. 動態生成 Peer 對等體清單
-# 規則：每台機器的 Peer，就是「除了自己以外」的其他所有 k3s_servers IP
-keepalived_peers: >
+# 規則：每台機器的 Peer，就是「除了自己以外」的其餘 IP
+keepalived_peers: >-
   {% set peers_map = {} %}
   {% for host in groups['k3s_servers'] %}
     {% set current_host = host %}
     {% set peers_list = [] %}
     {% for peer in groups['k3s_servers'] %}
       {% if peer != current_host %}
-        {% append = peers_list.append(peer) %}
+        {% if peers_list.append(peer) %}{% endif %}
       {% endif %}
     {% endfor %}
-    {% re = peers_map.update({ current_host: peers_list }) %}
+    {% if peers_map.update({ current_host: peers_list }) %}{% endif %}
   {% endfor %}
-  {{ peers_map }}
+  {{ peers_map | to_json }}
 
 
 # 註冊 host 變數清單

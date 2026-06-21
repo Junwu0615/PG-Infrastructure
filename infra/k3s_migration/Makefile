@@ -40,8 +40,8 @@ FILTER_CHART_DIRS := \
 
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 
-AnsibleTags :=
-AnsibleDetail :=
+TAGS :=
+VARS :=
 SHELL := /bin/bash
 
 
@@ -221,7 +221,7 @@ $(CHART_DIRS):
 root-app:
 	@echo "🚀 開始同步 GitOps 根應用 (root-app) ..."
 	@if [ -z "$(ENV)" ]; then \
-		echo "Error: 必須指定 ENV，ex: make root-app ENV=homelab-test"; \
+		echo "[ERROR] 必須指定 ENV，ex: make root-app ENV=homelab-test"; \
 		exit 1; \
 	fi
 	@echo "🔍 正在檢查基礎設施 Webhook 安全防禦狀態 ..."
@@ -316,7 +316,7 @@ label-nodes:
 see-secrets:
 	@echo "* 檢視 Secrets 明文 (base64 解碼)" && echo
 	@if [ -z "$(ENV)" ]; then \
-		echo "Error: 必須指定 ENV，ex: make see-secrets ENV=homelab-test"; \
+		echo "[ERROR] 必須指定 ENV，ex: make see-secrets ENV=homelab-test"; \
 		exit 1; \
 	fi
 	@echo "* [1] ArgoCD UI 密碼"
@@ -338,7 +338,7 @@ see-secrets:
 k9s-fav:
 	@echo "* 初始化/更新 k9s 收藏設定"
 	@if [ -z "$(ENV)" ]; then \
-		echo "Error: 必須指定 ENV，ex: make k9s-fav ENV=homelab-test"; \
+		echo "[ERROR] 必須指定 ENV，ex: make k9s-fav ENV=homelab-test"; \
 		exit 1; \
 	fi
 	rm -rf /home/$(LINUX_USER)/.local/share/k9s/clusters/default/
@@ -398,12 +398,8 @@ reset-kubectl:
 	cat ~/.kube/config | head -n 15
 
 	# 5. 強制覆蓋系統級環境變數
-	@echo "  [1] 手動輸入指令覆蓋底層設置:" && \
-	echo "  ➡️ echo 'export KUBECONFIG="$HOME/.kube/config"' >> ~/.bashrc"
-	@echo "  [2] 手動輸入指令覆蓋底層設置:"  && \
-	echo "  ➡️ source ~/.bashrc"
-	@echo "  [3] 驗證:"  && \
-	echo "  ➡️ kubectl get nodes -o wide"
+	echo 'export KUBECONFIG="/home/$(LINUX_USER)/.kube/config"' >> ~/.bashrc
+	source ~/.bashrc
 	@echo "✅  <make reset-kubectl> done."
 
 status:
@@ -412,20 +408,28 @@ status:
 	kubectl get pods -A -o wide
 	@echo "✅  <make status> done."
 
+
+# 區域變數綁定：只在區塊內生效，精簡化長度，同時維持語意
+trigger-ansible: Files         := "site.yml"
+trigger-ansible: AnsibleTags   := $(TAGS)
+trigger-ansible: AnsibleDetail := $(VARS)
 trigger-ansible:
-	@echo "* 觸發指定 Ansible 腳本 ..."
-	@if [ -z "$(Files)" ]; then \
-		echo "Error: 必須指定服務名稱，ex: make trigger-ansible Files=[xxx.yml]"; \
-		exit 1; \
-	fi
+	@echo "* 手動觸發 Ansible 指定腳本 ..."
+	@echo "🧹 [INFO] 正在清理殘留的 Ansible 執行與連線快取 (ControlPersist)..."
 	rm -rf ~/.ansible/tmp/* ~/.ansible/cp/*
-	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_ROOT_PATH)/$(Files) --tags $(AnsibleTags) $(AnsibleDetail)
-	@echo "✅  <make trigger-ansible Files=$(Files)> done."
+	
+	# 🎯 使用精簡後的區域變數，可讀性大幅提升，一眼就知道誰是誰
+	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_ROOT_PATH)/$(Files) \
+		$(if $(AnsibleTags),--tags $(AnsibleTags),) \
+		$(AnsibleDetail)
+		
+	@echo "✅ <make trigger-ansible Files=$(Files)> done."
+
 
 vm-power:
 	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"
 	@if [ -z "$(action)" ]; then \
-		echo "Error: ex: make vm-power action=start"; \
+		echo "[ERROR] ex: make vm-power action=start"; \
 		exit 1; \
 	fi
 	@bash archive/scripts/vm-power.sh $(action)

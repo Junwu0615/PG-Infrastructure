@@ -52,7 +52,7 @@
 - name: Validate keepalived node definition
   assert:
     that:
-      - inventory_hostname in keepalived_nodes
+      - inventory_hostname in (keepalived_nodes | from_yaml)
     fail_msg: "Missing keepalived_nodes definition for {{ inventory_hostname }}"
   tags: [ install, update ]
 
@@ -133,5 +133,5 @@
   changed_when: false
   when:
     - not keepalived_config_check.stat.exists
-    - keepalived_nodes[inventory_hostname].state == 'MASTER'
+    - (keepalived_nodes | from_yaml)[inventory_hostname].state == 'MASTER'
   tags: [ install ]

@@ -31,14 +31,14 @@
 - name: Validate VIP Ownership Based on Role
   assert:
     that:
-      - (keepalived_nodes[inventory_hostname].state == 'MASTER' and k3s_vip in vip_result.stdout) or
-        (keepalived_nodes[inventory_hostname].state == 'BACKUP' and k3s_vip not in vip_result.stdout)
+      - ((keepalived_nodes | from_yaml)[inventory_hostname].state == 'MASTER' and k3s_vip in vip_result.stdout) or
+        ((keepalived_nodes | from_yaml)[inventory_hostname].state == 'BACKUP' and k3s_vip not in vip_result.stdout)
     fail_msg: |
       [CRITICAL] VIP Routing Conflict! 
-      Expected State: {{ keepalived_nodes[inventory_hostname].state }}
+      Expected State: {{ (keepalived_nodes | from_yaml)[inventory_hostname].state }}
       But VIP {{ k3s_vip }} presence mismatched on {{ inventory_hostname }}.
     success_msg: |
-      [SUCCESS] VIP Routing Topology is correct on {{ inventory_hostname }} (As {{ keepalived_nodes[inventory_hostname].state }}).
+      [SUCCESS] VIP Routing Topology is correct on {{ inventory_hostname }} (As {{ (keepalived_nodes | from_yaml)[inventory_hostname].state }}).
   tags: [ install, update, validation ]
 
 
@@ -54,5 +54,5 @@
 
 - name: Report Topology Status
   debug:
-    msg: "Node: {{ inventory_hostname }} | Role: {{ keepalived_nodes[inventory_hostname].state }} | VIP Count: {{ vip_count.stdout }}"
+    msg: "Node: {{ inventory_hostname }} | Role: {{ (keepalived_nodes | from_yaml)[inventory_hostname].state }} | VIP Count: {{ vip_count.stdout }}"
   tags: [ install, update, validation ]

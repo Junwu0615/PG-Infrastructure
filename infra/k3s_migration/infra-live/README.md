@@ -38,11 +38,12 @@ Summary:
     make apply VAR_FILE=./env_tfvars/homelab-test.tfvars
     make apply VAR_FILE=./env_tfvars/homelab-beta.tfvars
     
-    4. 驗證 Iac 狀態
-    make trigger-ansible Files=site.yml AnsibleTags=validation AnsibleDetail=-vv
+    4. 驗證 Infrastructure as Code 狀態
+    make trigger-ansible TAGS=validation VARS=-vv
     
     5. 重新設定 kubectl 權證設定 ( kubectl 設定檔位移 )
     make reset-kubectl
+
 
 ☆ 其他
     # 清除預載資源佔用
@@ -52,10 +53,10 @@ Summary:
     make destroy
 
     ⭐ 手動安裝整包 Ansible ( Day 0 )
-    make trigger-ansible Files=site.yml AnsibleTags=install AnsibleDetail=-vv
+    make trigger-ansible TAGS=install VARS=-vv
     
     ⭐ 手動更新整包 Ansible ( Day N )
-    make trigger-ansible Files=site.yml AnsibleTags=update AnsibleDetail=-vv
+    make trigger-ansible TAGS=update VARS=-vv
     
     # 檢視狀態 ( pods + nodes )
     make status
@@ -343,13 +344,13 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 ☆ 其他
     ☆ Ansible [ ⭐ VM 初始化即一步到位 ] 
         # 更新 VM Host 設定 => 可以拉取 registry images
-        make trigger-ansible Files=site.yml AnsibleTags=registry AnsibleDetail=-vv
+        make trigger-ansible TAGS=registry VARS=-vv
         
         # 更新 VM Storage 設定 => SQLite 持久化
-        make trigger-ansible Files=playbooks/deploy_storage.yml AnsibleDetail=-vv
+        make trigger-ansible Files=playbooks/deploy_storage.yml VARS=-vv
         
         # 手動初始化節點
-        make trigger-ansible Files=playbooks/init_nodes.yml AnsibleDetail=-vv
+        make trigger-ansible Files=playbooks/init_nodes.yml VARS=-vv
 
     ☆ 更新 k9s 最愛設定
         # 備份原先設定
@@ -899,7 +900,7 @@ tempo-homelab-test              tempo                                   nginx   
 
 [ ⭐ VM 初始化即一步到位 ] NFS 掛載測試
 
-make trigger-ansible Files=site.yml AnsibleTags=storage AnsibleDetail=-vv
+make trigger-ansible TAGS=storage VARS=-vv
 $ kubectl get pvc -n pg-apps-homelab-test
 NAME             STATUS   VOLUME                            CAPACITY   ACCESS MODES   STORAGECLASS                                 VOLUMEATTRIBUTESCLASS   AGE
 sqlite-nfs-pvc   Bound    nfs-storage-homelab-test-nfs-pv   2Gi        RWO            nfs-storage-homelab-test-nfs-storage-class   <unset>                 83m
