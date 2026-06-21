@@ -218,12 +218,9 @@ $(CHART_DIRS):
 	    echo "* ℹ️ 該 Chart 無包含任何 CustomResourceDefinition，跳過"; \
 	fi
 
+root-app: ENV := "homelab-test"
 root-app:
 	@echo "🚀 開始同步 GitOps 根應用 (root-app) ..."
-	@if [ -z "$(ENV)" ]; then \
-		echo "[ERROR] 必須指定 ENV，ex: make root-app ENV=homelab-test"; \
-		exit 1; \
-	fi
 	@echo "🔍 正在檢查基礎設施 Webhook 安全防禦狀態 ..."
 	@if kubectl get validatingwebhookconfigurations ingress-nginx-$(ENV)-admission >/dev/null 2>&1; then \
 		CABUNDLE=$$(kubectl get validatingwebhookconfigurations ingress-nginx-$(ENV)-admission -o jsonpath='{.webhooks[0].clientConfig.caBundle}' 2>/dev/null); \
@@ -240,19 +237,16 @@ root-app:
 			echo "✅ Nginx Webhook 憑證 (caBundle) 已就緒，跳過清理流程。"; \
 		fi \
 	fi
-
 	@echo "📦 正在套用根入口宣告並開啟自動剪枝 ..."
 	@kubectl apply -f "$(INFRA_LIVE_DIR)/argocd/root-app.yaml"
 	@kubectl patch application homelab-root -n argocd --type merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true},"syncOptions":["CreateNamespace=true","ServerSideApply=true","PruneLast=true"]}}}' 2>/dev/null || true
 
-	# refresh=hard 能強制 Argo CD 丟棄 Git 快取，重新解析 Kustomization 的註解開關
 	@echo "🔄 強制 Argo CD 丟棄快取並精準對齊 (Hard Refresh) ..."
 	@kubectl annotate application homelab-root -n argocd argocd.argoproj.io/refresh=hard --overwrite
 
 	@echo "⏳ 正在執行同步與舊資源剪枝 (Prune) 請稍候 ..."
 	@kubectl wait --for=jsonpath='{.status.sync.status}'=Synced application/homelab-root -n argocd --timeout=90s || true
-
-	@echo "✅ <make root-app> done."
+	@echo "✅ <make root-app ENV=$(ENV)> done."
 
 upgrade-ingress:
 	@echo "* 初始化/更新 ingress-nginx"
@@ -313,12 +307,9 @@ label-nodes:
 	@kubectl get nodes -L workload-class -L hardware-type -L traffic-zone -L kubernetes.io/hostname
 	@echo "✅  <make label-nodes> done."
 
+see-secrets: ENV := "homelab-test"
 see-secrets:
 	@echo "* 檢視 Secrets 明文 (base64 解碼)" && echo
-	@if [ -z "$(ENV)" ]; then \
-		echo "[ERROR] 必須指定 ENV，ex: make see-secrets ENV=homelab-test"; \
-		exit 1; \
-	fi
 	@echo "* [1] ArgoCD UI 密碼"
 	kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d && echo && echo
 	@echo "* [2] Gitlab 連線設置 (url + username + password)"
@@ -333,19 +324,16 @@ see-secrets:
 	kubectl get secret postgresql-credentials -n postgresql-$(ENV) -o jsonpath="{.data.replication-password}" | base64 -d && echo && echo
 	@#echo "* [6] Grafana UI 密碼"
 	#kubectl get secret grafana-$(ENV) -n grafana-$(ENV) -o jsonpath="{.data.adminPassword}" | base64 -d && echo && echo
-	@echo "✅  <make see-secrets> done."
+	@echo "✅  <make see-secrets ENV=$(ENV)> done."
 
+k9s-fav: ENV := "homelab-test"
 k9s-fav:
 	@echo "* 初始化/更新 k9s 收藏設定"
-	@if [ -z "$(ENV)" ]; then \
-		echo "[ERROR] 必須指定 ENV，ex: make k9s-fav ENV=homelab-test"; \
-		exit 1; \
-	fi
 	rm -rf /home/$(LINUX_USER)/.local/share/k9s/clusters/default/
 	k9s --kubeconfig ~/.kube/config
 	sudo cp ./archive/k9s-fav/$(ENV).yaml ~/.local/share/k9s/clusters/default/default/config.yaml
 	cat ~/.local/share/k9s/clusters/default/default/config.yaml
-	@echo "✅  <make k9s-fav> done."
+	@echo "✅  <make k9s-fav ENV=$(ENV)> done."
 
 init:
 	@echo "* [Terraform] 初始化配置"
@@ -424,7 +412,6 @@ trigger-ansible:
 		$(AnsibleDetail)
 		
 	@echo "✅ <make trigger-ansible Files=$(Files)> done."
-
 
 vm-power:
 	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"
