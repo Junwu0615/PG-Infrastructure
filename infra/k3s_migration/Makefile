@@ -341,6 +341,7 @@ init:
 	terraform init --upgrade
 	@echo "✅  <make init> done."
 
+apply: VAR_FILE := $(VARS)
 apply:
 	@echo "* [Terraform] 安裝 VM 環境"
 	cd $(TERRAFORM_PATH) && \

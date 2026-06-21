@@ -64,13 +64,16 @@ curl -sS https://webinstall.dev/k9s | bash
     * 當前使用設定
     kubectl config current-context --kubeconfig ~/.kube/config-k3s
     
+    ⭐ 綁定 k8s 集群
+    echo "alias k9s='k9s --kubeconfig /home/pc/.kube/config'" >> ~/.bashrc
+    
     * 軟連結
-    # 確認底下文件
-    ls ~/.kube
-    # 備份原有的預設 config
-    mv ~/.kube/config ~/.kube/config.bak
-    # 建立軟連結
-    ln -s ~/.kube/config-k3s ~/.kube/config
+        # 確認底下文件
+        ls ~/.kube
+        # 備份原有的預設 config
+        mv ~/.kube/config ~/.kube/config.bak
+        # 建立軟連結
+        ln -s ~/.kube/config-k3s ~/.kube/config
 
 ------
 # 按 0： 切換到「所有命名空間」

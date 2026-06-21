@@ -35,8 +35,8 @@ Summary:
     make init
     
     3. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) → SSH 無密碼登入
-    make apply VAR_FILE=./env_tfvars/homelab-test.tfvars
-    make apply VAR_FILE=./env_tfvars/homelab-beta.tfvars
+    make apply VARS=./env_tfvars/homelab-test.tfvars
+    make apply VARS=./env_tfvars/homelab-beta.tfvars
     
     4. 驗證 Infrastructure as Code 狀態
     make trigger-ansible TAGS=validation VARS=-vv
