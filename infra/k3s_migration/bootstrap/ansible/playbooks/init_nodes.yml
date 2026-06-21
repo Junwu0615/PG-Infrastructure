@@ -36,10 +36,10 @@
 # ============================================================================
 - hosts: k3s_cluster
   become: yes
-  tags: [ install, update, storage ]
+  tags: [ install, update, nfs_common ]
   pre_tasks:
     - name: "執行 init_nodes - Phase 3. 【 基礎建設配置 : NFS-Common 】"
-      tags: [ install, update, storage ]
+      tags: [ install, update, nfs_common ]
       debug:
         msg: "開始執行 roles/nfs-common"
   roles:

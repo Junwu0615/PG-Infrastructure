@@ -900,7 +900,7 @@ tempo-homelab-test              tempo                                   nginx   
 
 [ ⭐ VM 初始化即一步到位 ] NFS 掛載測試
 
-make trigger-ansible TAGS=storage VARS=-vv
+make trigger-ansible TAGS=nfs_common VARS=-vv
 $ kubectl get pvc -n pg-apps-homelab-test
 NAME             STATUS   VOLUME                            CAPACITY   ACCESS MODES   STORAGECLASS                                 VOLUMEATTRIBUTESCLASS   AGE
 sqlite-nfs-pvc   Bound    nfs-storage-homelab-test-nfs-pv   2Gi        RWO            nfs-storage-homelab-test-nfs-storage-class   <unset>                 83m

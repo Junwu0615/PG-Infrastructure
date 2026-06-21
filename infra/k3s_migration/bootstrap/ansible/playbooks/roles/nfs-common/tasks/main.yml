@@ -1,67 +1,40 @@
-# roles/storage/tasks/main.yml
+# roles/nfs-common/tasks/main.yml
 ---
 
 # ----------------------------------------------------------------------
 # 【 基礎建設配置 : NFS-Common 】
 # ----------------------------------------------------------------------
-
-# 確認是否已安裝
-- name: Check if nfs-common is already installed
-  command: dpkg-query -W -f='${Status}' nfs-common
-  register: nfs_check
-  failed_when: false
-  changed_when: false
+# 1. 建立本地離線包持久化快取目錄（ 不刪除，作為第二次執行的比對基準 ）
+- name: Ensure local directory for offline NFS Client packages exists
+  file:
+    path: /var/cache/local_debs/nfs_client
+    state: directory
+    mode: '0755'
   when: ansible_os_family == "Debian"
-  tags: [ install, update, storage ]
+  tags: [ install, update, nfs_common ]
 
+# 2. 複製離線包（ copy 自帶冪等性，檔案若存在且沒變就不會重複傳輸 ）
+- name: Synchronize offline NFS Client packages to nodes
+  copy:
+    src: "{{ playbook_dir }}/../../files/nfs_packages/"
+    dest: /var/cache/local_debs/nfs_client/
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+  tags: [ install, update, nfs_common ]
 
-# 安裝流程，僅在 nfs-common 未成功安裝時執行 ( not in stdout )
-- block:
-    # VM 創建讀寫目錄
-    - name: Create local directory for offline NFS packages
-      file:
-        path: /tmp/nfs_packages
-        state: directory
-        mode: '0755'
+# 3. Client 端的 dpkg 流
+- name: Install NFS Client via local deb files (Idempotent Bulk Install)
+  shell: "dpkg -i /var/cache/local_debs/nfs_client/*.deb || dpkg -i /var/cache/local_debs/nfs_client/*.deb"
+  register: dpkg_result
+  changed_when: "'Setting up' in dpkg_result.stdout"
+  when: ansible_os_family == "Debian"
+  tags: [ install, update, nfs_common ]
 
-    # 資源複製到 VM
-    - name: Copy offline NFS packages to nodes
-      copy:
-        src: "../../../../files/nfs_packages/"
-        dest: /tmp/nfs_packages/
-        mode: '0644'
-
-    # 使用 apt 模組直接指定 local .deb 檔案，比 shell dpkg -i 更具備冪等性感知
-    - name: Find copied deb files
-      find:
-        paths: /tmp/nfs_packages
-        patterns: "*.deb"
-      register: deb_files
-
-    - name: Install NFS client via local deb files
-      apt:
-#        deb: "{{ item.path }}"
-        deb: "{{ item }}"
-#      loop: "{{ deb_files.files }}"
-      loop: "{{ deb_files.files | map(attribute='path') | list }}"
-
-    # 清理暫存檔案，保持節點乾淨
-    - name: Cleanup temporary NFS package directory
-      file:
-        path: /tmp/nfs_packages
-        state: absent
-
-  when:
-    - ansible_os_family == "Debian"
-    - "'ok installed' not in nfs_check.stdout"
-  tags: [ install, update, storage ]
-
-
-# 服務激活與維護
+# 4. 服務激活與維護
 - name: Ensure RPC bind services are running and enabled
   systemd:
     name: rpcbind
     state: started
     enabled: yes
   when: ansible_os_family == "Debian"
-  tags: [ install, update, storage ]
+  tags: [ install, update, nfs_common ]

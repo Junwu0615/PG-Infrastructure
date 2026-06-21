@@ -5,56 +5,37 @@
 # 【 基礎建設配置 : NFS-Server 】
 # ----------------------------------------------------------------------
 - name: Gather service facts
-  # 收集 systemd 服務 供後續判斷
   ansible.builtin.service_facts:
   tags: [ install, update, nfs_server ]
 
+# 1. 確保遠端主機的快取目錄存在
+- name: Ensure local directory for offline NFS Server packages exists
+  file:
+    path: /var/cache/local_debs/nfs_server
+    state: directory
+    mode: '0755'
+  tags: [ install, update, nfs_server ]
 
-# 檢查服務端是否已安裝
-- name: Check if nfs-kernel-server is already installed
-  command: dpkg-query -W -f='${Status}' nfs-kernel-server
-  register: nfs_server_check
-  failed_when: false
-  changed_when: false
+# 2. 透過 copy 模組分發資產（copy 本身就具備冪等性，檔案相同就不會重複傳輸）
+- name: Synchronize offline NFS Server packages to target host
+  copy:
+    src: "{{ playbook_dir }}/../../files/nfs_server_packages/"
+    dest: /var/cache/local_debs/nfs_server/
+    mode: '0644'
+  register: copy_packages
+  tags: [ install, update, nfs_server ]
+
+# 3. Server 端的 dpkg 流
+- name: Install NFS Server via local deb files (Idempotent Bulk Install)
+  shell: "dpkg -i /var/cache/local_debs/nfs_server/*.deb || dpkg -i /var/cache/local_debs/nfs_server/*.deb"
+  register: dpkg_result
+  changed_when: "'Setting up' in dpkg_result.stdout"
   tags: [ install, update, nfs_server ]
 
 
-# 如未安裝，則走純地端資產分發與硬核安裝流程
-- block:
-    - name: Create local directory for offline NFS Server packages
-      file:
-        path: /tmp/nfs_server_packages
-        state: directory
-        mode: '0755'
-
-    - name: Copy offline NFS Server packages to target host
-      copy:
-        src: "{{ playbook_dir }}/../../files/nfs_server_packages/"
-        dest: /tmp/nfs_server_packages/
-        mode: '0644'
-
-    - name: Find copied server deb files
-      find:
-        paths: /tmp/nfs_server_packages
-        patterns: "*.deb"
-      register: server_deb_files
-
-    # 使用 dpkg 批次安裝，並連跑兩次以自動解除迴圈依賴 ( Dependency Hell )
-    - name: Install NFS Server via local deb files (Bulk Install via dpkg)
-      shell: "dpkg -i /tmp/nfs_server_packages/*.deb || dpkg -i /tmp/nfs_server_packages/*.deb"
-      register: dpkg_result
-      changed_when: "'Setting up' in dpkg_result.stdout"
-
-    - name: Cleanup temporary NFS Server package directory
-      file:
-        path: /tmp/nfs_server_packages
-        state: absent
-
-  when: "'ok installed' not in nfs_server_check.stdout"
-  tags: [ install, update, nfs_server ]
-
-
+# ----------------------------------------------------------------------
 # 建立儲存目錄與導出設定
+# ----------------------------------------------------------------------
 - name: Create Physical Directory for SQLite Persistence
   file:
     path: "{{ nfs_export_dir }}"
@@ -64,7 +45,6 @@
     group: "{{ container_uid | default(1001) }}"
     recurse: yes
   tags: [ install, update, nfs_server ]
-
 
 - name: Configure NFS Exports Permissions (Mapping to UID 1001)
   lineinfile:

@@ -8,7 +8,7 @@
 # ----------------------------------------------------------------------
 - name: Ensure Local Root Kubeconfig Symlink Exists
   file:
-    src: /etc/rancher/k3s/k3s.yaml
+    src: "{{ k3s_conf_dir }}"
     dest: /root/.kube/config
     state: link
     force: yes

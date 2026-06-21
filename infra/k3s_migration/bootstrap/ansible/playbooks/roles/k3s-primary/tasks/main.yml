@@ -4,9 +4,29 @@
 # ----------------------------------------------------------------------
 # 確保 Kubeconfig 與 Kubectl 軟連結就緒
 # ----------------------------------------------------------------------
+# 強制等待 k3s.yaml 檔案生成（ 防禦性步驟，避免 K3s 啟動太慢 ）
+- name: Wait for k3s.yaml to be created by K3s service
+  wait_for:
+    path: "{{ k3s_conf_dir }}"
+    timeout: 60 # 最多等待 60 秒，超時才噴錯
+  run_once: true
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
+  tags: [ install, update ]
+
+# 確保 /root/.kube 目錄存在（ dest 的父目錄必須存在 ）
+- name: Ensure /root/.kube directory exists
+  file:
+    path: /root/.kube
+    state: directory
+    mode: '0700'
+  run_once: true
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
+  tags: [ install, update ]
+
+# 建立軟連結（你原本的 Task）
 - name: Ensure Local Root Kubeconfig Symlink Exists
   file:
-    src: /etc/rancher/k3s/k3s.yaml
+    src: "{{ k3s_conf_dir }}"
     dest: /root/.kube/config
     state: link
     force: yes
