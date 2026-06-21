@@ -2,7 +2,7 @@
 
 ### *A.　部署框架演進*
 ```
-Evolution: MiniKube -> K3d -> K3s -> ✅ K3s Migration -> Kubeadm -> GKE
+Evolution: MiniKube ➔ K3d ➔ K3s ➔ ✅ K3s Migration ➔ Kubeadm ➔ GKE
 
 Summary:
     # GitOps 架構 需極嚴謹考量 ( 包括: 服務依賴 / 環境切換 / 後期維運 / ... ) → 期間重構 3 次結構樹
