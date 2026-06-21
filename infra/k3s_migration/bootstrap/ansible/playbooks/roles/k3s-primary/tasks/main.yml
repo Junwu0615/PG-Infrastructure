@@ -1,50 +1,6 @@
 # roles/k3s-primary/tasks/main.yml
 ---
 
-# ----------------------------------------------------------------------
-# 確保 Kubeconfig 與 Kubectl 軟連結就緒
-# ----------------------------------------------------------------------
-# 強制等待 k3s.yaml 檔案生成（ 防禦性步驟，避免 K3s 啟動太慢 ）
-- name: Wait for k3s.yaml to be created by K3s service
-  wait_for:
-    path: "{{ k3s_conf_dir }}"
-    timeout: 60 # 最多等待 60 秒，超時才噴錯
-  run_once: true
-  delegate_to: "{{ groups['k3s_primary'][0] }}"
-  tags: [ install, update ]
-
-# 確保 /root/.kube 目錄存在（ dest 的父目錄必須存在 ）
-- name: Ensure /root/.kube directory exists
-  file:
-    path: /root/.kube
-    state: directory
-    mode: '0700'
-  run_once: true
-  delegate_to: "{{ groups['k3s_primary'][0] }}"
-  tags: [ install, update ]
-
-# 建立軟連結（你原本的 Task）
-- name: Ensure Local Root Kubeconfig Symlink Exists
-  file:
-    src: "{{ k3s_conf_dir }}"
-    dest: /root/.kube/config
-    state: link
-    force: yes
-  run_once: true
-  delegate_to: "{{ groups['k3s_primary'][0] }}"
-  tags: [ install, update ]
-
-- name: Ensure Global Kubectl Command Symlink Exists
-  file:
-    src: "{{ k3s_bin_dir }}"
-    dest: /usr/local/bin/kubectl
-    state: link
-    force: yes
-  run_once: true
-  delegate_to: "{{ groups['k3s_primary'][0] }}"
-  tags: [ install, update ]
-
-
 # ============================================================================
 # 擴容情境偵測 ( Day N )
 # ============================================================================
@@ -119,7 +75,6 @@
       write-kubeconfig-mode: "0644"
 
   tags: [ install, update ]
-#  notify: "{{ 'Restart K3s Primary' if 'update' in ansible_run_tags else [] }}"
   notify: "Restart K3s Primary"
 
 
@@ -159,7 +114,6 @@
       WantedBy=multi-user.target
 
   tags: [ install, update ]
-#  notify: "{{ 'Restart K3s Primary' if 'update' in ansible_run_tags else [] }}"
   notify: "Restart K3s Primary"
 
 
@@ -220,4 +174,48 @@
 - name: Share Token To Factor
   set_fact:
     shared_k3s_token: "{{ k3s_token_base64.content | b64decode | trim }}"
+  tags: [ install, update ]
+
+
+# ----------------------------------------------------------------------
+# 確保 Kubeconfig 與 Kubectl 軟連結就緒
+# ----------------------------------------------------------------------
+# 強制等待 k3s.yaml 檔案生成（ 防禦性步驟，避免 K3s 啟動太慢 ）
+- name: Wait for k3s.yaml to be created by K3s service
+  wait_for:
+    path: "{{ k3s_conf_dir }}"
+    timeout: 60 # 最多等待 60 秒，超時才噴錯
+  run_once: true
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
+  tags: [ install, update ]
+
+# 確保 /root/.kube 目錄存在（ dest 的父目錄必須存在 ）
+- name: Ensure /root/.kube directory exists
+  file:
+    path: /root/.kube
+    state: directory
+    mode: '0700'
+  run_once: true
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
+  tags: [ install, update ]
+
+# 建立軟連結
+- name: Ensure Local Root Kubeconfig Symlink Exists
+  file:
+    src: "{{ k3s_conf_dir }}"
+    dest: /root/.kube/config
+    state: link
+    force: yes
+  run_once: true
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
+  tags: [ install, update ]
+
+- name: Ensure Global Kubectl Command Symlink Exists
+  file:
+    src: "{{ k3s_bin_dir }}"
+    dest: /usr/local/bin/kubectl
+    state: link
+    force: yes
+  run_once: true
+  delegate_to: "{{ groups['k3s_primary'][0] }}"
   tags: [ install, update ]
