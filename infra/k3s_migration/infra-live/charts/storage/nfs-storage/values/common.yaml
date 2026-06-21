@@ -2,6 +2,11 @@ nfs:
   server: "10.88.0.10"
   path: "/data/nfs/test-sqlite"
 
+pv:
+  name: "nfs-storage-homelab-test-nfs-pv"
+#  image: "docker.io/rancher/local-path-provisioner:v0.0.24"
+  image: "docker.io/nginxinc/nginx-unprivileged:1.24-alpine"
+
 storage:
   size: "2Gi"
   pvcName: "sqlite-nfs-pvc"

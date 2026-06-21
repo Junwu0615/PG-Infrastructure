@@ -1,8 +1,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
+
 metadata:
   name: {{ .Values.storage.pvcName | default (printf "%s-nfs-pvc" .Release.Name) }}
   namespace: {{ .Release.Namespace }}
+
 spec:
   accessModes:
     - ReadWriteOnce
