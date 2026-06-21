@@ -37,7 +37,12 @@ Summary:
     3. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) → SSH 無密碼登入
     make apply VAR_FILE=./env_tfvars/homelab-test.tfvars
     make apply VAR_FILE=./env_tfvars/homelab-beta.tfvars
-
+    
+    4. 驗證 Iac 狀態
+    make trigger-ansible Files=site.yml AnsibleTags=validation AnsibleDetail=-vv
+    
+    5. 重新設定 kubectl 權證設定 ( kubectl 設定檔位移 )
+    make reset-kubectl
 
 ☆ 其他
     # 清除預載資源佔用
@@ -51,9 +56,6 @@ Summary:
     
     ⭐ 手動更新整包 Ansible ( Day N )
     make trigger-ansible Files=site.yml AnsibleTags=update AnsibleDetail=-vv
-    
-    ⭐ 驗證 Iac 狀態
-    make trigger-ansible Files=site.yml AnsibleTags=validation AnsibleDetail=-vv
     
     # 檢視狀態 ( pods + nodes )
     make status
@@ -331,7 +333,7 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
     make init-gitops
     
     3. 初始化/更新 Chart 依賴包
-    make helm-chart-build
+    make helm-chart
     
     4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
     # 切換環境: 透過 appset/*/app.ymal 調整環境 ( 註解 )
@@ -765,7 +767,7 @@ kubectl get deploy ingress-nginx-controller \
     
     # makefile
         # 全建置
-        make helm-chart-build
+        make helm-chart
         
         # 單一建置
         make ./infra-live/charts/observability/grafana

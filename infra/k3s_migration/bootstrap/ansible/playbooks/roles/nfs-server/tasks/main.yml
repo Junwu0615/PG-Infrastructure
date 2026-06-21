@@ -7,7 +7,7 @@
 - name: Gather service facts
   # 收集 systemd 服務 供後續判斷
   ansible.builtin.service_facts:
-  tags: [ install, nfs_server ]
+  tags: [ install, update, nfs_server ]
 
 
 # 檢查服務端是否已安裝
@@ -16,7 +16,7 @@
   register: nfs_server_check
   failed_when: false
   changed_when: false
-  tags: [ install, nfs_server ]
+  tags: [ install, update, nfs_server ]
 
 
 # 如未安裝，則走純地端資產分發與硬核安裝流程
@@ -50,7 +50,7 @@
         state: absent
 
   when: "'ok installed' not in nfs_server_check.stdout"
-  tags: [ install, nfs_server ]
+  tags: [ install, update, nfs_server ]
 
 
 # 建立儲存目錄與導出設定
@@ -62,7 +62,7 @@
     owner: "{{ container_uid | default(1001) }}"
     group: "{{ container_uid | default(1001) }}"
     recurse: yes
-  tags: [ install, nfs_server ]
+  tags: [ install, update, nfs_server ]
 
 
 - name: Configure NFS Exports Permissions (Mapping to UID 1001)
@@ -71,6 +71,6 @@
     regexp: "^{{ nfs_export_dir | regex_escape }}\\s+"
     line: "{{ nfs_export_dir }} {{ k3s_subnet_path }}(rw,sync,no_subtree_check,no_root_squash,all_squash,anonuid={{ container_uid | default(1001) }},anongid={{ container_uid | default(1001) }})"
     state: present
-  tags: [ install, nfs_server ]
+  tags: [ install, update, nfs_server ]
   notify:
     - Reload NFS Exports Table

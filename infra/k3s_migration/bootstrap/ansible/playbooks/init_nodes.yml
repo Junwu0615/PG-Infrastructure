@@ -17,24 +17,24 @@
 # ============================================================================
 # Phase 2. 【 基礎建設配置 : NFS-Server 】
 # ============================================================================
-#- hosts: storage
-#  become: yes
-#  pre_tasks:
-#    - name: "執行 init_nodes - Phase 2. 【 基礎建設配置 : NFS-Server 】"
-#      debug:
-#        msg: "開始執行 roles/nfs-server"
-#  roles:
-#    - nfs-server
+- hosts: storage
+  become: yes
+  pre_tasks:
+    - name: "執行 init_nodes - Phase 2. 【 基礎建設配置 : NFS-Server 】"
+      debug:
+        msg: "開始執行 roles/nfs-server"
+  roles:
+    - nfs-server
 
 
 # ============================================================================
 # Phase 3. 【 基礎建設配置 : NFS-Common 】
 # ============================================================================
-#- hosts: k3s_cluster
-#  become: yes
-#  pre_tasks:
-#    - name: "執行 init_nodes - Phase 3. 【 基礎建設配置 : NFS-Common 】"
-#      debug:
-#        msg: "開始執行 roles/nfs-common"
-#  roles:
-#    - nfs-common
+- hosts: k3s_cluster
+  become: yes
+  pre_tasks:
+    - name: "執行 init_nodes - Phase 3. 【 基礎建設配置 : NFS-Common 】"
+      debug:
+        msg: "開始執行 roles/nfs-common"
+  roles:
+    - nfs-common

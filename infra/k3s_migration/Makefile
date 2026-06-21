@@ -5,6 +5,7 @@ IOS_IMAGE        := debian-12-generic-amd64.qcow2
 DEBIAN_IMAGE_URL := https://cloud.debian.org/images/cloud/bookworm/latest/$(IOS_IMAGE)
 OS_IMAGE         := debian:12-slim
 K3S_VIP          := 10.88.0.99
+K3S_ZERO_MACH    := debian@10.88.0.10
 
 K3S_VERSION      := v1.28.2%2Bk3s1
 
@@ -43,15 +44,15 @@ AnsibleTags :=
 AnsibleDetail :=
 SHELL := /bin/bash
 
+
 .PHONY: apt-source-prepare apt-source-clean trigger-ansible k9s-fav \
 init apply destroy output terraform-list \
-status k-top label-nodes vm-format vm-power \
-root-app init-gitops helm-chart-build $(CHART_DIRS) upgrade-ingress see-secrets
+reset-kubectl status k-top label-nodes vm-format vm-power \
+root-app init-gitops helm-chart $(CHART_DIRS) upgrade-ingress see-secrets
 
 
 apt-source-prepare: $(ISO_DIR) $(INIT_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
 	@echo "* 透過 Host 網路模式與容器 (${OS_IMAGE}) 動態下載目標 OS 相容套件 ..."
-
 	# 1. 地端預載 $(IOS_IMAGE) 基礎鏡像
 	@if [ -z "$$(ls -A $(ISO_DIR))" ]; then \
 	   echo "  🚀 正在下載 $(IOS_IMAGE) Cloud Image ..."; \
@@ -59,8 +60,6 @@ apt-source-prepare: $(ISO_DIR) $(INIT_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPAL
 	else \
 	   echo "  📦 IOS IMAGE 離線套件已存在，跳過 ..."; \
 	fi
-
-
 	# 2. 地端預載 $(OS_IMAGE) 之 K3s 核心依賴與基礎網絡偵錯工具
 	@if [ -z "$$(ls -A $(INIT_DIR))" ]; then \
 	   echo "  🚀 正在下載 系統初始化與偵錯工具 離線套件 ..."; \
@@ -81,7 +80,6 @@ apt-source-prepare: $(ISO_DIR) $(INIT_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPAL
 	else \
 	   echo "  📦 系統初始化與偵錯工具已存在，跳過 ..."; \
 	fi
-
 	# 3. 地端預載 $(OS_IMAGE) 之 NFS 客戶端及其完整相依套件
 	@if [ -z "$$(ls -A $(NFS_DIR))" ]; then \
 		echo "  🚀 正在下載 $(OS_IMAGE) 相容之 NFS 離線套件 ..."; \
@@ -93,8 +91,6 @@ apt-source-prepare: $(ISO_DIR) $(INIT_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPAL
 	else \
 		echo "  📦 NFS 離線套件已存在，跳過 ..."; \
 	fi
-
-
 	# 4. 地端預載 $(OS_IMAGE) 之 NFS 服務端（Server）及其完整相依套件
 	@if [ -z "$$(ls -A $(NFS_SERVER_DIR))" ]; then \
 	   echo "  🚀 正在下載 $(OS_IMAGE) 相容之 NFS Server 離線套件 ..."; \
@@ -106,7 +102,6 @@ apt-source-prepare: $(ISO_DIR) $(INIT_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPAL
 	else \
 	   echo "  📦 NFS Server 離線套件已存在，跳過 ..."; \
 	fi
-
 	# 5. 地端預載 $(OS_IMAGE) 之 Keepalived 及其完整相依套件
 	@if [ -z "$$(ls -A $(KEEPALIVED_DIR))" ]; then \
 		echo "  🚀 正在下載 $(OS_IMAGE) 相容之 Keepalived 離線套件 ..."; \
@@ -118,7 +113,6 @@ apt-source-prepare: $(ISO_DIR) $(INIT_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPAL
 	else \
 		echo "  📦 Keepalived 離線套件已存在，跳過 ..."; \
 	fi
-
 	# 6. 地端預載 K3s 離線安裝腳本與二進位檔 ( 版本: $(K3S_VERSION) )
 	@if [ -z "$$(ls -A $(K3S_DIR))" ]; then \
 		echo "  🚀 正在下載 K3s 離線安裝資源中 ..."; \
@@ -128,7 +122,6 @@ apt-source-prepare: $(ISO_DIR) $(INIT_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPAL
 	else \
 		echo "  📦 K3s 離線資源已存在，跳過 ..."; \
 	fi
-
 	@echo "✅  <make apt-source-prepare> done."
 
 $(ISO_DIR):
@@ -179,8 +172,8 @@ init-gitops:
 	./cluster/scripts/bootstrap-cluster.sh
 	@echo "✅  <make init-gitops> done."
 
-helm-chart-build: $(CHART_DIRS)
-	@echo "✅  <make helm-chart-build> done."
+helm-chart: $(CHART_DIRS)
+	@echo "✅  <make helm-chart> done."
 
 $(CHART_DIRS):
 	@echo "* [Vendor Mode] 動態遍歷建置 Helm (Chart.yaml) 依賴 ▶ $@"
@@ -315,11 +308,9 @@ label-nodes:
 		fi; \
 		INDEX=$$((INDEX + 1)); \
 	done
-
 	@echo && echo && echo " ================== [ 節點專屬維運標籤一覽 ] =================="
 	@#kubectl get nodes -l node-role.kubernetes.io/worker=worker -L workload-class -L hardware-type -L traffic-zone
 	@kubectl get nodes -L workload-class -L hardware-type -L traffic-zone -L kubernetes.io/hostname
-
 	@echo "✅  <make label-nodes> done."
 
 see-secrets:
@@ -352,10 +343,8 @@ k9s-fav:
 	fi
 	rm -rf /home/$(LINUX_USER)/.local/share/k9s/clusters/default/
 	k9s --kubeconfig ~/.kube/config
-
 	sudo cp ./archive/k9s-fav/$(ENV).yaml ~/.local/share/k9s/clusters/default/default/config.yaml
 	cat ~/.local/share/k9s/clusters/default/default/config.yaml
-
 	@echo "✅  <make k9s-fav> done."
 
 init:
@@ -389,12 +378,39 @@ terraform-list:
 	@echo "* [Terraform] 確認狀態清單是否缺失"
 	cd $(TERRAFORM_PATH) && \
 	terraform state list
-	@echo "✅  <make state-list> done."
+	@echo "✅  <make terraform-list> done."
+
+reset-kubectl:
+	@echo "* 重新設定 kubectl 權證設定"
+	# 1. 物理刪除可能壞掉的預設目錄
+	rm -rf ~/.kube/config
+
+	# 2. 重新建立乾淨的目錄與實體檔案
+	mkdir -p ~/.kube && scp $(K3S_ZERO_MACH):/etc/rancher/k3s/k3s.yaml ~/.kube/config
+
+	# 3. 一鍵去憑證與 VIP 對齊修正
+	sed -i 's/127.0.0.1/10.88.0.99/g' ~/.kube/config
+	sed -i '/certificate-authority-data:/d' ~/.kube/config && sed -i '/server:/i \    insecure-skip-tls-verify: true' ~/.kube/config
+	chmod 600 ~/.kube/config
+
+	# 4. 檢視
+	grep "server:" ~/.kube/config
+	cat ~/.kube/config | head -n 15
+
+	# 5. 強制覆蓋系統級環境變數
+	@echo "  [1] 手動輸入指令覆蓋底層設置:" && \
+	echo "  ➡️ echo 'export KUBECONFIG="$HOME/.kube/config"' >> ~/.bashrc"
+	@echo "  [2] 手動輸入指令覆蓋底層設置:"  && \
+	echo "  ➡️ source ~/.bashrc"
+	@echo "  [3] 驗證:"  && \
+	echo "  ➡️ kubectl get nodes -o wide"
+	@echo "✅  <make reset-kubectl> done."
 
 status:
 	@echo "* 檢查 k8s 狀態"
 	kubectl get nodes -o wide
 	kubectl get pods -A -o wide
+	@echo "✅  <make status> done."
 
 trigger-ansible:
 	@echo "* 觸發指定 Ansible 腳本 ..."
@@ -404,18 +420,15 @@ trigger-ansible:
 	fi
 	rm -rf ~/.ansible/tmp/* ~/.ansible/cp/*
 	ansible-playbook -i $(ANSIBLE_INI_PATH) $(ANSIBLE_ROOT_PATH)/$(Files) --tags $(AnsibleTags) $(AnsibleDetail)
-	@echo "✅  <make trigger-ansible yml=$(yml)> done."
+	@echo "✅  <make trigger-ansible Files=$(Files)> done."
 
 vm-power:
 	@echo "* VM Power action = [start / stop / reboot / status / force-stop]"
-
 	@if [ -z "$(action)" ]; then \
 		echo "Error: ex: make vm-power action=start"; \
 		exit 1; \
 	fi
-
 	@bash archive/scripts/vm-power.sh $(action)
-
 	@echo "✅  <make vm-power> done."
 
 vm-format:
@@ -448,3 +461,4 @@ vm-format:
 	      printf "%-15s %b %-8s %-15s %-20s\n" "$$vm" "$$status_str" "    $$vcpu 核" "    $$ram_str" "    $$disk_size"; \
 	   fi; \
 	done
+	@echo "✅  <make vm-format> done."
