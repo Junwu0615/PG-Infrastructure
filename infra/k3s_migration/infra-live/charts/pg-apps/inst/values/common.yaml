@@ -35,7 +35,8 @@ inst:
     # Pod 被銷毀即遺失
 #    SQLITE_DB_NAME: "./data/kafka_consumer_local.db"
     # NFS 持久化
-    SQLITE_DB_NAME: "/app/data/kafka_consumer_local.db"
+#    SQLITE_DB_NAME: "/app/data/kafka_consumer_local.db"
+    SQLITE_DB_NAME: "/app/data/M-CNC-30/kafka_consumer_local.db"
 
     # 健康檢查檔案位置
     HEARTBEAT_FILE: "/app/tmp/heartbeat.txt"

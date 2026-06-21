@@ -42,7 +42,8 @@
     # 使用不佔日誌空間的極簡精準 loop 寫法
     - name: Install NFS Server via local deb files (Bulk Install)
       apt:
-        deb: "{{ server_deb_files.files | map(attribute='path') | list }}"
+        deb: "{{ item }}"
+      with_items: "{{ server_deb_files.files | map(attribute='path') | list }}"
 
     - name: Cleanup temporary NFS Server package directory
       file:
