@@ -18,7 +18,7 @@
   - #### *打通 Ingress、網路轉發與外部存取鏈路*
   - #### *建立 Homelab Kubernetes 平台基礎架構*
 
-<br>
+<br><br>
 
 ### *B.　創建 VM 環境*
 <details>
