@@ -684,6 +684,17 @@
 
 - #### *a.　使用細節*
   ```
+  # 創建 k8s 臨時容器測試內部
+  kubectl run curl-test --image=curlimages/curl -n observability-homelab-test -it --rm -- sh
+  
+  # 確認 query-frontend 服務存活
+  curl -v http://tempo-homelab-test-query-frontend:3100/ready
+  
+  # 確認 distributor 服務存活
+  curl -v http://tempo-homelab-test-distributor:4318/v1/traces
+  
+  ------
+  
   # 確認服務存活
   [wsl2]
   curl -v -H "Host: tempo.k8s.local" http://10.88.0.20:80/ready
@@ -691,16 +702,56 @@
   [powershell]
   Invoke-RestMethod -Uri "http://tempo.k8s.local:8080/ready" -Method Get
   
+  ------
   
   # 測試腳本
-    # 1. 終端機執行底下指令
-    # 2. 檢視 Grafana ( templates/grafana/observability-test.json )
-      # 查找: 4bf92f3577b34da6a3ce929d0e0e4736
+  # 1. 終端機執行底下指令
+  # 2. 檢視 Grafana ( templates/grafana/observability-test.json )
+    # 查找: 4bf92f3577b34da6a3ce929d0e0e4736
   
   [wsl2]
   curl -v -H "Host: tempo.k8s.local" \
        -H "Content-Type: application/json" \
        http://10.88.0.20:80/v1/traces \
+       -d '{
+         "resourceSpans": [
+           {
+             "resource": {
+               "attributes": [
+                 {
+                   "key": "service.name",
+                   "value": { "stringValue": "demo-app" }
+                 }
+               ]
+             },
+             "scopeSpans": [
+               {
+                 "spans": [
+                   {
+                     "traceId": "4bf92f3577b34da6a3ce929d0e0e4736",
+                     "spanId": "00f067aa0ba902b7",
+                     "name": "hello-test-span",
+                     "kind": 1,
+                     "startTimeUnixNano": "1780441200000000000",
+                     "endTimeUnixNano":   "1780441201000000000",
+                     "attributes": [
+                       {
+                         "key": "http.status_code",
+                         "value": { "intValue": 200 }
+                       }
+                     ],
+                     "status": { "code": 1 }
+                   }
+                 ]
+               }
+            ]
+          }
+        ]
+      }'
+   
+  [k8s 臨時容器]
+  curl -v -H "Content-Type: application/json" \
+       http://tempo-homelab-test-distributor:4318/v1/traces \
        -d '{
          "resourceSpans": [
            {

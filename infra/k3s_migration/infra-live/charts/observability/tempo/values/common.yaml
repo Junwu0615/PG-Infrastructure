@@ -99,6 +99,7 @@ tempo-distributed:
         # 若有使用 cert-manager 可啟用自動證書
         # cert-manager.io/cluster-issuer: "letsencrypt-prod"
         nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
       hosts:
         - host: tempo.k8s.local
           paths:
