@@ -11,7 +11,7 @@ resources:
   - projects/storage.yaml
 
   # applications
-  - applications/databases/postgresql-appset.yaml
+#  - applications/databases/postgresql-appset.yaml
 
   - applications/observability/grafana-appset.yaml
   - applications/observability/loki-appset.yaml
@@ -19,11 +19,11 @@ resources:
   - applications/observability/promtail-appset.yaml
   - applications/observability/tempo-appset.yaml
 
-  - applications/pg-apps/cp-appset.yaml
+#  - applications/pg-apps/cp-appset.yaml
 #  - applications/pg-apps/inst-appset.yaml
 
   - applications/platform/ingress-nginx-appset.yaml
-  - applications/platform/registry-appset.yaml
+#  - applications/platform/registry-appset.yaml
 #  - applications/platform/harbor-appset.yaml
 
 #  - applications/security/vault-appset.yaml
