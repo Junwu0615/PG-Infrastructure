@@ -420,7 +420,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 | _**Docker Registry**_ | _Private Image Repository_ | [5100](http://127.0.0.1:5100/v2/_catalog) | [8080](http://docker-registry.k8s.local:8080/v2/_catalog) | O |
 | _**Docker Registry UI**_ | _for Docker Registry_ | X | X | X |
 | _**Portainer**_ | _Container Management UI_ | [9000](http://127.0.0.1:9000) | △ | X |
-| _**HashiCorp Vault**_ | _KMS Advanced Secret & Key Management_ | `TBD` | [8080](http://hashicorp-vault.k8s.local:8080) | O |
+| _**HashiCorp Vault**_ | _KMS Advanced Secret<br>& Key Management_ | `TBD` | [8080](http://hashicorp-vault.k8s.local:8080) | O |
 
 </ul>
 </details>
