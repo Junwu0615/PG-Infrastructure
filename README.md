@@ -378,8 +378,8 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 |--:|:--|:--:|:--:|:--:|
 | _**MinIO**_ | _Object Storage High-performance AWS S3<br>Compatible Data Lakehouse_ | `TBD` | △ | O |
 | _**Debezium**_ | _CDC from Postgres_ | `TBD` | △ | X |
-| _**Apache Iceberg**_ | _OLAP High-performance Table Format Data Lake_ | `TBD` | * | O |
-| _**Apache Flink**_ | _Stateful Computations over Data Streams_ | `TBD` | * | O |
+| _**Apache Iceberg**_ | _OLAP High-performance<br>Table Format Data Lake_ | `TBD` | * | O |
+| _**Apache Flink**_ | _Stateful Computations<br>over Data Streams_ | `TBD` | * | O |
 
 </ul>
 </details>
@@ -399,7 +399,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 | _**Loki**_ | _Manage Log_ | [3100](http://127.0.0.1:3100/loki/api/v1/labels) | [8080](http://loki.k8s.local:8080/loki/api/v1/labels) | O |
 | _**Promtail**_ | _for Loki_ | - | - | X |
 | _**Tempo**_ | _K8s Services Analyze<br>the call topology and latency_ | X | [8080](http://tempo.k8s.local:8080/ready) | O |
-| _**Elasticsearch**_ | _Manage Log Distributed Search Engine_ | [9200](http://127.0.0.1:9200) | * | O |
+| _**Elasticsearch**_ | _Manage Log Distributed<br>Search Engine_ | [9200](http://127.0.0.1:9200) | * | O |
 | _**Logstash**_ | _Manage Log Log Processing Pipeline_ | [9600](http://127.0.0.1:9600) | * | X |
 | _**Kibana**_ | _Manage Log Log Exploration UI_ | [5601](http://127.0.0.1:5601) | * | X |
 
