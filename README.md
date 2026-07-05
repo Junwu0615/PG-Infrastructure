@@ -42,7 +42,7 @@
 | _**Elasticsearch**_ | ✔ | - | - | - | - | * | - | - |
 | _**Logstash**_ | ✔ | - | - | - | - | * | - | - |
 | _**Kibana**_ | ✔ | - | - | - | - | * | - | - |
-| _**Gitlab**_ | ✔ | - | - | - | - | * | - | - |
+| _**GitLab**_ | ✔ | - | - | - | - | * | - | - |
 | _**Jenkins**_ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
 | _**ArgoCD**_ | ✘ | - | - | - | - | ✔ | - | - |
 | _**Harbor**_ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | - | - |
@@ -413,7 +413,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 
 |**Service**|**Description**|**Docker**|**K8s**|**State**|
 |--:|:--|:--:|:--:|:--:|
-| **Gitlab** | `Self-hosted SCM` `CI/CD` `Project Management` | [8090](http://127.0.0.1:8090) | * | O |
+| **GitLab** | `Self-hosted SCM` `CI/CD`<br>`Project Management` | [8090](http://127.0.0.1:8090) | * | O |
 | **Jenkins** | `Continuous Delivery` | X | X | X |
 | **ArgoCD** | `Continuous Delivery`<br>`Deployment Controller` | X | [8080](http://argo-cd.k8s.local:8080) | O/X |
 | **Harbor** | Replace `Docker Registry` | X | - | O |
