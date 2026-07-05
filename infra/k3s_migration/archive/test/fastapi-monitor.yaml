@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-fastapi-svc
+  namespace: observability-homelab-test
+  labels:
+    app: local-fastapi
+spec:
+  ports:
+    - name: web
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: local-fastapi-svc
+  namespace: observability-homelab-test
+subsets:
+  - addresses:
+      - ip: 172.28.113.34
+    ports:
+      - port: 8000
+        name: web
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: fastapi-monitor
+  namespace: observability-homelab-test
+  labels:
+    # Label 必須與 Prometheus 定義中的 serviceMonitorSelector 匹配
+    # kubectl get prometheus -n observability-homelab-test
+    release: prometheus-stack-homelab-t-prometheus
+spec:
+  selector:
+    matchLabels:
+      app: local-fastapi
+  endpoints:
+  - port: web
+    interval: 5s

@@ -10,11 +10,11 @@ kube-prometheus-stack:
         - prometheus.k8s.local
 
     prometheusSpec:
-      additionalScrapeConfigs:
-        - job_name: 'local-fastapi-app'
-          scrape_interval: 5s
-          static_configs:
-            - targets: [ '172.28.113.34:8000' ]
+#      additionalScrapeConfigs:
+#        - job_name: 'local-fastapi-app'
+#          scrape_interval: 5s
+#          static_configs:
+#            - targets: [ '172.28.113.34:8000' ]
 
       nodeSelector:
         workload-class: stateful
