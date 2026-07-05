@@ -1,0 +1,10 @@
+[Unit]
+Description=K8s HTTP Proxy
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/socat TCP-LISTEN:80,fork TCP:10.88.0.20:30161
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

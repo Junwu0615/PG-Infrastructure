@@ -1,0 +1,32 @@
+#
+127.0.0.1 localhost
+::1 localhost
+# Added by Docker Desktop
+192.168.0.15 host.docker.internal
+192.168.0.15 gateway.docker.internal
+# To allow the same kube context to work on the host and the container:
+127.0.0.1 kubernetes.docker.internal
+# End of section
+127.0.0.1 portainer.k8s.local
+# 127.0.0.1 gitlab.k8s.local
+# 127.0.0.1 minio.k8s.local
+# 127.0.0.1 kas.k8s.local
+# 127.0.0.1 argo-cd.k8s.local
+# 127.0.0.1 docker-registry.k8s.local
+# 127.0.0.1 hashicorp-vault.k8s.local
+# 127.0.0.1 elasticsearch.k8s.local
+# 127.0.0.1 logstash.k8s.local
+# 127.0.0.1 kibana.k8s.local
+# 127.0.0.1 loki.k8s.local
+# 127.0.0.1 grafana.k8s.local
+# 127.0.0.1 prometheus.k8s.local
+# 127.0.0.1 flink.k8s.local
+# 127.0.0.1 iceberg.k8s.local
+# 127.0.0.1 debezium.k8s.local
+# 127.0.0.1 schema-registry.k8s.local
+# 127.0.0.1 kafka-ui.k8s.local
+# 127.0.0.1 kafka.k8s.local
+# 127.0.0.1 mqtt.k8s.local
+# 127.0.0.1 superset.k8s.local
+# 127.0.0.1 airflow.k8s.local
+# 127.0.0.1 postgresql.k8s.local

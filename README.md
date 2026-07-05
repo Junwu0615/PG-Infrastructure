@@ -11,45 +11,45 @@
 <summary><b><i>　Service Support Form </i></b></summary>
 <ul>
 
-> ##### 已實現 ( ✔ )
-> ##### 已棄用 ( ✘ )
-> ##### 未實現 ( - )
-> ##### 不遷移 ( * ) ➔ 記憶體 OOM Kill ( 折衷打退回為 Docker Compose )
-> ##### 不遷移 ( △ ) ➔ 省作業時間 ( 部分與重型服務 Docker Compose 綑綁 )
+> ##### 預計實現 ( ✔ )
+> ##### 尚未規劃 ( - )
+> ##### 經權衡棄用 ( ✘ )
+> ##### 經權衡不遷移 ( * ) ➔ 記憶體 OOM Kill ( 折衷打退回為 Docker Compose )
+> ##### 經權衡不遷移 ( △ ) ➔ 省作業時間 ( 部分與重型服務 Docker Compose 綑綁 )
 
-|**Service**|**Docker**|**Terraform<br>( Docker )**|**MiniKube**|**K3d**|**K3s**|**K3s<br>Migration**|**Kubeadm**|**GKE**|
+|_**Service**_|_**Docker**_|_**Terraform<br>( Docker )**_|_**MiniKube**_|_**K3d**_|_**K3s**_|_**K3s<br>Migration**_|_**Kubeadm**_|_**GKE**_|
 |--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| **PostgreSQL** | ✔ | - | ✔ | ✔ | ✔ | ✔ | - | - |
-| **PgAdmin** | ✔ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
-| **PoWA** | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
-| **Apache Airflow** | ✔ | - | - | - | - | * | - | - |
-| **Superset** | ✔ | - | - | - | - | * | - | - |
-| **MQTT Broker** | ✔ | - | - | - | - | △ | - | - |
-| **Apache Kafka** | ✔ | - | - | - | - | * | - | - |
-| **Kafka UI** | ✔ | - | - | - | - | △ | - | - |
-| **Schema Registry** | ✔ | - | - | - | - | △ | - | - |
-| **Debezium** | ✔ | - | - | - | - | △ | - | - |
-| **MinIO** | ✔ | - | - | - | - | △ | - | - |
-| **Apache Iceberg** | ✔ | - | - | - | - | * | - | - |
-| **Apache Flink** | ✔ | - | - | - | - | * | - | - |
-| **Postgres Exporter** | ✔ | ✔ | - | - | - | ✔ | - | - |
-| **Node Exporter** | ✔ | ✔ | - | - | - | ✔ | - | - |
-| **Prometheus** | ✔ | ✔ | - | - | - | ✔ | - | - |
-| **Grafana** | ✔ | ✔ | - | - | - | ✔ | - | - |
-| **Loki** | ✔ | - | - | - | - | ✔ | - | - |
-| **Promtail** | ✔ | - | - | - | - | ✔ | - | - |
-| **Tempo** | ✘ | - | - | - | - | ✔ | - | - |
-| **Elasticsearch** | ✔ | - | - | - | - | * | - | - |
-| **Logstash** | ✔ | - | - | - | - | * | - | - |
-| **Kibana** | ✔ | - | - | - | - | * | - | - |
-| **Gitlab** | ✔ | - | - | - | - | * | - | - |
-| **Jenkins** | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
-| **ArgoCD** | ✘ | - | - | - | - | ✔ | - | - |
-| **Harbor** | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
-| **Docker Registry** | ✔ | - | - | - | - | ✔ | - | - |
-| **Docker Registry UI** | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
-| **Portainer** | ✔ | ✔ | - | - | ✔ | ✔ | - | - |
-| **HashiCorp Vault** | ✔ | - | - | - | - | ✔ | - | - |
+| _**PostgreSQL**_ | ✔ | - | ✔ | ✔ | ✔ | ✔ | - | - |
+| _**PgAdmin**_ | ✔ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
+| _**PoWA**_ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
+| _**Apache Airflow**_ | ✔ | - | - | - | - | * | - | - |
+| _**Superset**_ | ✔ | - | - | - | - | * | - | - |
+| _**MQTT Broker**_ | ✔ | - | - | - | - | △ | - | - |
+| _**Apache Kafka**_ | ✔ | - | - | - | - | * | - | - |
+| _**Kafka UI**_ | ✔ | - | - | - | - | △ | - | - |
+| _**Schema Registry**_ | ✔ | - | - | - | - | △ | - | - |
+| _**Debezium**_ | ✔ | - | - | - | - | △ | - | - |
+| _**MinIO**_ | ✔ | - | - | - | - | △ | - | - |
+| _**Apache Iceberg**_ | ✔ | - | - | - | - | * | - | - |
+| _**Apache Flink**_ | ✔ | - | - | - | - | * | - | - |
+| _**Postgres Exporter**_ | ✔ | ✔ | - | - | - | ✔ | - | - |
+| _**Node Exporter**_ | ✔ | ✔ | - | - | - | ✔ | - | - |
+| _**Prometheus**_ | ✔ | ✔ | - | - | - | ✔ | - | - |
+| _**Grafana**_ | ✔ | ✔ | - | - | - | ✔ | - | - |
+| _**Loki**_ | ✔ | - | - | - | - | ✔ | - | - |
+| _**Promtail**_ | ✔ | - | - | - | - | ✔ | - | - |
+| _**Tempo**_ | ✘ | - | - | - | - | ✔ | - | - |
+| _**Elasticsearch**_ | ✔ | - | - | - | - | * | - | - |
+| _**Logstash**_ | ✔ | - | - | - | - | * | - | - |
+| _**Kibana**_ | ✔ | - | - | - | - | * | - | - |
+| _**Gitlab**_ | ✔ | - | - | - | - | * | - | - |
+| _**Jenkins**_ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
+| _**ArgoCD**_ | ✘ | - | - | - | - | ✔ | - | - |
+| _**Harbor**_ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | - | - |
+| _**Docker Registry**_ | ✔ | - | - | - | - | ✔ | - | - |
+| _**Docker Registry UI**_ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ | ✘ |
+| _**Portainer**_ | ✔ | ✔ | - | - | ✔ | ✔ | - | - |
+| _**HashiCorp Vault**_ | ✔ | - | - | - | - | ✔ | - | - |
 
 </ul>
 </details>

@@ -146,10 +146,8 @@ deploy:
 		echo "Error: 必須指定服務名稱，ex: make deploy ver=v1"; \
 		exit 1; \
 	fi
-
 	@# 如果沒有傳入 msg，就用預設訊息
 	$(eval MSG=$(if $(msg),"$(msg)","Deploy version $(ver)"))
-
 	@echo "* 僅安裝/更新 (不清理), changeCause: $(msg)"
 	helm upgrade --install $(RELEASE_NAME) $(CHART_PATH) \
  		-f $(VALUES_PATH) \
@@ -174,9 +172,7 @@ vm-power:
 		echo "Error: ex: make vm-power action=start"; \
 		exit 1; \
 	fi
-
-	@bash archive/scripts/vm-power.sh $(action)
-
+	@bash ../../templates/scripts/vm-power.sh $(action)
 	@echo "✅  <make vm-power> done."
 
 vm-format:

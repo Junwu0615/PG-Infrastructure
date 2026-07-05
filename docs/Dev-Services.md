@@ -496,7 +496,7 @@
     sudo nano /etc/gitlab-runner/config.toml
     privileged = true
   
-    ⭐ k8s ingress 轉發設定 寫死在 runner ( 參考: infra/docker-compose/gitlab-runner/config.toml )
+    ⭐ k8s ingress 轉發設定 寫死在 runner ( 參考: templates/gitlab-runner/config.toml )
     sudo nano /etc/gitlab-runner/config.toml
     extra_hosts = ["docker-registry.k8s.local:10.88.0.20"] 
   
@@ -553,7 +553,7 @@
     # 編輯 config.toml
     sudo nano /etc/gitlab-runner/config.toml
     
-    # 參考設定 (gitlab-runner/config.toml)
+    # 參考設定 (templates/gitlab-runner/config.toml)
     
     # 重啟
     sudo systemctl restart gitlab-runner
@@ -694,7 +694,7 @@
   
   # 測試腳本
     # 1. 終端機執行底下指令
-    # 2. 檢視 Grafana ( k3s_migration/archive/grafana/test-dashboard.json )
+    # 2. 檢視 Grafana ( templates/grafana/observability-test.json )
       # 查找: 4bf92f3577b34da6a3ce929d0e0e4736
   
   [wsl2]
@@ -764,7 +764,7 @@
     - K8s 叢集基礎監控 : 1860
     - K8s 叢集進階監控 : 15760
   
-  # 觀測重點 ( ⭐htap_grafana.json )
+  # 觀測重點 ( templates/grafana/htap.json )
   HTAP Monitoring
     System Layer ( Node Exporter )
     - CPU

@@ -1,6 +1,6 @@
 LINUX_USER := pc
 
-# 需與 terraform 變數設定對齊
+# TODO 需與 terraform 變數設定對齊
 IOS_IMAGE        := debian-12-generic-amd64.qcow2
 DEBIAN_IMAGE_URL := https://cloud.debian.org/images/cloud/bookworm/latest/$(IOS_IMAGE)
 OS_IMAGE         := debian:12-slim
@@ -420,7 +420,7 @@ vm-power:
 		echo "[ERROR] ex: make vm-power action=start"; \
 		exit 1; \
 	fi
-	@bash archive/scripts/vm-power.sh $(action)
+	@bash ../../templates/scripts/vm-power.sh $(action)
 	@echo "✅  <make vm-power> done."
 
 vm-format:

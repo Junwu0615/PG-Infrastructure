@@ -650,7 +650,7 @@ Helm:
             192.168.0.15    5100        172.28.113.34   5100
             0.0.0.0         8080        172.28.113.34   80
             
-        # STEP 5 修改 Windows Hosts 檔案 ( k3s/archive/win_hosts )
+        # STEP 5 修改 Windows Hosts 檔案 ( templates/win_hosts/k3s )
             # 用 [管理員] powershell 叫起來 否則有權限問題
             notepad C:\Windows\System32\drivers\etc\hosts
             

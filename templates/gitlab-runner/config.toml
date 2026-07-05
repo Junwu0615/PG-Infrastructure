@@ -1,0 +1,33 @@
+concurrent = 1
+check_interval = 0
+connection_max_age = "15m0s"
+shutdown_timeout = 0
+
+[session_server]
+  session_timeout = 1800
+
+[[runners]]
+  name = "pg-apps-runner"
+  url = "http://127.0.0.1:8090/"
+  id = 7
+  token = "q4b2YdubJX5f_tNDxhzy"
+  token_obtained_at = 2026-06-13T10:58:51Z
+  token_expires_at = 0001-01-01T00:00:00Z
+  executor = "docker"
+  [runners.cache]
+    MaxUploadedArchiveSize = 0
+    [runners.cache.s3]
+    [runners.cache.gcs]
+    [runners.cache.azure]
+  [runners.docker]
+    tls_verify = false
+    image = "docker:24.0.5"
+    privileged = true
+    network_mode = "host"
+    extra_hosts = ["docker-registry.k8s.local:10.88.0.20"]
+    disable_entrypoint_overwrite = false
+    oom_kill_disable = false
+    disable_cache = false
+    volumes = ["/cache"]
+    shm_size = 0
+    network_mtu = 0
