@@ -324,6 +324,13 @@ kubectl delete node <node name>
     
     # 生效設定檔
     source ~/.bashrc
+
+
+# 啟動臨時容器 測試特定 IP 連線狀況 ( ex: 連線是否能連通某 IP ) => exit 後即銷毀
+kubectl run network-test --rm -it --image=busybox -- /bin/sh
+    # 測試打 WIN 本機
+    nc -zv 192.168.0.15 8000
+
     
 # [X] ⭐ Ingress 導引 (k3s)
     sudo mkdir -p /var/lib/rancher/k3s/server/manifests/
