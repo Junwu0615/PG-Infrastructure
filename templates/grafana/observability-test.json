@@ -154,7 +154,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{namespace=\"loki-homelab-test\", app_kubernetes_io_name=\"loki\"}",
+          "expr": "{namespace=\"observability-homelab-test\", app_kubernetes_io_name=\"loki\"}",
           "queryType": "range",
           "refId": "A"
         }

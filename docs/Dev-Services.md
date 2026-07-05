@@ -684,6 +684,11 @@
 
 - #### *a.　使用細節*
   ```
+  開發測試: 開放 distributor 端口給外部使用
+  kubectl port-forward svc/tempo-homelab-test-distributor 4317:4317 -n observability-homelab-test
+  
+  ------
+  
   # 創建 k8s 臨時容器測試內部
   kubectl run curl-test --image=curlimages/curl -n observability-homelab-test -it --rm -- sh
   
