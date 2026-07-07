@@ -6,8 +6,6 @@ metadata:
   namespace: {{ .Values.namespaceOverride | default .Release.Namespace }}
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
-
-    # 告訴 Argo CD 如果發現舊的同名資源，直接替換掉它
     argocd.argoproj.io/sync-options: Replace=true
 
 spec:
@@ -16,26 +14,9 @@ spec:
   - host: tempo.k8s.local
     http:
       paths:
-      # 1. 前端查詢介面 (Grafana 呼叫用)
       - path: /
         pathType: Prefix
         backend:
           service:
             name: {{ include "tempo.fullname" . | default .Release.Namespace }}-query-frontend
             port: { number: 3100 }
-
-      # 2. OTLP HTTP 接收器
-      - path: /v1/traces
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ include "tempo.fullname" . | default .Release.Namespace }}-distributor
-            port: { number: 4318 }
-
-      # 3. Jaeger Thrift HTTP 接收器
-      - path: /api/traces
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ include "tempo.fullname" . | default .Release.Namespace }}-distributor
-            port: { number: 14268 }

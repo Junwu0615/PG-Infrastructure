@@ -1,5 +1,5 @@
 tempo-distributed:
-#  namespaceOverride: "tempo-homelab-prod"
+#  namespaceOverride: "tempo-distributed-homelab-prod"
   namespaceOverride: "observability-homelab-prod"
 
   ingester:

@@ -1,0 +1,3 @@
+tempo:
+#  namespaceOverride: "tempo-homelab-prod"
+  namespaceOverride: "observability-homelab-prod"
