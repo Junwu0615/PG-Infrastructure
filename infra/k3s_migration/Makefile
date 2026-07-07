@@ -29,14 +29,25 @@ ALL_CHART_DIRS := \
     $(INFRA_LIVE_DIR)/charts/observability/loki \
     $(INFRA_LIVE_DIR)/charts/observability/promtail \
     $(INFRA_LIVE_DIR)/charts/observability/tempo \
+    $(INFRA_LIVE_DIR)/charts/observability/tempo-distributed \
     $(INFRA_LIVE_DIR)/charts/databases/postgresql \
     $(INFRA_LIVE_DIR)/charts/platform/ingress-nginx \
     $(INFRA_LIVE_DIR)/charts/platform/registry \
     $(INFRA_LIVE_DIR)/charts/platform/harbor \
 
 FILTER_CHART_DIRS := \
-	$(INFRA_LIVE_DIR)/charts/observability/prometheus \
-	$(INFRA_LIVE_DIR)/charts/observability/harbor \
+    $(INFRA_LIVE_DIR)/charts/observability/prometheus \
+    $(INFRA_LIVE_DIR)/charts/observability/tempo-distributed \
+	$(INFRA_LIVE_DIR)/charts/platform/harbor \
+#    $(INFRA_LIVE_DIR)/charts/observability/grafana \
+#    $(INFRA_LIVE_DIR)/charts/observability/prometheus-stack \
+#    $(INFRA_LIVE_DIR)/charts/observability/loki \
+#    $(INFRA_LIVE_DIR)/charts/observability/promtail \
+#    $(INFRA_LIVE_DIR)/charts/databases/postgresql \
+#    $(INFRA_LIVE_DIR)/charts/platform/ingress-nginx \
+#    $(INFRA_LIVE_DIR)/charts/platform/registry \
+#    $(INFRA_LIVE_DIR)/charts/observability/tempo \
+
 
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
 

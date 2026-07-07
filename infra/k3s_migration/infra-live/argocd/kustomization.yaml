@@ -15,9 +15,11 @@ resources:
 
   - applications/observability/grafana-appset.yaml
   - applications/observability/loki-appset.yaml
+#  - applications/observability/prometheus-appset.yaml
   - applications/observability/prometheus-stack-appset.yaml
   - applications/observability/promtail-appset.yaml
   - applications/observability/tempo-appset.yaml
+#  - applications/observability/tempo-distributed-appset.yaml
 
 #  - applications/pg-apps/cp-appset.yaml
 #  - applications/pg-apps/inst-appset.yaml

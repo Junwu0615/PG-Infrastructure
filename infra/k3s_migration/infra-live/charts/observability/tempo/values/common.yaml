@@ -2,7 +2,7 @@ tempo:
   # 強制開啟單機模式
   mode: singleBinary
 
-  # 儲存配置 (Local 模式最穩定)
+  # 儲存配置 (Local 模式)
   storage:
     trace:
       backend: local
@@ -45,7 +45,7 @@ tempo:
   
 
 
-  # 接收器設定 (統一在一個區塊)
+  # 接收器設定
   config: |
     server:
       http_listen_port: 3100
@@ -57,6 +57,11 @@ tempo:
               endpoint: 0.0.0.0:4317
             http:
               endpoint: 0.0.0.0:4318
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/traces
 
   # 持久化設定 (避免資料丟失導致的重啟)
   persistence:
@@ -77,7 +82,7 @@ tempo:
             pathType: Prefix
     tls: [ ]
 
-  # 資源限制：給予充足空間避免 Crash
+  # 資源限制
   resources:
     requests:
       cpu: 100m
