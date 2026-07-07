@@ -31,10 +31,12 @@ spec:
         repoURL: http://192.168.0.15:8090/pg/infra-live.git
         targetRevision: main
         path: charts/observability/tempo
+#        path: charts/observability/tempo-distributed
         helm:
           valueFiles:
             - 'values/common.yaml'
             - '../../../environments/{{env}}/tempo-values.yaml'
+#            - '../../../environments/{{env}}/tempo-distributed-values.yaml'
       destination:
         server: '{{server}}'
         namespace: 'observability-{{env}}'

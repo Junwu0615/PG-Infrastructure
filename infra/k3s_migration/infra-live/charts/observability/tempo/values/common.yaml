@@ -1,71 +1,24 @@
-tempo-distributed:
-  # --- 全域設定 ---
-  global:
-    image:
-      tag: "2.5.0"
-    cluster:
-      replicationFactor: 1
+tempo:
+  # 強制開啟單機模式
+  mode: singleBinary
 
-  traces:
-    otlp:
-      http:
-        enabled: true
-      grpc:
-        enabled: true
-    jaeger:
-      thriftHttp:
-        enabled: true
-
-
-  # --- 基礎儲存與多租戶 ---
-  multitenancy:
-    # 關閉多租戶嚴格認證，但在微服務架構下內部依然走單一租戶 (fake) 邏輯
-    enabled: false
-
+  # 儲存配置 (Local 模式最穩定)
   storage:
     trace:
       backend: local
       local:
         path: /var/tempo/traces
-      blocklist_poll_interval: 5m
 
-
-  # --- 接收器設定 ---
-  distributor:
-    service:
-      enabled: true
-      ports:
-        - name: otlp-http
-          port: 4318
-          targetPort: 4318
-        - name: jaeger-http
-          port: 14268
-          targetPort: 14268
-
-    config:
-      receivers:
-        otlp:
-          protocols:
-            http: { endpoint: 0.0.0.0:4318 }
-            grpc: { endpoint: 0.0.0.0:4317 }
-        jaeger:
-          protocols:
-            thrift_http: { endpoint: 0.0.0.0:14268 }
-            grpc: { endpoint: 0.0.0.0:14250 }
-
-    resources:
-      requests: { cpu: 50m, memory: 128Mi }
-      limits: { cpu: 200m, memory: 512Mi }
-
-
-  # 防止單一 Pod 佔用過多 CPU/Memory 導致 Node 崩潰
   ingester:
-    config:
-      replication_factor: 1
+    # 確保開啟 persistence，否則數據重啟即消失
+    persistence:
+      enabled: true
+      size: 5Gi
+      storageClass: standard
 
     nodeSelector:
       workload-class: stateful
-#      hardware-type: high-io
+      #      hardware-type: high-io
 
     affinity: |
       nodeAffinity:
@@ -76,33 +29,59 @@ tempo-distributed:
                   operator: In
                   values:
                     - stateful
-#                - key: hardware-type
-#                  operator: In
-#                  values:
-#                    - high-io
+  #                - key: hardware-type
+  #                  operator: In
+  #                  values:
+  #                    - high-io
 
-    resources:
-      requests: { cpu: 100m, memory: 256Mi }
-      limits: { cpu: 500m, memory: 1Gi }
+  # Distributor 接收器
+  distributor:
+    config:
+      receivers:
+        otlp:
+          protocols:
+            grpc: { endpoint: 0.0.0.0:4317 }
+            http: { endpoint: 0.0.0.0:4318 }
+  
 
 
-  # --- Ingress 設定 (Query Frontend) ---
-  queryFrontend:
-    nodeSelector:
-      workload-class: stateless
-      traffic-zone: internal-only
+  # 接收器設定 (統一在一個區塊)
+  config: |
+    server:
+      http_listen_port: 3100
+    distributor:
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
 
-    ingress:
-      enabled: true
-      ingressClassName: "nginx"
-      annotations:
-        # 若有使用 cert-manager 可啟用自動證書
-        # cert-manager.io/cluster-issuer: "letsencrypt-prod"
-        nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  # 持久化設定 (避免資料丟失導致的重啟)
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: standard
 
-      hosts:
-        - host: tempo.k8s.local
-          paths:
-            - path: /
-              pathType: Prefix
-      tls: [ ]
+
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    hosts:
+      - host: tempo.k8s.local
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: [ ]
+
+  # 資源限制：給予充足空間避免 Crash
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi

@@ -9,6 +9,6 @@ appVersion: "2026.05"
 dependencies:
   # values 第一層 Key 必須與此 name 一致，才能正確套用 values 設定
   # 必須是官方 Chart 名稱，不能是自訂名稱
-  - name: tempo-distributed
+  - name: tempo
     version: 1.12.0
     repository: https://grafana.github.io/helm-charts

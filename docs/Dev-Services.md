@@ -416,7 +416,7 @@
 <br>
 
 <details>
-<summary><b><i>　7.　Gitlab </i></b></summary>
+<summary><b><i>　7.　GitLab </i></b></summary>
 <ul>
 
 - #### *a.　使用細節*
@@ -444,7 +444,7 @@
   netsh interface portproxy add v4tov4 listenport=8090 listenaddress=0.0.0.0 connectport=8090 connectaddress=172.28.113.34
   ```
 
-- #### *b.　Gitlab Runner*
+- #### *b.　GitLab Runner*
   ```
   # Runner 工具檢查
     # 啟用 gitlab-runner 的開機自啟服務

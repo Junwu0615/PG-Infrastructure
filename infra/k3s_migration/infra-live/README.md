@@ -986,7 +986,20 @@ Level 2. ArgoCD 應用層級 → 安全解除綁定
     先查詢: kubectl get all -n <namespace>
     kubectl patch deployment <deployment-name> -n <namespace> -p '{"metadata":{"finalizers":null}}' --type=merge
     kubectl delete deployment <deployment-name> -n <namespace> --force --grace-period=0
-
+    
+    ⭐ 精準刪除卡死實例
+      # 查詢域名底下所有實例 ( -n observability-homelab-test )
+      kubectl get all -n observability-homelab-test -o custom-columns=NAME:.metadata.name,INSTANCE:.metadata.labels.app\.kubernetes\.io/instance
+      
+      # 鎖定某一實例 ( tempo-homelab-test-memcached-0 ) => instance=tempo-homelab-test
+      kubectl get pod tempo-homelab-test-memcached-0 -n observability-homelab-test --show-labels | grep "instance"
+      
+      # 模擬刪除 ( --dry-run=client )
+      kubectl delete all -n observability-homelab-test -l app.kubernetes.io/instance=tempo-homelab-test --dry-run=client
+      
+      # 確實刪除
+      kubectl delete all -n observability-homelab-test -l app.kubernetes.io/instance=tempo-homelab-test
+      
 
 Level 3. 範本與架構層級 → 刪除 AppSet 與 AppProject
     1. 先確認關聯的 Application 死透 ( 依賴問題 需先刪除 application )

@@ -1,0 +1,25 @@
+tempo-distributed:
+#  namespaceOverride: "tempo-homelab-stage"
+  namespaceOverride: "observability-homelab-stage"
+
+  ingester:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+  distributor:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  querier:
+    replicas: 1
+  queryFrontend:
+    replicas: 1
+
+  compactor:
+    persistence:
+      enabled: true
+      size: 10Gi
