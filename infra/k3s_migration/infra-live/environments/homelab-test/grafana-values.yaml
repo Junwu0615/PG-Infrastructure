@@ -14,11 +14,15 @@ grafana:
   persistence:
     enabled: false
 
+  grafana.ini:
+    # 確保開啟功能 => Loki 連動 Tempo
+    feature_toggles:
+      enable: traceToLogs,logsToTrace
+
   # 將資源定位至 Grafana 來源設定
   datasources:
     datasources.yaml:
       apiVersion: 1
-
       datasources:
         - name: Prometheus
           type: prometheus
@@ -32,6 +36,11 @@ grafana:
           url: http://loki-homelab-test.observability-homelab-test.svc.cluster.local:3100
           # 明確指定內部讀取路徑的 API 根節點，繞過 Loki 5.x 讀取節點對根路徑的拒絕
           jsonData:
+            derivedFields:
+              - datasourceUid: Tempo # Tempo 資料源的 UID
+                matcherRegex: "(\\w+)"
+                name: trace_id
+                url: "$${__value.raw}"
             httpHeaderName1: "X-Scope-OrgID"
             timeout: 15
           secureJsonData:
@@ -41,7 +50,8 @@ grafana:
         - name: Tempo
           type: tempo
           access: proxy
-          url: http://tempo-homelab-test-query-frontend.observability-homelab-test.svc.cluster.local:3100
+#          url: http://tempo-homelab-test-query-frontend.observability-homelab-test.svc.cluster.local:3100
+          url: http://tempo-homelab-test.observability-homelab-test.svc.cluster.local:3100
           jsonData:
             # 同步防禦 Loki 相同的 401 / no org id 潛在多租戶隔離限制
             httpHeaderName1: "X-Scope-OrgID"
