@@ -42,8 +42,6 @@ tempo:
           protocols:
             grpc: { endpoint: 0.0.0.0:4317 }
             http: { endpoint: 0.0.0.0:4318 }
-  
-
 
   # 接收器設定
   config: |
