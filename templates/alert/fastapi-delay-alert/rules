@@ -1,0 +1,16 @@
+# 新增告警規則 : 採用 「延遲 + 負載」複合邏輯
+
+1. Name: fastapi-delay-alert
+
+2. Prometheus: code
+# histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, handler)) > 1.0
+sum by (handler) (rate(http_request_duration_seconds_bucket[5m])) > 1.0
+
+3. Alert Folder
+
+4. 1M => 1M
+
+5. Telegram
+
+6. Link
+http://grafana.k8s.local:8080/d/78a7a560-84a4-49de-8e07-b4655a4ebf89/2f96495?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s
