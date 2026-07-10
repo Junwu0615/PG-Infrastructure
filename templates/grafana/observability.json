@@ -23,7 +23,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "Prometheus"
+        "uid": "cfrn78kuk5q80d"
       },
       "fieldConfig": {
         "defaults": {
@@ -115,13 +115,13 @@
           "refId": "A"
         }
       ],
-      "title": "1. Prometheus 驗證：K3s 叢集 Pod 記憶體使用總量 (MB)",
+      "title": "1. Prometheus：叢集 Pod 記憶體使用總量 (MB)",
       "type": "timeseries"
     },
     {
       "datasource": {
         "type": "loki",
-        "uid": "Loki"
+        "uid": "efrn79nezpxc0e"
       },
       "fieldConfig": {
         "defaults": {
@@ -154,48 +154,94 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "trace_id"
+              "options": "追蹤 ID"
             },
             "properties": [
               {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Tempo Link",
+                    "url": "/explore?orgId=1&left=[\"now-1h\",\"now\",\"ffrn7aragdatce\",{\"query\":\"${__value.raw.trace_id}\",\"queryType\":\"traceql\"}]&inspect=1"
+                  }
+                ]
+              },
+              {
                 "id": "custom.width",
-                "value": 95
+                "value": 346
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Time"
+              "options": "服務名稱"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 257
+                "value": 141
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Line"
+              "options": "事件狀態"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 383
+                "value": 105
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "事件內容"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 213
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "API 路徑"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 132
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "事件時間"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 228
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 10,
+        "h": 6,
         "w": 24,
         "x": 0,
         "y": 5
       },
-      "id": 4,
+      "id": 7,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -214,37 +260,80 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "Loki"
+            "uid": "efrn79nezpxc0e"
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"fastapi-ide\", env=\"development\"} \r\n| json \r\n| line_format \"{{.message}} | {{.path}} | Order: {{.order_id}}\"",
-          "legendFormat": "",
-          "maxLines": 10,
+          "expr": "{app=\"fastapi-ide\", env=\"development\"} | json ",
+          "hide": false,
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "2. Loki 驗證：K3s 全叢集即時日誌串流 (Logs Stream)",
+      "title": "2. Loki：叢集即時日誌串流",
       "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "delimiter": ",",
+            "format": "json",
+            "jsonPaths": [
+              {
+                "path": "message"
+              },
+              {
+                "path": "path"
+              },
+              {
+                "path": "trace_id"
+              },
+              {
+                "path": "status"
+              },
+              {
+                "path": "otelServiceName"
+              }
+            ],
+            "keepTime": false,
+            "regExp": "",
+            "replace": false,
+            "source": "Line"
+          }
+        },
         {
           "id": "organize",
           "options": {
             "excludeByName": {
+              "Line": true,
+              "NewField": false,
+              "Time": false,
               "id": true,
+              "labels": true,
               "tsNs": true
             },
             "includeByName": {},
             "indexByName": {
-              "Line": 3,
-              "Time": 0,
-              "id": 2,
-              "labels": 5,
-              "trace_id": 1,
-              "tsNs": 4
+              "Line": 1,
+              "Time": 9,
+              "id": 0,
+              "labels": 3,
+              "message": 6,
+              "otelServiceName": 4,
+              "path": 8,
+              "status": 5,
+              "trace_id": 7,
+              "tsNs": 2
             },
             "orderByMode": "manual",
-            "renameByName": {}
+            "renameByName": {
+              "Time": "事件時間",
+              "labels": "",
+              "message": "事件內容",
+              "otelServiceName": "服務名稱",
+              "path": "API 路徑",
+              "status": "事件狀態",
+              "trace_id": "追蹤 ID"
+            }
           }
         }
       ],
@@ -274,5 +363,5 @@
   "timezone": "",
   "title": "PG K3s 可觀測性 LGTM 即時驗證面板",
   "uid": "78a7a560-84a4-49de-8e07-b4655a4ebf89",
-  "version": 3
+  "version": 18
 }

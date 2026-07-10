@@ -23,7 +23,7 @@ grafana:
   datasources:
     datasources.yaml:
       apiVersion: 1
-      datasources:
+      datasources: # 若須手動更新進行測試 註解整塊
         - name: Prometheus
           type: prometheus
           access: proxy
@@ -34,13 +34,7 @@ grafana:
           type: loki
           access: proxy
           url: http://loki-homelab-test.observability-homelab-test.svc.cluster.local:3100
-          # 明確指定內部讀取路徑的 API 根節點，繞過 Loki 5.x 讀取節點對根路徑的拒絕
           jsonData:
-            derivedFields:
-              - datasourceUid: Tempo # Tempo 資料源的 UID
-                matcherRegex: "(\\w+)"
-                name: trace_id
-                url: "$${__value.raw}"
             httpHeaderName1: "X-Scope-OrgID"
             timeout: 15
           secureJsonData:
