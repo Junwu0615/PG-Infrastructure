@@ -23,7 +23,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "cfrn78kuk5q80d"
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -82,8 +82,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 5,
-        "w": 24,
+        "h": 8,
+        "w": 10,
         "x": 0,
         "y": 0
       },
@@ -93,7 +93,7 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "hideZeros": false,
@@ -115,13 +115,101 @@
           "refId": "A"
         }
       ],
-      "title": "1. Prometheus：叢集 Pod 記憶體使用總量 (MB)",
+      "title": "1. 全域總覽",
       "type": "timeseries"
     },
     {
       "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 14,
+        "x": 10,
+        "y": 0
+      },
+      "id": 8,
+      "options": {
+        "calculate": false,
+        "cellGap": 1,
+        "color": {
+          "exponent": 0.5,
+          "fill": "dark-orange",
+          "max": 1,
+          "min": 0,
+          "mode": "scheme",
+          "reverse": true,
+          "scale": "exponential",
+          "scheme": "Oranges",
+          "steps": 64
+        },
+        "exemplars": {
+          "color": "rgba(255,0,255,0.7)"
+        },
+        "filterValues": {
+          "le": 1e-9
+        },
+        "legend": {
+          "show": true
+        },
+        "rowsFrame": {
+          "layout": "auto"
+        },
+        "tooltip": {
+          "mode": "single",
+          "showColorScale": false,
+          "yHistogram": false
+        },
+        "yAxis": {
+          "axisPlacement": "hidden",
+          "reverse": false
+        }
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, handler, method))",
+          "format": "time_series",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "interval": "",
+          "legendFormat": "{{handler}} | Method: {{method}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "2. 事件定位",
+      "type": "heatmap"
+    },
+    {
+      "datasource": {
         "type": "loki",
-        "uid": "efrn79nezpxc0e"
+        "uid": "P8E80F9AEF21F6940"
       },
       "fieldConfig": {
         "defaults": {
@@ -129,7 +217,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "auto",
+            "align": "left",
             "cellOptions": {
               "type": "auto"
             },
@@ -232,14 +320,26 @@
                 "value": 228
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "延遲時間 ( ms )"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 152
+              }
+            ]
           }
         ]
       },
       "gridPos": {
         "h": 6,
-        "w": 24,
+        "w": 20,
         "x": 0,
-        "y": 5
+        "y": 8
       },
       "id": 7,
       "options": {
@@ -253,24 +353,28 @@
           "show": false
         },
         "showHeader": true,
-        "sortBy": []
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "事件時間"
+          }
+        ]
       },
       "pluginVersion": "12.1.0",
       "targets": [
         {
           "datasource": {
             "type": "loki",
-            "uid": "efrn79nezpxc0e"
+            "uid": "P8E80F9AEF21F6940"
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{app=\"fastapi-ide\", env=\"development\"} | json ",
-          "hide": false,
+          "expr": "{app=\"fastapi-ide\", env=\"development\"} |= \"latency_alert\"",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "2. Loki：叢集即時日誌串流",
+      "title": "3. 透過 Trace 診斷原因 => 聚焦延遲狀況",
       "transformations": [
         {
           "id": "extractFields",
@@ -292,6 +396,9 @@
               },
               {
                 "path": "otelServiceName"
+              },
+              {
+                "path": "duration_ms"
               }
             ],
             "keepTime": false,
@@ -314,19 +421,264 @@
             "includeByName": {},
             "indexByName": {
               "Line": 1,
-              "Time": 9,
+              "Time": 10,
+              "duration_ms": 7,
               "id": 0,
               "labels": 3,
               "message": 6,
               "otelServiceName": 4,
-              "path": 8,
+              "path": 9,
               "status": 5,
-              "trace_id": 7,
+              "trace_id": 8,
               "tsNs": 2
             },
             "orderByMode": "manual",
             "renameByName": {
               "Time": "事件時間",
+              "duration_ms": "延遲時間 ( ms )",
+              "labels": "",
+              "latency_alert": "",
+              "message": "事件內容",
+              "otelServiceName": "服務名稱",
+              "path": "API 路徑",
+              "status": "事件狀態",
+              "trace_id": "追蹤 ID"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "追蹤 ID"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Tempo Link",
+                    "url": "/explore?orgId=1&left=[\"now-1h\",\"now\",\"ffrn7aragdatce\",{\"query\":\"${__value.raw.trace_id}\",\"queryType\":\"traceql\"}]&inspect=1"
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 346
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "服務名稱"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 141
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "事件狀態"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 105
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "事件內容"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 213
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "API 路徑"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 132
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "事件時間"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 228
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "延遲時間 ( ms )"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 152
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 20,
+        "x": 0,
+        "y": 14
+      },
+      "id": 9,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "事件時間"
+          }
+        ]
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{app=\"fastapi-ide\", env=\"development\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "4. 透過 Logs 細節復盤",
+      "transformations": [
+        {
+          "id": "extractFields",
+          "options": {
+            "delimiter": ",",
+            "format": "json",
+            "jsonPaths": [
+              {
+                "path": "message"
+              },
+              {
+                "path": "path"
+              },
+              {
+                "path": "trace_id"
+              },
+              {
+                "path": "status"
+              },
+              {
+                "path": "otelServiceName"
+              },
+              {
+                "path": "duration_ms"
+              }
+            ],
+            "keepTime": false,
+            "regExp": "",
+            "replace": false,
+            "source": "Line"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Line": true,
+              "NewField": false,
+              "Time": false,
+              "id": true,
+              "labels": true,
+              "tsNs": true
+            },
+            "includeByName": {},
+            "indexByName": {
+              "Line": 1,
+              "Time": 10,
+              "duration_ms": 7,
+              "id": 0,
+              "labels": 3,
+              "message": 6,
+              "otelServiceName": 4,
+              "path": 9,
+              "status": 5,
+              "trace_id": 8,
+              "tsNs": 2
+            },
+            "orderByMode": "manual",
+            "renameByName": {
+              "Time": "事件時間",
+              "duration_ms": "延遲時間 ( ms )",
               "labels": "",
               "message": "事件內容",
               "otelServiceName": "服務名稱",
@@ -361,7 +713,7 @@
     ]
   },
   "timezone": "",
-  "title": "PG K3s 可觀測性 LGTM 即時驗證面板",
+  "title": "PG 可觀測性 LGTM 即時驗證面板",
   "uid": "78a7a560-84a4-49de-8e07-b4655a4ebf89",
-  "version": 18
+  "version": 19
 }
