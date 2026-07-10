@@ -1,0 +1,27 @@
+----------------
+# 渲染內容 ( Home/Alerting ) # Markdown
+----------------
+事件狀態 : {{ if eq .Status "firing" }}🔴 警報中 ( Firing ){{ else }}🟢 已恢復 ( Resolved ){{ end }}
+事件摘要 : {{ if .Annotations.summary }}{{ .Annotations.summary }}{{ else }}無摘要內容{{ end }}
+事件服務 : {{ if .Labels.handler }}{{ .Labels.handler }}{{ else }}未知服務{{ end }}
+事件說明 : {{ if .Annotations.description }}{{ .Annotations.description }}{{ else }}無詳細說明{{ end }}
+[快速連結]({{ if index .Annotations "runbook_url" }}{{ index .Annotations "runbook_url" }}{{ else }}無連結{{ end }})
+
+
+----------------
+# 手動加入 label ( Home/Alerting )
+----------------
+handler : {{ $labels.handler }}
+method : {{ $labels.method }}
+severity : critical
+
+
+----------------
+# 手動加入 Annotations ( Home/Alert rules )
+----------------
+summary: API 延遲告警
+description:
+警報摘要 : {{ index .Annotations "summary" }}
+已偵測到 {{ index .Labels "handler" }} 出現延遲警告 ({{ index .Labels "env" }}) => 發生次數 : {{ $value }}
+錯誤訊息 : {{ index .Annotations "message" }}
+快速連結 : {{ index .Annotations "runbook_url" }}
