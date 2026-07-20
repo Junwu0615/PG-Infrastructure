@@ -459,6 +459,11 @@ k3d --version
 
 #### *I.　使用方式*
 ```
+# 啟動 Linux Libvirt (參考 k3s.md)
+
+# 生成 SSH 金鑰
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
+
 # [手動] VM 網路
     # 1. 初始化  (k3s_net)
     sudo virsh net-define /etc/libvirt/qemu/networks/k3s_net.xml

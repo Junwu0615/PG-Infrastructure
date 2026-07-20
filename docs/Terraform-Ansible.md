@@ -5,12 +5,21 @@
 # Ansible : 負責裝潢與佈置 ( 設定檔與應用邏輯 )
 ```
 
-### *A.　安裝 Terraform*
+### *A.　安裝工具*
 ```
-sudo snap install terraform --classic
+# Terraform
+    # 安裝
+    sudo snap install terraform --classic
+    
+    # 確認是否安裝成功
+    terraform -v
 
-# return: terraform 1.14.8 from Snapcrafters✪ installed
-# 確認安裝成功否: terraform -v
+# Ansible
+    # 安裝
+    sudo apt install ansible-core
+    
+    # 確認是否安裝成功
+    ansible --version
 ```
 
 <br>
