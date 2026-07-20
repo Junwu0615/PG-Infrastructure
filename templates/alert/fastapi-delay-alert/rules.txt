@@ -1,30 +1,28 @@
+------------------------------------------------
 # 新增告警規則 : 採用日誌關鍵字匹配
-
+------------------------------------------------
 1. Name: fastapi-delay-alert
-
 
 2. Loki:
 ( QUERY A )
     # code
     count_over_time({app="fastapi-ide", env="development"} |= "latency_alert" [2m]) > 0
-    # Legend
+    # Legend # Instant
     {app="fastapi-ide", env="development"} |= "latency_alert" |= "high"
 
-( QUERY B )
-    # Expressions
-    => Is above: 0
+( Expressions B ) # Reduce # Input A # Alert condition
+    => Last : Replace Non-numeric Values
 
+( Expressions C ) # Threshold # Input B
+    => Is above: 0
 
 3. Alert Folder
 
-
-4. 1M => 1M
+4. 10s => 10s
 Alert state if no data or all values are null => Normal
 Alert state if execution error or timeout => Alerting
 
-
 5. Telegram
-
 
 6. Link
 http://grafana.k8s.local:8080/d/78a7a560-84a4-49de-8e07-b4655a4ebf89/2f96495?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s
