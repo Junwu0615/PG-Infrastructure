@@ -24,47 +24,47 @@
 ![PNG](../../../assets/png/k3s_vm.png)
 ```
 ⭐ VM 生命週期
-    1. 預載資源 => 預防封閉環境無法索取外網資源
-    make apt-source-prepare
+   1. 預載資源 => 預防封閉環境無法索取外網資源
+   make apt-source-prepare
     
-    2. 初始化配置
-    make init
+   2. 初始化配置
+   make init
     
-    3. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) → SSH 無密碼登入
-    make apply VARS=./env_tfvars/homelab-test.tfvars
-    make apply VARS=./env_tfvars/homelab-beta.tfvars
+   3. 安裝 VM 環境 ( 包括: deploy_k3s.yml + init_nodes.yml ) → SSH 無密碼登入
+   make apply VARS=./env_tfvars/homelab-test.tfvars
+   make apply VARS=./env_tfvars/homelab-beta.tfvars
     
-    4. 驗證 Infrastructure as Code 狀態
-    make trigger-ansible TAGS=validation VARS=-vv
+   4. 驗證 Infrastructure as Code 狀態
+   make trigger-ansible TAGS=validation VARS=-vv
     
-    5. 重新設定 kubectl 權證設定 ( kubectl 設定檔位移 )
-    make reset-kubectl
+   5. 重新設定 kubectl 權證設定 ( kubectl 設定檔位移 )
+   make reset-kubectl
 
 
 ☆ 其他
-    # 清除預載資源佔用
-    make apt-source-clean
+   # 清除預載資源佔用
+   make apt-source-clean
 
-    # 拆除 VM 環境
-    make destroy
+   # 拆除 VM 環境
+   make destroy
 
-    ⭐ 手動安裝整包 Ansible ( Day 0 )
-    make trigger-ansible TAGS=install VARS=-vv
+   ⭐ 手動安裝整包 Ansible ( Day 0 )
+   make trigger-ansible TAGS=install VARS=-vv
     
-    ⭐ 手動更新整包 Ansible ( Day N )
-    make trigger-ansible TAGS=update VARS=-vv
+   ⭐ 手動更新整包 Ansible ( Day N )
+   make trigger-ansible TAGS=update VARS=-vv
     
-    # 檢視狀態 ( pods + nodes )
-    make status
+   # 檢視狀態 ( pods + nodes )
+   make status
     
-    # VM 開機 ( K3s 集群 )
-    make vm-power action=start
+   # VM 開機 ( K3s 集群 )
+   make vm-power action=start
     
-    # VM 關機 ( K3s 集群 )
-    make vm-power action=stop
+   # VM 關機 ( K3s 集群 )
+   make vm-power action=stop
     
-    # VM 重新啟動 ( K3s 集群 )
-    make vm-power action=reboot
+   # VM 重新啟動 ( K3s 集群 )
+   make vm-power action=reboot
 ```
 
 <br>
@@ -315,59 +315,59 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 ![PNG](../../../assets/png/label_nodes.png)
 ```
 ☆ 啟動 Docker Compose ( 參考: docs/Docker-Compose.md )
-    make gitlab action=up
-    make portainer action=up
-    make mqtt action=up
-    make kafka action=up
-    [X] make elk action=up
+   make gitlab action=up
+   make portainer action=up
+   make mqtt action=up
+   make kafka action=up
+   [X] make elk action=up
 
 
 ⭐ 啟動 K3s Cluster
-    1. 初始化/更新 標籤設定 ( 親合/反親合 )
-    make label-nodes
+   1. 初始化/更新 標籤設定 ( 親合/反親合 )
+   make label-nodes
     
-    2. 手動初始化 bootstrap
-    make init-gitops
+   2. 手動初始化 bootstrap
+   make init-gitops
     
-    3. 初始化/更新 Chart 依賴包
-    make helm-chart
+   3. 初始化/更新 Chart 依賴包
+   make helm-chart
     
-    4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
-    # 切換環境: 透過 appset/*/app.ymal 調整環境 ( 註解 )
-    make root-app ENV=homelab-test
+   4. 初始化/更新 ArgoCD 入口 ( root-app: appproject + appset )
+   # 切換環境: 透過 appset/*/app.ymal 調整環境 ( 註解 )
+   make root-app ENV=homelab-test
 
 
 ☆ 其他
-    ☆ Ansible [ ⭐ VM 初始化即一步到位 ] 
-        # 更新 VM Host 設定 => 可以拉取 registry images
-        make trigger-ansible TAGS=registry VARS=-vv
+  ☆ Ansible [ ⭐ VM 初始化即一步到位 ] 
+     # 更新 VM Host 設定 => 可以拉取 registry images
+     make trigger-ansible TAGS=registry VARS=-vv
         
-        # 更新 VM Storage 設定 => SQLite 持久化
-        make trigger-ansible Files=playbooks/deploy_storage.yml VARS=-vv
+     # 更新 VM Storage 設定 => SQLite 持久化
+     make trigger-ansible Files=playbooks/deploy_storage.yml VARS=-vv
         
-        # 手動初始化節點
-        make trigger-ansible Files=playbooks/init_nodes.yml VARS=-vv
+     # 手動初始化節點
+     make trigger-ansible Files=playbooks/init_nodes.yml VARS=-vv
 
-    ☆ 更新 k9s 最愛設定
-        # 備份原先設定
-        cp /home/pc/.config/k9s/config.yaml /home/pc/.config/k9s/config.yaml.bak
+  ☆ 更新 k9s 最愛設定
+     # 備份原先設定
+     cp /home/pc/.config/k9s/config.yaml /home/pc/.config/k9s/config.yaml.bak
         
-        # 還原設定
-        cp /home/pc/.config/k9s/config.yaml.bak /home/pc/.config/k9s/config.yaml
+     # 還原設定
+     cp /home/pc/.config/k9s/config.yaml.bak /home/pc/.config/k9s/config.yaml
         
-        ⭐ 一鍵替換設定
-        make k9s-fav ENV=homelab-test
+     ⭐ 一鍵替換設定
+     make k9s-fav ENV=homelab-test
         
 
-    # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
-    make k-top
+  # 節點資源配額預佔狀態 + 叢集硬體算力消耗狀態
+  make k-top
     
-    # 檢視 Secrets 明文 ( ex: homelab-test )
-    make see-secrets ENV=homelab-test
+  # 檢視 Secrets 明文 ( ex: homelab-test )
+  make see-secrets ENV=homelab-test
     
-    # 啟動 ingress-nginx [ ⭐ VM 初始化即一步到位 ]
-    # 已將其加入正式定義 無須用此方式 → 棄用
-    make upgrade-ingress
+  # 啟動 ingress-nginx [ ⭐ VM 初始化即一步到位 ]
+  # 已將其加入正式定義 無須用此方式 → 棄用
+  make upgrade-ingress
 ```
 
 </ul>
@@ -756,26 +756,26 @@ kubectl get deploy ingress-nginx-controller \
     # 手動 ( 在 App 根目錄執行  )
     helm dependency build
     
-        # 強制覆蓋
-        $$REPO_NAME ( from Chart.yaml )
-        $$REPO_URL ( from Chart.yaml )
-        helm repo add $$REPO_NAME $$REPO_URL --force-update
-        helm repo add  kube-prometheus-stack https://prometheus-community.github.io/helm-charts --force-update
+       # 強制覆蓋
+       $$REPO_NAME ( from Chart.yaml )
+       $$REPO_URL ( from Chart.yaml )
+       helm repo add $$REPO_NAME $$REPO_URL --force-update
+       helm repo add  kube-prometheus-stack https://prometheus-community.github.io/helm-charts --force-update
     
     # makefile
-        # 全建置
-        make helm-chart
+       # 全建置
+       make helm-chart
         
-        # 單一建置
-        make ./infra-live/charts/observability/grafana
-        make ./infra-live/charts/observability/prometheus
-        make ./infra-live/charts/observability/prometheus-stack
-        make ./infra-live/charts/observability/loki
-        make ./infra-live/charts/observability/tempo
-        make ./infra-live/charts/databases/postgresql
-        make ./infra-live/charts/platform/ingress-nginx
-        make ./infra-live/charts/platform/registry
-        make ./infra-live/charts/platform/harbor
+       # 單一建置
+       make ./infra-live/charts/observability/grafana
+       make ./infra-live/charts/observability/prometheus
+       make ./infra-live/charts/observability/prometheus-stack
+       make ./infra-live/charts/observability/loki
+       make ./infra-live/charts/observability/tempo
+       make ./infra-live/charts/databases/postgresql
+       make ./infra-live/charts/platform/ingress-nginx
+       make ./infra-live/charts/platform/registry
+       make ./infra-live/charts/platform/harbor
 
 
 DEBUG
@@ -788,54 +788,54 @@ DEBUG
     helm show values charts/observability/loki/charts/loki > official-values.yaml
     
     ☆ [ 部分應用渲染需要帶 values 驗證 否則直接報錯 ] helm 渲染 ( 渲染後的 output.yaml 可用來檢視實際部署內容 )
-        # 帶參數
-        helm template . \
-          -f values/common.yaml \
-          -f values/test.yaml > output.yaml
+       # 帶參數
+       helm template . \
+         -f values/common.yaml \
+         -f values/test.yaml > output.yaml
           
-        # 不帶參數
-        helm template . > output.yaml
+       # 不帶參數
+       helm template . > output.yaml
     
     ☆ 找關鍵字
     [1] cat output.yaml | grep "image: "
     [2] grep "image: " output.yaml
     
     ⭐ 渲染大法
-        ☆ 執行本地渲染 # 帶上所有 values # 無法確實輸出就是初步渲染都失敗
-        helm template . -f values/common.yaml > output.yaml
+       ☆ 執行本地渲染 # 帶上所有 values # 無法確實輸出就是初步渲染都失敗
+       helm template . -f values/common.yaml > output.yaml
         
-        ☆ 產出的實體檔案中尋找該參數，驗證是否成功變更
-        grep -rn "目標參數關鍵字" .
-        grep -rn "目標參數關鍵字" output.yaml
+       ☆ 產出的實體檔案中尋找該參數，驗證是否成功變更
+       grep -rn "目標參數關鍵字" .
+       grep -rn "目標參數關鍵字" output.yaml
         
-        ⭐ 一定要產出設定檔 → 更準 ( set + grep )
+       ⭐ 一定要產出設定檔 → 更準 ( set + grep )
         
-        ex: tempo
-        helm template . -f values/common.yaml --set namespaceOverride=homelab-test > output.yaml
-        grep -rn "homelab" output.yaml
+       ex: tempo
+       helm template . -f values/common.yaml --set namespaceOverride=homelab-test > output.yaml
+       grep -rn "homelab" output.yaml
         
-        ex: grafana (退到根目錄 因為無法倒退路徑)
-        [X] helm template . -f values/common.yaml -f ../../../../environments/homelab-test/grafana-values.yaml --set namespaceOverride=homelab-test > output.yaml
-        [O] 
-            helm template charts/observability/grafana -f charts/observability/grafana/values/common.yaml -f environments/homelab-test/grafana-values.yaml --set namespaceOverride=homelab-test > output.yaml
-            helm template charts/observability/tempo -f charts/observability/tempo/values/common.yaml -f environments/homelab-test/tempo-values.yaml --set namespaceOverride=homelab-test > output.yaml
-            helm template charts/observability/loki -f charts/observability/loki/values/common.yaml -f environments/homelab-test/loki-values.yaml --set namespaceOverride=homelab-test > output.yaml
-            helm template charts/observability/prometheus-stack -f charts/observability/prometheus-stack/values/common.yaml -f environments/homelab-test/prometheus-stack-values.yaml --set namespaceOverride=homelab-test > output.yaml
-            helm template charts/observability/promtail -f charts/observability/promtail/values/common.yaml -f environments/homelab-test/promtail-values.yaml --set namespaceOverride=homelab-test > output.yaml
+       ex: grafana (退到根目錄 因為無法倒退路徑)
+       [X] helm template . -f values/common.yaml -f ../../../../environments/homelab-test/grafana-values.yaml --set namespaceOverride=homelab-test > output.yaml
+       [O] 
+           helm template charts/observability/grafana -f charts/observability/grafana/values/common.yaml -f environments/homelab-test/grafana-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/observability/tempo -f charts/observability/tempo/values/common.yaml -f environments/homelab-test/tempo-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/observability/loki -f charts/observability/loki/values/common.yaml -f environments/homelab-test/loki-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/observability/prometheus-stack -f charts/observability/prometheus-stack/values/common.yaml -f environments/homelab-test/prometheus-stack-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/observability/promtail -f charts/observability/promtail/values/common.yaml -f environments/homelab-test/promtail-values.yaml --set namespaceOverride=homelab-test > output.yaml
             
-            helm template charts/databases/postgresql -f charts/databases/postgresql/values/common.yaml -f environments/homelab-test/postgresql-values.yaml --set namespaceOverride=postgresql-homelab-test > output.yaml
+           helm template charts/databases/postgresql -f charts/databases/postgresql/values/common.yaml -f environments/homelab-test/postgresql-values.yaml --set namespaceOverride=postgresql-homelab-test > output.yaml
             
-            helm template charts/platform/ingress-nginx -f charts/platform/ingress-nginx/values/common.yaml -f environments/homelab-test/ingress-nginx-values.yaml --set namespaceOverride=homelab-test > output.yaml
-            helm template charts/platform/harbor -f charts/platform/harbor/values/common.yaml -f environments/homelab-test/harbor-values.yaml --set namespaceOverride=homelab-test > output.yaml
-            helm template charts/platform/registry -f charts/platform/registry/values/common.yaml -f environments/homelab-test/registry-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/platform/ingress-nginx -f charts/platform/ingress-nginx/values/common.yaml -f environments/homelab-test/ingress-nginx-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/platform/harbor -f charts/platform/harbor/values/common.yaml -f environments/homelab-test/harbor-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/platform/registry -f charts/platform/registry/values/common.yaml -f environments/homelab-test/registry-values.yaml --set namespaceOverride=homelab-test > output.yaml
             
-            helm template charts/pg-apps/cp -f charts/pg-apps/cp/values/common.yaml -f environments/homelab-test/cp-values.yaml --set namespaceOverride=homelab-test > output.yaml
-            helm template charts/pg-apps/inst -f charts/pg-apps/inst/values/common.yaml -f environments/homelab-test/inst-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/pg-apps/cp -f charts/pg-apps/cp/values/common.yaml -f environments/homelab-test/cp-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/pg-apps/inst -f charts/pg-apps/inst/values/common.yaml -f environments/homelab-test/inst-values.yaml --set namespaceOverride=homelab-test > output.yaml
             
-            helm template charts/storage/nfs-storage -f charts/storage/nfs-storage/values/common.yaml -f environments/homelab-test/nfs-storage-values.yaml --set namespaceOverride=homelab-test > output.yaml
+           helm template charts/storage/nfs-storage -f charts/storage/nfs-storage/values/common.yaml -f environments/homelab-test/nfs-storage-values.yaml --set namespaceOverride=homelab-test > output.yaml
         
-        grep -rn "homelab" output.yaml
-        grep -rn "key" output.yaml
+       grep -rn "homelab" output.yaml
+       grep -rn "key" output.yaml
         
     
     ☆ 確認 Chart 是否真的載入到 dependency
@@ -848,11 +848,11 @@ DEBUG
     helm template . -f official-values.yaml -f values/common.yaml --debug
     
     ☆ 改用 helm template 直接對子 Chart 進行操作
-        1. 解壓子 Chart（如果它還是 .tgz 壓縮檔）
-        tar -zxvf charts/loki-5.47.2.tgz -C charts/
+       1. 解壓子 Chart（如果它還是 .tgz 壓縮檔）
+       tar -zxvf charts/loki-5.47.2.tgz -C charts/
         
-        2. 直接指定子 Chart 目錄，並帶入你原本的 values
-        helm template charts/loki -f values/common.yaml
+       2. 直接指定子 Chart 目錄，並帶入你原本的 values
+       helm template charts/loki -f values/common.yaml
     
 ------
 
@@ -907,17 +907,17 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
 
 
 # 手動 ( SSH 進入 10.88.0.10 )
-    # 安裝 NFS Server
-    sudo apt-get update && sudo apt-get install -y nfs-kernel-server
+  # 安裝 NFS Server
+  sudo apt-get update && sudo apt-get install -y nfs-kernel-server
     
-    # 建立實體目錄
-    sudo mkdir -p /data/nfs/test-sqlite
+  # 建立實體目錄
+  sudo mkdir -p /data/nfs/test-sqlite
     
-    # 給予讀寫權限
-        # 指定特定戶別 1001 (應用程式)
-        sudo chown -R 1001:1001 /data/nfs/test-sqlite
-        # 廣義讀寫權限
-        sudo chmod 777 /data/nfs/test-sqlite
+  # 給予讀寫權限
+    # 指定特定戶別 1001 (應用程式)
+    sudo chown -R 1001:1001 /data/nfs/test-sqlite
+    # 廣義讀寫權限
+    sudo chmod 777 /data/nfs/test-sqlite
     
     # 編輯設定檔，允許整個 K3s 網段 (10.88.0.0/24) 連入讀寫
     # sudo nano /etc/exports
@@ -933,11 +933,11 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
 
 
 # 驗證
-    ⭐ 1. 掛載狀況 ( 進 inst 容器 => k9s 按 s 進入 shell )
+  ⭐ 1. 掛載狀況 ( 進 inst 容器 => k9s 按 s 進入 shell )
     mount | grep /app/data
     10.88.0.10:/data/nfs/test-sqlite on /app/data type nfs4 (rw,relatime,vers=4.2,rsize=262144,wsize=262144,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=10.88.0.22,local_lock=none,addr=10.88.0.10)
     
-    ⭐ 2. 是否出現持久化數據 ( 進入 k3s-master-0 )
+  ⭐ 2. 是否出現持久化數據 ( 進入 k3s-master-0 )
     debian@k3s-master-0:~$ ls -la /data/nfs/test-sqlite/
     total 64
     drwxrwxrwx 2 root root  4096 Jun 13 10:13 .
@@ -963,7 +963,7 @@ $ kubectl delete pv nfs-storage-homelab-test-nfs-pv
 ```
 ⭐ 強制重製: --force --grace-period=0
 
-Level 1. 應用層級 → 日常重啟或強制重製
+[ Level 1 ] 應用層級 → 日常重啟或強制重製
     ☆ 優雅作法
     kubectl rollout restart deployment/<deployment-name> -n <namespace>
     
@@ -971,7 +971,7 @@ Level 1. 應用層級 → 日常重啟或強制重製
     kubectl delete pod <pod-name> -n <namespace> --force --grace-period=0
 
 
-Level 2. ArgoCD 應用層級 → 安全解除綁定
+[ Level 2 ] ArgoCD 應用層級 → 安全解除綁定
     1. 檢查並安全移除 ArgoCD 的級聯刪除保護
     kubectl patch app -n argocd <app-name> -p '{"metadata":{"finalizers":null}}' --type merge
     
@@ -1001,7 +1001,7 @@ Level 2. ArgoCD 應用層級 → 安全解除綁定
       kubectl delete all -n observability-homelab-test -l app.kubernetes.io/instance=tempo-homelab-test
       
 
-Level 3. 範本與架構層級 → 刪除 AppSet 與 AppProject
+[ Level 3 ] 範本與架構層級 → 刪除 AppSet 與 AppProject
     1. 先確認關聯的 Application 死透 ( 依賴問題 需先刪除 application )
     kubectl get app -n argocd
     
@@ -1015,7 +1015,7 @@ Level 3. 範本與架構層級 → 刪除 AppSet 與 AppProject
         - 尚須手動移除部分: pvc
         - 確認有無殘留資源: k get -n <namespace> cm,pv,pvc,sts,secret,service,ingress
 
-Level 4. 集群環境層級 → 刪除業務 Namespace
+[ Level 4 ] 集群環境層級 → 刪除業務 Namespace
     1. 排查 ...
         ☆ 標準安全排查法： 找出到底是誰卡住 Namespace
         kubectl api-resources --verbs=list --namespaced -o name | xargs -n 1 kubectl get --show-kind --ignore-not-found -n <namespace>
@@ -1027,7 +1027,7 @@ Level 4. 集群環境層級 → 刪除業務 Namespace
     kubectl delete namespace <namespace>
 
 
-Level 5. 基礎設施層級 → 卸載 ArgoCD 叢集全面大洗地
+[ Level 5 ] 基礎設施層級 → 卸載 ArgoCD 叢集全面大洗地
     ⚠️ 嚴重警告： 絕對不要使用 kubectl delete namespace argocd --force --grace-period=0
     
     ⭐ 無腦 make destroy 另說 ... 正常流程如下 :

@@ -20,7 +20,8 @@ echo "[2/7] Add Helm repositories..."
 
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo add jetstack https://charts.jetstack.io
-helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+#helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
 helm repo add argo https://argoproj.github.io/argo-helm
 
 helm repo update

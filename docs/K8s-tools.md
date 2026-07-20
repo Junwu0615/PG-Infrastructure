@@ -505,22 +505,22 @@ virsh -c qemu:///system pool-list --all
     ⭐ 檢視 dhcp 分配狀態是否如預期
     virsh net-dhcp-leases k3s_net
     
-    # * 刪除舊定義 (k3s_net)
-        # 1. 強制刪除網卡
-        sudo ip link set virbr1 down 2>/dev/null
-        sudo ip link delete virbr1 2>/dev/null
+    * 刪除舊定義 (k3s_net)
+      # 1. 強制刪除網卡
+      sudo ip link set virbr1 down 2>/dev/null
+      sudo ip link delete virbr1 2>/dev/null
         
-        # 2. 清理 Libvirt 網路定義
-        sudo virsh net-destroy k3s_net 2>/dev/null
-        sudo virsh net-undefine k3s_net 2>/dev/null
+      # 2. 清理 Libvirt 網路定義
+      sudo virsh net-destroy k3s_net 2>/dev/null
+      sudo virsh net-undefine k3s_net 2>/dev/null
         
-        # 3. 刪除 Libvirt 自動產生的 DHCP/DNS 狀態檔
-        sudo rm -rf /var/lib/libvirt/dnsmasq/k3s_net.conf
-        sudo rm -rf /var/lib/libvirt/dnsmasq/k3s_net.status
-        sudo rm -rf /var/lib/libvirt/network/k3s_net.xml
+      # 3. 刪除 Libvirt 自動產生的 DHCP/DNS 狀態檔
+      sudo rm -rf /var/lib/libvirt/dnsmasq/k3s_net.conf
+      sudo rm -rf /var/lib/libvirt/dnsmasq/k3s_net.status
+      sudo rm -rf /var/lib/libvirt/network/k3s_net.xml
         
-        # 4. 重啟 Libvirt 服務以刷新所有內部狀態
-        sudo systemctl restart libvirtd
+      # 4. 重啟 Libvirt 服務以刷新所有內部狀態
+      sudo systemctl restart libvirtd
     
     * 建立設定檔 (k3s_net)
     sudo cat /etc/libvirt/qemu/networks/k3s_net.xml
