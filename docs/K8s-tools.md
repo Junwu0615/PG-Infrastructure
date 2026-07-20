@@ -457,13 +457,32 @@ k3d --version
 <summary><b><i>　G.　WSL2 ENV. Startup VM </i></b></summary>
 <ul>
 
-#### *I.　使用方式*
+#### *I.　初始化*
 ```
-# 啟動 Linux Libvirt (參考 k3s.md)
+1. 啟動 Linux Libvirt (參考 k3s.md)
 
-# 生成 SSH 金鑰
+2. 生成 SSH 金鑰
 ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
 
+3. 安裝 ISO 製作工具
+sudo apt update && sudo apt install -y genisoimage
+
+4. 檢查現有的儲存池
+virsh -c qemu:///system pool-list --all
+
+    # 若 default 完全不存在，建立並啟動預設儲存池
+      1. 建立預設儲存池（預設會對應到 /var/lib/libvirt/images）
+         sudo virsh pool-define-as default dir - - - - "/var/lib/libvirt/images"
+    
+      2. 將預設儲存池設為自動啟動
+         sudo virsh pool-autostart default
+    
+      3. 啟動該儲存池
+         sudo virsh pool-start default
+```
+
+#### *II.　使用方式*
+```
 # [手動] VM 網路
     # 1. 初始化  (k3s_net)
     sudo virsh net-define /etc/libvirt/qemu/networks/k3s_net.xml
@@ -480,7 +499,7 @@ ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
     # 4. 驗證網路狀態，確保 State 顯示為 active，Autostart 顯示為 yes
     sudo virsh net-list --all
     
-    # * 檢視設定
+    * 檢視設定
     sudo virsh net-info k3s_net
     
     ⭐ 檢視 dhcp 分配狀態是否如預期
@@ -503,7 +522,7 @@ ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa
         # 4. 重啟 Libvirt 服務以刷新所有內部狀態
         sudo systemctl restart libvirtd
     
-    # * 建立設定檔 (k3s_net)
+    * 建立設定檔 (k3s_net)
     sudo cat /etc/libvirt/qemu/networks/k3s_net.xml
     sudo nano /etc/libvirt/qemu/networks/k3s_net.xml
     
