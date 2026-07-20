@@ -23,7 +23,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -121,7 +121,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "Prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -186,7 +186,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
+            "uid": "Prometheus"
           },
           "disableTextWrap": false,
           "editorMode": "code",
@@ -210,7 +210,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "Loki"
       },
       "fieldConfig": {
         "defaults": {
@@ -366,7 +366,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "Loki"
           },
           "direction": "backward",
           "editorMode": "code",
@@ -453,7 +453,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
+        "uid": "Loki"
       },
       "fieldConfig": {
         "defaults": {
@@ -609,7 +609,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
+            "uid": "Loki"
           },
           "direction": "backward",
           "editorMode": "code",
@@ -703,7 +703,7 @@
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-2m",
     "to": "now"
   },
   "timepicker": {
@@ -716,5 +716,5 @@
   "timezone": "",
   "title": "PG 可觀測性 LGTM 即時驗證面板",
   "uid": "78a7a560-84a4-49de-8e07-b4655a4ebf89",
-  "version": 35
+  "version": 3
 }

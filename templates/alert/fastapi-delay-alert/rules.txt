@@ -2,18 +2,29 @@
 
 1. Name: fastapi-delay-alert
 
-2. Loki: code ( QUERY A )
-count_over_time({app="fastapi-ide", env="development"} |= "latency_alert" [2m]) > 0
-{app="fastapi-ide", env="development"} |= "latency_alert" |= "high"
 
-Expressions ( QUERY B )
+2. Loki:
+( QUERY A )
+    # code
+    count_over_time({app="fastapi-ide", env="development"} |= "latency_alert" [2m]) > 0
+    # Legend
+    {app="fastapi-ide", env="development"} |= "latency_alert" |= "high"
+
+( QUERY B )
+    # Expressions
+    => Is above: 0
 
 
 3. Alert Folder
 
+
 4. 1M => 1M
+Alert state if no data or all values are null => Normal
+Alert state if execution error or timeout => Alerting
+
 
 5. Telegram
+
 
 6. Link
 http://grafana.k8s.local:8080/d/78a7a560-84a4-49de-8e07-b4655a4ebf89/2f96495?orgId=1&from=now-5m&to=now&timezone=browser&refresh=5s
