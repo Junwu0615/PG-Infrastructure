@@ -18,7 +18,7 @@ metadata:
   namespace: observability-homelab-test
 subsets:
   - addresses:
-      - ip: 172.28.113.34
+      - ip: 172.26.18.73
     ports:
       - port: 8000
         name: web
