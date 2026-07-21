@@ -24,7 +24,7 @@
 ![PNG](../../../assets/png/k3s_vm.png)
 ```
 ⭐ VM 生命週期
-   1. 預載資源 => 預防封閉環境無法索取外網資源
+   1. 預載資源 ➔ 預防封閉環境無法索取外網資源
    make apt-source-prepare
     
    2. 初始化配置
@@ -339,10 +339,10 @@ kubectl delete clusterrole traefik-kube-system --ignore-not-found
 
 ☆ 其他
   ☆ Ansible [ ⭐ VM 初始化即一步到位 ] 
-     # 更新 VM Host 設定 => 可以拉取 registry images
+     # 更新 VM Host 設定 ➔ 可以拉取 registry images
      make trigger-ansible TAGS=registry VARS=-vv
         
-     # 更新 VM Storage 設定 => SQLite 持久化
+     # 更新 VM Storage 設定 ➔ SQLite 持久化
      make trigger-ansible Files=playbooks/deploy_storage.yml VARS=-vv
         
      # 手動初始化節點
@@ -933,7 +933,7 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
 
 
 # 驗證
-  ⭐ 1. 掛載狀況 ( 進 inst 容器 => k9s 按 s 進入 shell )
+  ⭐ 1. 掛載狀況 ( 進 inst 容器 ➔ k9s 按 s 進入 shell )
     mount | grep /app/data
     10.88.0.10:/data/nfs/test-sqlite on /app/data type nfs4 (rw,relatime,vers=4.2,rsize=262144,wsize=262144,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=10.88.0.22,local_lock=none,addr=10.88.0.10)
     
@@ -947,7 +947,7 @@ $ kubectl apply -f archive/test/nfs-debug.yaml
     -rw-r--r-- 1 root root 16512 Jun 13 10:13 kafka_consumer_local.db-wal
 
 
-☆ 若變更設置需要重頭來過 => 刪除 pvc, pv
+☆ 若變更設置需要重頭來過 ➔ 刪除 pvc, pv
 $ kubectl delete pvc sqlite-nfs-pvc -n pg-apps-homelab-test
 $ kubectl delete pv nfs-storage-homelab-test-nfs-pv
 ```
@@ -991,7 +991,7 @@ $ kubectl delete pv nfs-storage-homelab-test-nfs-pv
       # 查詢域名底下所有實例 ( -n observability-homelab-test )
       kubectl get all -n observability-homelab-test -o custom-columns=NAME:.metadata.name,INSTANCE:.metadata.labels.app\.kubernetes\.io/instance
       
-      # 鎖定某一實例 ( tempo-homelab-test-memcached-0 ) => instance=tempo-homelab-test
+      # 鎖定某一實例 ( tempo-homelab-test-memcached-0 ) ➔ instance=tempo-homelab-test
       kubectl get pod tempo-homelab-test-memcached-0 -n observability-homelab-test --show-labels | grep "instance"
       
       # 模擬刪除 ( --dry-run=client )
@@ -1011,7 +1011,7 @@ $ kubectl delete pv nfs-storage-homelab-test-nfs-pv
     3. 刪除專案環境控制（Project 通常沒什麼依賴，可以直接刪除）
     kubectl delete -n argocd appproject <project-name>
     
-    ⭐ 實踐後發現直接註解 argocd/kustomization.yaml 即可 資源就被連帶銷毀 => 否則資源一直重生
+    ⭐ 實踐後發現直接註解 argocd/kustomization.yaml 即可 資源就被連帶銷毀 ➔ 否則資源一直重生
         - 尚須手動移除部分: pvc
         - 確認有無殘留資源: k get -n <namespace> cm,pv,pvc,sts,secret,service,ingress
 

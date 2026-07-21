@@ -11,16 +11,16 @@
     {app="fastapi-ide", env="development"} |= "latency_alert" |= "high"
 
 ( Expressions B ) # Reduce # Input A # Alert condition
-    => Last : Replace Non-numeric Values
+    → Last : Replace Non-numeric Values
 
 ( Expressions C ) # Threshold # Input B
-    => Is above: 0
+    → Is above: 0
 
 3. Alert Folder
 
-4. 10s => 10s
-Alert state if no data or all values are null => Normal
-Alert state if execution error or timeout => Alerting
+4. 10s → 10s
+Alert state if no data or all values are null → Normal
+Alert state if execution error or timeout → Alerting
 
 5. Telegram
 

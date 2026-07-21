@@ -261,7 +261,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
     │       │           ├── namespace.yaml
     │       │           └── values.yaml
     │       │
-    │       ├── charts/ ⭐ ( classapp => app => [ Chart.yaml | templates/ | values/ ] )
+    │       ├── charts/ ⭐ ( classapp ➔ app ➔ [ Chart.yaml | templates/ | values/ ] )
     │       │   ├── databases
     │       │   │   └── postgresql
     │       │   ├── observability

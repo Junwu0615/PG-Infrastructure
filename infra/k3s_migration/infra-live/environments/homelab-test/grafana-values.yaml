@@ -15,7 +15,7 @@ grafana:
     enabled: false
 
   grafana.ini:
-    # 確保開啟功能 => Loki 連動 Tempo
+    # 確保開啟功能 → Loki 連動 Tempo
     feature_toggles:
       enable: traceToLogs,logsToTrace
 
