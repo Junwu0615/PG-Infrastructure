@@ -206,16 +206,16 @@ make clean
 
     1.  持續請求測試：
         開啟一個臨時 Pod 不斷存取你的 Python App：
-        `kubectl run tracer --image=curlimages/curl -i --tty --rm -- sh`
-        `while true; do curl -s http://python-app-service:port/health; sleep 1; done`
+        kubectl run tracer --image=curlimages/curl -i --tty --rm -- sh
+        while true; do curl -s http://python-app-service:port/health; sleep 1; done
     2.  刪除 Service：
         `kubectl delete svc python-app-service`
     3.  觀察：
-        你會看到 `curl` 開始報錯 ( Connection refused )。這模擬了「進入點故障」
+        你會看到 curl 開始報錯 ( Connection refused )。這模擬了「進入點故障」
     4.  恢復 Service：
         重新執行 `make deploy` 或 `kubectl apply`
     5.  驗證：
-        觀察 `curl` 是否在 Service 重建後秒速恢復連線
+        觀察 curl 是否在 Service 重建後秒速恢復連線
 
 
 👁️ [ X ] 測試 7： 資源限制 ( Resource Limit - OOMKilled )

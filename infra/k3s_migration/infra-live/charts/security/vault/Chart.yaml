@@ -1,0 +1,13 @@
+apiVersion: v2
+name: vault-wrapper
+description: A Helm Chart for Vault GitOps
+type: application
+version: 0.1.0
+appVersion: "2026.05"
+
+dependencies:
+  # values 第一層 Key 必須與此 name 一致，才能正確套用 values 設定
+  - name: vault
+    version: 0.27.0
+    repository: https://helm.releases.hashicorp.com
+    condition: vault.enabled

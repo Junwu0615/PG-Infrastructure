@@ -28,7 +28,7 @@ resources:
 #  - applications/platform/registry-appset.yaml
 #  - applications/platform/harbor-appset.yaml
 
-#  - applications/security/vault-appset.yaml
+  - applications/security/vault-appset.yaml
 
 #  - applications/storage/nfs-storage-appset.yaml
 
