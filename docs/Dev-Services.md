@@ -683,8 +683,8 @@
 <ul>
 
 - #### *a.　使用細節*
-```
-```
+  ```
+  ```
 
 </ul>
 </details>
@@ -845,15 +845,15 @@
 <ul>
 
 ```
-# 觀測重點 ( templates/grafana/htap.json )
-HTAP Monitoring
-  System Layer ( Node Exporter )
+[ 未完成 ] 觀測範本: templates/grafana/htap.json
+
+# System Layer ( Node Exporter )
   - CPU
   - RAM
   - Disk IO
   - Disk usage
 
-  PostgreSQL Layer ( Postgres Exporter )
+# PostgreSQL Layer ( Postgres Exporter )
   - TPS
   - Connections
   - Locks
@@ -861,122 +861,122 @@ HTAP Monitoring
   - Cache hit ratio
   - Checkpoints
 
-  Table Layer
+# Table Layer
   - Top 10 table size
   - Top 10 seq scan
   - Top 10 index scan
   - Table growth
 ```
 
-- #### *壓測觀察重點*
-  ```
-  TPS           穩定上升
-  WAL rate      線性上升
-  Cache hit     > 95%
-  Locks         低
-  Checkpoint    平穩
-  ```
+#### *a.　壓測觀察重點*
+```
+TPS           穩定上升
+WAL rate      線性上升
+Cache hit     > 95%
+Locks         低
+Checkpoint    平穩
+```
 
-- #### *監控位置*
-  - #### *⭐ TPS: 每秒 Commit + Rollback 數*
-  - ![PNG](../assets/png/grafana_01.png)
-    ```
-    -- Equivalent SQL ⬇️ 
-    SELECT
-    xact_commit,
-    xact_rollback
-    FROM pg_stat_database;
-    ```
-    ```
-    壓測觀察重點： 
-    預期 : 逐漸上升 → 穩定
-    非預期 : TPS 上升 → 突然下降
-      - WAL Flush → Disk IO Saturation
-      - Lock Contention → Transaction Locks
-      - CPU Saturation → Transaction waiting for CPU
-      - Memory Saturation → Transaction waiting for Memory
-      - Network Saturation → Transaction waiting for Network
-      - Checkpoint → Checkpoint Frequency too High
-    ```
-  - #### *⭐ WAL Rate*
-    ```
-    -- Equivalent SQL ⬇️ 
-    None
-    ```
-    ```
-    壓測觀察重點： 
-    預期 : None
-    非預期 : 突然暴增 ( WAL 持續線性成長 )
-     - Numerous INSERTs
-     - Numerous UPDATEs
-     - Checkpoint ( WAL Rate Spike )
-    ```
-  - #### *IO Saturation*
-    ```
-    -- Equivalent SQL ⬇️ 
-    None
-    ```
-    ```
-    壓測觀察重點： IO Wait
-    預期 : None
-    非預期 : IO Full → TPS 突然下降
-    ```
-  - #### *⭐ Lock Contention*
-  - ![PNG](../assets/png/grafana_04.png)
-    ```
-    -- Equivalent SQL ⬇️ 
-    SELECT *
-    FROM pg_locks;
-    ```
-    ```
-    壓測觀察重點： 
-    預期 : None
-    非預期 :
-        - Update Contention → 多 Transaction 更新同 Row
-        - Index Page Lock → 多 Transaction 更新同 Index Page
-        - DDL Lock → Schema Change
-        - OLAP Query → AccessShareLock
-    ```
-  - #### *Connections*
-  - ![PNG](../assets/png/grafana_05.png)
-    ```
-    -- Equivalent SQL ⬇️ 
-    SELECT count(*)
-    FROM pg_stat_activity;
-    ```
-    ```
-    壓測觀察重點： 
-    預期 : Connections 穩定
-    非預期 : Connections 持續上升
-        - Connection Leak → Client Connections Not Being Released
-        - Connection Storm → Sudden Surge in Connection Attempts
-        - Pool Misconfiguration → Connection Pooling Exploded
-    ```
-  - #### *⭐ Cache Hit Ratio*
-  - ![PNG](../assets/png/grafana_06.png)
-    ```
-    -- Equivalent SQL ⬇️ 
-    None
-    ```
-    ```
-    壓測觀察重點： 
-    預期 : > 0.95
-    非預期 : < 0.90
-      - shared_buffers 不夠 ??? 
-      - dataset > RAM ???
-    ```
-  - #### *⭐ WAL Flush / Checkpoint*
-  - ![PNG](../assets/png/grafana_07.png)
-    ```
-    -- Equivalent SQL ⬇️ 
-    None
-    ```
-    ```
-    壓測觀察重點： 
-    預期 : None
-    非預期 :
-      - checkpoints_req → WAL segment filled up → max_wal_size too small
-    ```
+#### *b.　監控位置*
+- #### *⭐ TPS: 每秒 Commit + Rollback 數*
+- ![PNG](../assets/png/grafana_01.png)
+  ```
+  -- Equivalent SQL ⬇️ 
+  SELECT
+  xact_commit,
+  xact_rollback
+  FROM pg_stat_database;
+  ```
+  ```
+  壓測觀察重點： 
+  預期 : 逐漸上升 → 穩定
+  非預期 : TPS 上升 → 突然下降
+    - WAL Flush → Disk IO Saturation
+    - Lock Contention → Transaction Locks
+    - CPU Saturation → Transaction waiting for CPU
+    - Memory Saturation → Transaction waiting for Memory
+    - Network Saturation → Transaction waiting for Network
+    - Checkpoint → Checkpoint Frequency too High
+  ```
+- #### *⭐ WAL Rate*
+  ```
+  -- Equivalent SQL ⬇️ 
+  None
+  ```
+  ```
+  壓測觀察重點： 
+  預期 : None
+  非預期 : 突然暴增 ( WAL 持續線性成長 )
+   - Numerous INSERTs
+   - Numerous UPDATEs
+   - Checkpoint ( WAL Rate Spike )
+  ```
+- #### *IO Saturation*
+  ```
+  -- Equivalent SQL ⬇️ 
+  None
+  ```
+  ```
+  壓測觀察重點： IO Wait
+  預期 : None
+  非預期 : IO Full → TPS 突然下降
+  ```
+- #### *⭐ Lock Contention*
+- ![PNG](../assets/png/grafana_04.png)
+  ```
+  -- Equivalent SQL ⬇️ 
+  SELECT *
+  FROM pg_locks;
+  ```
+  ```
+  壓測觀察重點： 
+  預期 : None
+  非預期 :
+      - Update Contention → 多 Transaction 更新同 Row
+      - Index Page Lock → 多 Transaction 更新同 Index Page
+      - DDL Lock → Schema Change
+      - OLAP Query → AccessShareLock
+  ```
+- #### *Connections*
+- ![PNG](../assets/png/grafana_05.png)
+  ```
+  -- Equivalent SQL ⬇️ 
+  SELECT count(*)
+  FROM pg_stat_activity;
+  ```
+  ```
+  壓測觀察重點： 
+  預期 : Connections 穩定
+  非預期 : Connections 持續上升
+      - Connection Leak → Client Connections Not Being Released
+      - Connection Storm → Sudden Surge in Connection Attempts
+      - Pool Misconfiguration → Connection Pooling Exploded
+  ```
+- #### *⭐ Cache Hit Ratio*
+- ![PNG](../assets/png/grafana_06.png)
+  ```
+  -- Equivalent SQL ⬇️ 
+  None
+  ```
+  ```
+  壓測觀察重點： 
+  預期 : > 0.95
+  非預期 : < 0.90
+    - shared_buffers 不夠 ??? 
+    - dataset > RAM ???
+  ```
+- #### *⭐ WAL Flush / Checkpoint*
+- ![PNG](../assets/png/grafana_07.png)
+  ```
+  -- Equivalent SQL ⬇️ 
+  None
+  ```
+  ```
+  壓測觀察重點： 
+  預期 : None
+  非預期 :
+    - checkpoints_req → WAL segment filled up → max_wal_size too small
+  ```
 
 </ul>
 </details>
