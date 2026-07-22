@@ -34,6 +34,7 @@ ALL_CHART_DIRS := \
     $(INFRA_LIVE_DIR)/charts/platform/ingress-nginx \
     $(INFRA_LIVE_DIR)/charts/platform/registry \
     $(INFRA_LIVE_DIR)/charts/platform/harbor \
+    $(INFRA_LIVE_DIR)/charts/security/vault \
 
 FILTER_CHART_DIRS := \
     $(INFRA_LIVE_DIR)/charts/observability/prometheus \
@@ -47,6 +48,7 @@ FILTER_CHART_DIRS := \
 #    $(INFRA_LIVE_DIR)/charts/platform/ingress-nginx \
 #    $(INFRA_LIVE_DIR)/charts/platform/registry \
 #    $(INFRA_LIVE_DIR)/charts/observability/tempo \
+#    $(INFRA_LIVE_DIR)/charts/security/vault \
 
 
 CHART_DIRS := $(filter-out $(FILTER_CHART_DIRS), $(ALL_CHART_DIRS))
@@ -59,7 +61,7 @@ SHELL := /bin/bash
 .PHONY: apt-source-prepare apt-source-clean trigger-ansible k9s-fav \
 init apply destroy output terraform-list \
 reset-kubectl status k-top label-nodes vm-format vm-power \
-root-app init-gitops helm-chart $(CHART_DIRS) upgrade-ingress see-secrets
+root-app init-gitops helm-chart helm-repo $(CHART_DIRS) upgrade-ingress see-secrets
 
 
 apt-source-prepare: $(ISO_DIR) $(INIT_DIR) $(NFS_DIR) $(NFS_SERVER_DIR) $(KEEPALIVED_DIR) $(K3S_DIR)
@@ -183,8 +185,17 @@ init-gitops:
 	./cluster/scripts/bootstrap-cluster.sh
 	@echo "✅  <make init-gitops> done."
 
-helm-chart: $(CHART_DIRS)
+helm-chart: helm-repo $(CHART_DIRS)
 	@echo "✅  <make helm-chart> done."
+
+helm-repo:
+	helm repo add grafana https://grafana.github.io/helm-charts
+	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+	helm repo add bitnami https://charts.bitnami.com/bitnami
+	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	helm repo add harbor https://helm.goharbor.io
+	helm repo add hashicorp https://helm.releases.hashicorp.com
+	helm repo update
 
 $(CHART_DIRS):
 	@echo "* [Vendor Mode] 動態遍歷建置 Helm (Chart.yaml) 依賴 ▶ $@"

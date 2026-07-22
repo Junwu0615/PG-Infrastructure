@@ -12,7 +12,7 @@ k9s:
       - observability-homelab-test
       - pg-apps-homelab-test
       - platform-homelab-test
-#      - security-homelab-test
+      - security-homelab-test
 #      - storage-homelab-test
 #      - other-homelab-test
   view:
