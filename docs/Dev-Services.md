@@ -684,6 +684,32 @@
 
 - #### *a.　使用細節*
   ```
+  # 檢查目前啟用的 Secrets Engine 列表
+  vault secrets list
+  
+  # 如果輸出結果中沒有看到 database/ 這行，就代表這個 Engine 根本還沒被建立
+  
+    # 1. 啟用 Database 引擎（如果已經啟用過會報錯，可先忽略）
+    vault secrets enable database
+    
+  
+    # 2. 設定 PostgreSQL 連線資訊
+    vault write database/config/postgresql-prod \
+        plugin_name=postgresql-database-plugin \
+        allowed_roles="dynamic-app-role" \
+        connection_url="postgresql://{{username}}:{{password}}@postgresql-homelab-test.databases-homelab-test.svc.cluster.local:5432/pgdatabase?sslmode=disable" \
+        username="pguser" \
+        password="pgsecretpassword"
+    # Success! Data written to: database/config/postgresql-prod
+    
+  
+    # 3. 建立動態角色 (Role)
+    vault write database/roles/dynamic-app-role \
+        db_name=postgresql-prod \
+        creation_statements="CREATE ROLE \"{{name}}\" LOGIN PASSWORD '{{password}}' VALID UNTIL 'timestamp ''now() + interval ''5 minutes'''; GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";" \
+        default_ttl="2m" \
+        max_ttl="5m"
+    # Success! Data written to: database/roles/dynamic-app-role
   ```
 
 </ul>
