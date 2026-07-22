@@ -679,7 +679,20 @@
 <br>
 
 <details>
-<summary><b><i>　11.　Tempo </i></b></summary>
+<summary><b><i>　11.　Vault </i></b></summary>
+<ul>
+
+- #### *a.　使用細節*
+```
+```
+
+</ul>
+</details>
+
+<br>
+
+<details>
+<summary><b><i>　12.　Tempo </i></b></summary>
 <ul>
 
 - #### *a.　使用細節*
@@ -800,53 +813,62 @@
 <br>
 
 <details>
-<summary><b><i>　12.　Monitoring </i></b></summary>
+<summary><b><i>　13.　Grafana </i></b></summary>
 <ul>
 
-- #### *a.　Grafana 設定*
-  ```
-  # Login Grafana Web UI
-    - acc: admin
-    - pwd: admin
-  
-  # 新增 Prometheus datasource: http:127.0.0.1:9090
-  
-  # 快速導入 Dashboard ( Dashboards → New → Import )
-  - Import via grafana.com :
-    - PostgreSQL: 9628 ( TPS, Transactions, Locks, Cache hit, Connections, Database size )
-    - Node Exporter: 1860 ( CPU, RAM, Disk IO, Disk usage, Network, Load average )
-    - PostgreSQL Table: 12485 ( Table size, Table growth, Index size, Sequential scans, Index scans )
-    - Kafka 全方位監控 : 11600
-    - K8s 叢集基礎監控 : 1860
-    - K8s 叢集進階監控 : 15760
-  
-  # 觀測重點 ( templates/grafana/htap.json )
-  HTAP Monitoring
-    System Layer ( Node Exporter )
-    - CPU
-    - RAM
-    - Disk IO
-    - Disk usage
-  
-    PostgreSQL Layer ( Postgres Exporter )
-    - TPS
-    - Connections
-    - Locks
-    - WAL rate
-    - Cache hit ratio
-    - Checkpoints
-  
-    Table Layer
-    - Top 10 table size
-    - Top 10 seq scan
-    - Top 10 index scan
-    - Table growth
-  ```
-- ![PNG](../assets/png/grafana_1.png)
-- ![PNG](../assets/png/grafana_2.png)
-- ![PNG](../assets/png/grafana_3.png)
+```
+# 預設帳密 Login Grafana Web UI
+  - acc: admin
+  - pwd: admin
 
-- #### *b.　壓測觀察重點*
+# 快速導入 Dashboard ( Dashboards → New → Import )
+  - PostgreSQL: 9628 ( TPS, Transactions, Locks, Cache hit, Connections, Database size )
+  - Node Exporter: 1860 ( CPU, RAM, Disk IO, Disk usage, Network, Load average )
+  - PostgreSQL Table: 12485 ( Table size, Table growth, Index size, Sequential scans, Index scans )
+  - Kafka 全方位監控 : 11600
+  - K8s 叢集基礎監控 : 1860
+  - K8s 叢集進階監控 : 15760
+```
+
+![PNG](../assets/png/grafana_1.png)
+![PNG](../assets/png/grafana_2.png)
+![PNG](../assets/png/grafana_3.png)
+
+</ul>
+</details>
+
+<br>
+
+
+<details>
+<summary><b><i>　14.　Monitoring </i></b></summary>
+<ul>
+
+```
+# 觀測重點 ( templates/grafana/htap.json )
+HTAP Monitoring
+  System Layer ( Node Exporter )
+  - CPU
+  - RAM
+  - Disk IO
+  - Disk usage
+
+  PostgreSQL Layer ( Postgres Exporter )
+  - TPS
+  - Connections
+  - Locks
+  - WAL rate
+  - Cache hit ratio
+  - Checkpoints
+
+  Table Layer
+  - Top 10 table size
+  - Top 10 seq scan
+  - Top 10 index scan
+  - Table growth
+```
+
+- #### *壓測觀察重點*
   ```
   TPS           穩定上升
   WAL rate      線性上升
@@ -855,8 +877,8 @@
   Checkpoint    平穩
   ```
 
-- #### *c.　監控位置*
-  - #### *⭐ c.1.　TPS: 每秒 Commit + Rollback 數*
+- #### *監控位置*
+  - #### *⭐ TPS: 每秒 Commit + Rollback 數*
   - ![PNG](../assets/png/grafana_01.png)
     ```
     -- Equivalent SQL ⬇️ 
@@ -876,7 +898,7 @@
       - Network Saturation → Transaction waiting for Network
       - Checkpoint → Checkpoint Frequency too High
     ```
-  - #### *⭐ c.2.　WAL Rate*
+  - #### *⭐ WAL Rate*
     ```
     -- Equivalent SQL ⬇️ 
     None
@@ -889,7 +911,7 @@
      - Numerous UPDATEs
      - Checkpoint ( WAL Rate Spike )
     ```
-  - #### *c.3.　IO Saturation*
+  - #### *IO Saturation*
     ```
     -- Equivalent SQL ⬇️ 
     None
@@ -899,7 +921,7 @@
     預期 : None
     非預期 : IO Full → TPS 突然下降
     ```
-  - #### *⭐ c.4.　Lock Contention*
+  - #### *⭐ Lock Contention*
   - ![PNG](../assets/png/grafana_04.png)
     ```
     -- Equivalent SQL ⬇️ 
@@ -915,7 +937,7 @@
         - DDL Lock → Schema Change
         - OLAP Query → AccessShareLock
     ```
-  - #### *c.5.　Connections*
+  - #### *Connections*
   - ![PNG](../assets/png/grafana_05.png)
     ```
     -- Equivalent SQL ⬇️ 
@@ -930,7 +952,7 @@
         - Connection Storm → Sudden Surge in Connection Attempts
         - Pool Misconfiguration → Connection Pooling Exploded
     ```
-  - #### *⭐ c.6.　Cache Hit Ratio*
+  - #### *⭐ Cache Hit Ratio*
   - ![PNG](../assets/png/grafana_06.png)
     ```
     -- Equivalent SQL ⬇️ 
@@ -943,7 +965,7 @@
       - shared_buffers 不夠 ??? 
       - dataset > RAM ???
     ```
-  - #### *⭐ c.7.　WAL Flush / Checkpoint*
+  - #### *⭐ WAL Flush / Checkpoint*
   - ![PNG](../assets/png/grafana_07.png)
     ```
     -- Equivalent SQL ⬇️ 
@@ -954,11 +976,6 @@
     預期 : None
     非預期 :
       - checkpoints_req → WAL segment filled up → max_wal_size too small
-    ```
-    
-  - #### *c.8.　...*
-    ```
-    http://127.0.0.1:9187/metrics
     ```
 
 </ul>
