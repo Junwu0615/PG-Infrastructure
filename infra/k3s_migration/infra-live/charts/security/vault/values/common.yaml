@@ -5,5 +5,7 @@ vault:
       enabled: false  # MVP 階段可先關閉 HA 簡化架構
     ui:
       enabled: true
+    dev:
+      enabled: true   # 開啟 Dev 模式，適合 MVP 測試
   injector:
     enabled: true     # 啟用 Vault Agent Injector 以支援自動注入
