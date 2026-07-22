@@ -1179,6 +1179,8 @@ platform-homelab-test        ingress-nginx-homelab-test-controller-6757b9cbc8-q8
 platform-homelab-test        registry-homelab-test-7975485847-b2hf2                            1/1     Running   0          31m     10.42.3.9    k3s-agent-2    <none>           <none>
 platform-homelab-test        registry-homelab-test-7975485847-kfx9r                            1/1     Running   0          31m     10.42.3.8    k3s-agent-2    <none>           <none>
 sealed-secrets               sealed-secrets-controller-674596f4bf-l8hnt                        1/1     Running   0          35m     10.42.7.3    k3s-agent-1    <none>           <none>
+security-homelab-test        vault-homelab-test-0                                              1/1     Running   0          2m51s   10.42.4.22   k3s-agent-1    <none>           <none>
+security-homelab-test        vault-homelab-test-agent-injector-67748d9779-8mjgm                1/1     Running   0          2m51s   10.42.6.23   k3s-agent-0    <none>           <none>
 ```
 
 </ul>
@@ -1221,6 +1223,7 @@ argocd      prometheus-stack-appset   3d16h
 argocd      promtail-appset           3d16h
 argocd      registry-appset           3d16h
 argocd      tempo-appset              3d16h
+argocd      vault-appset              2m7s
 ```
 
 </ul>
@@ -1245,6 +1248,7 @@ argocd      prometheus-stack-homelab-test   Synced        Healthy
 argocd      promtail-homelab-test           Synced        Healthy
 argocd      registry-homelab-test           Synced        Healthy
 argocd      tempo-homelab-test              Synced        Healthy
+argocd      vault-homelab-test              Synced        Healthy
 ```
 
 </ul>
@@ -1257,7 +1261,7 @@ argocd      tempo-homelab-test              Synced        Healthy
 - *[K8s - Deployment Delivery Baseline](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Deployment-Delivery-Baseline.md)*
 - *[K8s - GitOps Deployment Governance Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/GitOps-Deployment-Governance-Validation.md)*
 - *[K8s - Observability Platform Validation](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Observability-Platform-Validation.md)*
-- *[K8s - Vault Secret Management & Distribution](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault.md)*
+- *[K8s - Vault Secret Management & Distribution](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/Vault-Secret-Management-Distribution.md)*
 - *[K8s - End-to-End DevOps Operating Model](https://github.com/Junwu0615/Platform-Genesis/blob/main/docs/End-to-End-DevOps-Operating-Model.md)*
 
 

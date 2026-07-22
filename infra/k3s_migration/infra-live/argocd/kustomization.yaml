@@ -11,7 +11,7 @@ resources:
   - projects/storage.yaml
 
   # applications
-#  - applications/databases/postgresql-appset.yaml
+  - applications/databases/postgresql-appset.yaml
 
   - applications/observability/grafana-appset.yaml
   - applications/observability/loki-appset.yaml
