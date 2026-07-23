@@ -64,271 +64,435 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 .
 ├── LICENSE
 ├── README.md
-└── infra
-    ├── docker-compose
-    │   ├── Makefile
-    │   ├── ansible
-    │   │   ├── inventory.ini
-    │   │   ├── playbook.yml
-    │   │   └── roles
-    │   │       └── monitoring
-    │   │           ├── handlers
-    │   │           │   └── main.yml
-    │   │           ├── tasks
-    │   │           │   └── main.yml
-    │   │           ├── templates
-    │   │           │   └── prometheus.yml.j2
-    │   │           └── vars
-    │   │               └── main.yml
-    │   ├── docker
-    │   │   ├── airflow
-    │   │   │   ├── config
-    │   │   │   ├── dags ( copy `PG-Airflow-DAGs` )
-    │   │   │   ├── deploy_dags.sh
-    │   │   │   ├── docker-compose.yaml
-    │   │   │   └── plugins
-    │   │   ├── elk
-    │   │   │   ├── docker-compose.yaml
-    │   │   │   ├── elasticsearch.yaml
-    │   │   │   └── logstash
-    │   │   │       ├── logstash.yaml
-    │   │   │       └── pipeline
-    │   │   │           └── logstash.conf
-    │   │   ├── gitlab
-    │   │   │   ├── config
-    │   │   │   ├── data
-    │   │   │   └── docker-compose.yaml
-    │   │   ├── iot-platform
-    │   │   │   ├── config
-    │   │   │   │   ├── connectors
-    │   │   │   │   │   ├── sink
-    │   │   │   │   │   │   ├── sink-inst-prod-orders.json
-    │   │   │   │   │   │   ├── sink-inst-prod-records.json
-    │   │   │   │   │   │   └── sink-inst-status-logs.json
-    │   │   │   │   │   ├── sink-k8s
-    │   │   │   │   │   │   ├── sink-inst-prod-orders.json
-    │   │   │   │   │   │   ├── sink-inst-prod-records.json
-    │   │   │   │   │   │   └── sink-inst-status-logs.json
-    │   │   │   │   │   └── source
-    │   │   │   │   │       └── source-cp-mach-order.json
-    │   │   │   │   ├── mosquitto.conf
-    │   │   │   │   └── passwd
-    │   │   │   ├── dockerfile
-    │   │   │   │   └── Dockerfile.kafka
-    │   │   │   ├── kafka-compose.yaml
-    │   │   │   └── mqtt-compose.yaml
-    │   │   ├── jenkins
-    │   │   │   └── docker-compose.yaml
-    │   │   ├── monitoring
-    │   │   │   ├── docker-compose.yaml
-    │   │   │   ├── htap_grafana.json
-    │   │   │   ├── loki-config.yaml
-    │   │   │   ├── prometheus.yaml
-    │   │   │   └── promtail-config.yaml
-    │   │   ├── portainer
-    │   │   │   └── docker-compose.yaml
-    │   │   ├── postgresql
-    │   │   │   ├── Dockerfile
-    │   │   │   ├── docker-compose.yaml
-    │   │   │   └── init
-    │   │   │       └── init.sql
-    │   │   ├── powa
-    │   │   │   ├── Dockerfile
-    │   │   │   ├── docker-compose.yaml
-    │   │   │   └── init
-    │   │   │       └── powa.sql
-    │   │   └── registry
-    │   │       └── docker-compose.yaml
-    │   ├── docker-compose.yaml
-    │   ├── gitlab-runner
-    │   │   └── config.toml
-    │   ├── terraform
-    │   │   ├── main.tf
-    │   │   ├── modules
-    │   │   │   ├── docker_container
-    │   │   │   │   ├── main.tf
-    │   │   │   │   ├── outputs.tf
-    │   │   │   │   └── variables.tf
-    │   │   │   ├── monitoring
-    │   │   │   │   ├── main.tf
-    │   │   │   │   ├── outputs.tf
-    │   │   │   │   └── variables.tf
-    │   │   │   └── portainer
-    │   │   │       ├── main.tf
-    │   │   │       ├── outputs.tf
-    │   │   │       └── variables.tf
-    │   │   ├── outputs.tf
-    │   │   ├── terraform.tfvars
-    │   │   └── variables.tf
-    │   └── wsl2
-    ├── gke ( `TBD` )
-    ├── k3d ( `omission` )
-    ├── k3s ( `omission` )
-    ├── k3s_migration
-    │   ├── Makefile
-    │   ├── archive
-    │   │   ├── grafana
-    │   │   │   └── test-dashboard.json
-    │   │   ├── ingress-settings
-    │   │   │   ├── k8s-http-proxy.service
-    │   │   │   ├── k8s-https-proxy.service
-    │   │   │   ├── portainer-agent-proxy.service
-    │   │   │   └── postgresql-proxy.service
-    │   │   ├── k9s-fav
-    │   │   │   └── homelab-test.yaml
-    │   │   ├── scripts
-    │   │   │   └── vm-power.sh
-    │   │   ├── test
-    │   │   │   ├── gitlab-ingress.yaml
-    │   │   │   ├── gitlab-values.yaml
-    │   │   │   ├── kustomization.yaml
-    │   │   │   ├── postgres-init-configmap.yaml
-    │   │   │   └── postgres-values.yaml
-    │   │   └── win_hosts
-    │   ├── bootstrap
-    │   │   ├── ansible
-    │   │   │   ├── ansible.cfg
-    │   │   │   ├── group_vars
-    │   │   │   │   └── all.yml
-    │   │   │   ├── inventory.ini
-    │   │   │   └── playbooks
-    │   │   │       ├── deploy_k3s.yml
-    │   │   │       ├── gateway.yml
-    │   │   │       ├── init_nodes.yml
-    │   │   │       ├── power_manage.yml
-    │   │   │       ├── site.yml
-    │   │   │       └── templates
-    │   │   │           └── registries.yml.j2
-    │   │   └── terraform
-    │   │       ├── cloud_init.cfg
-    │   │       ├── env_tfvars
-    │   │       │   └── homelab-test.tfvars
-    │   │       ├── inventory.tftpl
-    │   │       ├── main.tf
-    │   │       ├── outputs.tf
-    │   │       ├── terraform.tfstate
-    │   │       ├── terraform.tfstate.backup
-    │   │       └── variables.tf
-    │   └── infra-live
-    │       ├── README.md
-    │       ├── argocd
-    │       │   ├── applications
-    │       │   │   ├── databases
-    │       │   │   │   └── postgresql-appset.yaml
-    │       │   │   ├── observability
-    │       │   │   │   ├── grafana-appset.yaml
-    │       │   │   │   ├── loki-appset.yaml
-    │       │   │   │   ├── prometheus-stack-appset.yaml
-    │       │   │   │   ├── promtail-appset.yaml
-    │       │   │   │   └── tempo-appset.yaml
-    │       │   │   ├── pg-apps
-    │       │   │   │   ├── cp-appset.yaml
-    │       │   │   │   └── inst-appset.yaml
-    │       │   │   ├── platform
-    │       │   │   │   ├── harbor-appset.yaml
-    │       │   │   │   ├── ingress-nginx-appset.yaml
-    │       │   │   │   └── registry-appset.yaml
-    │       │   │   ├── security
-    │       │   │   │   └── kustomization.yaml
-    │       │   │   └── storage
-    │       │   │       └── nfs-storage-appset.yaml
-    │       │   ├── kustomization.yaml
-    │       │   ├── projects
-    │       │   │   ├── databases.yaml
-    │       │   │   ├── observability.yaml
-    │       │   │   ├── pg-apps.yaml
-    │       │   │   ├── platform.yaml
-    │       │   │   ├── security.yaml
-    │       │   │   └── storage.yaml
-    │       │   └── root-app.yaml
-    │       ├── bootstrap
-    │       │   └── cluster
-    │       │       ├── argocd
-    │       │       │   ├── ingress.yaml
-    │       │       │   ├── namespace.yaml
-    │       │       │   ├── repo-secret.yaml
-    │       │       │   └── values.yaml
-    │       │       ├── cert-manager
-    │       │       │   ├── cluster-issuer.yaml
-    │       │       │   ├── namespace.yaml
-    │       │       │   └── values.yaml
-    │       │       ├── ingress-nginx
-    │       │       │   ├── namespace.yaml
-    │       │       │   └── values.yaml
-    │       │       ├── scripts
-    │       │       │   └── bootstrap-cluster.sh
-    │       │       └── sealed-secrets
-    │       │           ├── namespace.yaml
-    │       │           └── values.yaml
-    │       │
-    │       ├── charts/ ⭐ ( classapp ➔ app ➔ [ Chart.yaml | templates/ | values/ ] )
-    │       │   ├── databases
-    │       │   │   └── postgresql
-    │       │   ├── observability
-    │       │   │   ├── grafana
-    │       │   │   ├── loki
-    │       │   │   ├── prometheus-stack
-    │       │   │   ├── promtail
-    │       │   │   └── tempo
-    │       │   ├── pg-apps
-    │       │   │   ├── cp
-    │       │   │   └── inst
-    │       │   ├── platform
-    │       │   │   ├── ingress-nginx
-    │       │   │   └── registry
-    │       │   └── security
-    │       │       └── vault
-    │       │
-    │       ├── environments
-    │       │   ├── homelab-prod
-    │       │   │   ├── cp-values.yaml
-    │       │   │   ├── grafana-values.yaml
-    │       │   │   ├── ingress-nginx-values.yaml
-    │       │   │   ├── inst-values.yaml
-    │       │   │   ├── loki-values.yaml
-    │       │   │   ├── postgresql-values.yaml
-    │       │   │   ├── prometheus-stack-values.yaml
-    │       │   │   ├── prometheus-values.yaml
-    │       │   │   ├── promtail-values.yaml
-    │       │   │   ├── registry-values.yaml
-    │       │   │   ├── tempo-values.yaml
-    │       │   │   └── vault-values.yaml
-    │       │   ├── homelab-stage
-    │       │   │   ├── cp-values.yaml
-    │       │   │   ├── grafana-values.yaml
-    │       │   │   ├── ingress-nginx-values.yaml
-    │       │   │   ├── inst-values.yaml
-    │       │   │   ├── loki-values.yaml
-    │       │   │   ├── postgresql-values.yaml
-    │       │   │   ├── prometheus-stack-values.yaml
-    │       │   │   ├── prometheus-values.yaml
-    │       │   │   ├── promtail-values.yaml
-    │       │   │   ├── registry-values.yaml
-    │       │   │   ├── tempo-values.yaml
-    │       │   │   └── vault-values.yaml
-    │       │   └── homelab-test
-    │       │       ├── cp-values.yaml
-    │       │       ├── grafana-values.yaml
-    │       │       ├── ingress-nginx-values.yaml
-    │       │       ├── inst-values.yaml
-    │       │       ├── loki-values.yaml
-    │       │       ├── postgresql-values.yaml
-    │       │       ├── prometheus-stack-values.yaml
-    │       │       ├── prometheus-values.yaml
-    │       │       ├── promtail-values.yaml
-    │       │       ├── registry-values.yaml
-    │       │       ├── tempo-values.yaml
-    │       │       └── vault-values.yaml
-    │       ├── official-values.yaml
-    │       ├── output.yaml
-    │       ├── policies
-    │       │   ├── deny-privileged-pods.yaml
-    │       │   └── network-isolation.yaml
-    │       └── templates
-    │           ├── app-deployment.yaml
-    │           └── ingress-template.yaml
-    ├── kubeadm ( `TBD` )
-    └── minikube ( `omission` )
+├── infra
+│   ├── docker-compose
+│   │   ├── Makefile
+│   │   ├── ansible
+│   │   │   ├── inventory.ini
+│   │   │   ├── playbook.yml
+│   │   │   └── roles
+│   │   │       └── monitoring
+│   │   │           ├── handlers
+│   │   │           │   └── main.yml
+│   │   │           ├── tasks
+│   │   │           │   └── main.yml
+│   │   │           ├── templates
+│   │   │           │   └── prometheus.yml.j2
+│   │   │           └── vars
+│   │   │               └── main.yml
+│   │   ├── docker
+│   │   │   ├── airflow
+│   │   │   │   ├── deploy_dags.sh
+│   │   │   │   └── docker-compose.yaml
+│   │   │   ├── elk
+│   │   │   │   ├── docker-compose.yaml
+│   │   │   │   ├── elasticsearch.yaml
+│   │   │   │   └── logstash
+│   │   │   │       ├── logstash.yaml
+│   │   │   │       └── pipeline
+│   │   │   │           └── logstash.conf
+│   │   │   ├── gitlab
+│   │   │   │   ├── config
+│   │   │   │   ├── data
+│   │   │   │   └── docker-compose.yaml
+│   │   │   ├── iot-platform
+│   │   │   │   ├── config
+│   │   │   │   │   ├── connectors
+│   │   │   │   │   │   ├── sink
+│   │   │   │   │   │   │   ├── sink-inst-prod-orders.json
+│   │   │   │   │   │   │   ├── sink-inst-prod-records.json
+│   │   │   │   │   │   │   └── sink-inst-status-logs.json
+│   │   │   │   │   │   ├── sink-k8s
+│   │   │   │   │   │   │   ├── sink-inst-prod-orders.json
+│   │   │   │   │   │   │   ├── sink-inst-prod-records.json
+│   │   │   │   │   │   │   └── sink-inst-status-logs.json
+│   │   │   │   │   │   └── source
+│   │   │   │   │   │       └── source-cp-mach-order.json
+│   │   │   │   │   └── mosquitto.conf
+│   │   │   │   ├── dockerfile
+│   │   │   │   │   └── Dockerfile.kafka
+│   │   │   │   ├── kafka-compose.yaml
+│   │   │   │   └── mqtt-compose.yaml
+│   │   │   ├── jenkins
+│   │   │   │   └── docker-compose.yaml
+│   │   │   ├── monitoring
+│   │   │   │   ├── docker-compose.yaml
+│   │   │   │   ├── loki-config.yaml
+│   │   │   │   ├── prometheus.yaml
+│   │   │   │   └── promtail-config.yaml
+│   │   │   ├── portainer
+│   │   │   │   └── docker-compose.yaml
+│   │   │   ├── postgresql
+│   │   │   │   ├── Dockerfile
+│   │   │   │   ├── docker-compose.yaml
+│   │   │   │   └── init
+│   │   │   │       └── init.sql
+│   │   │   ├── powa
+│   │   │   │   ├── Dockerfile
+│   │   │   │   ├── docker-compose.yaml
+│   │   │   │   └── init
+│   │   │   │       └── powa.sql
+│   │   │   └── registry
+│   │   │       └── docker-compose.yaml
+│   │   ├── docker-compose.yaml
+│   │   └── terraform
+│   │       ├── main.tf
+│   │       ├── modules
+│   │       │   ├── docker_container
+│   │       │   │   ├── main.tf
+│   │       │   │   ├── outputs.tf
+│   │       │   │   └── variables.tf
+│   │       │   ├── monitoring
+│   │       │   │   ├── main.tf
+│   │       │   │   ├── outputs.tf
+│   │       │   │   └── variables.tf
+│   │       │   └── portainer
+│   │       │       ├── main.tf
+│   │       │       ├── outputs.tf
+│   │       │       └── variables.tf
+│   │       ├── outputs.tf
+│   │       ├── terraform.tfvars
+│   │       └── variables.tf
+│   ├── gke ( `TBD` )
+│   ├── k3d ( `omission` )
+│   ├── k3s ( `omission` )
+│   ├── k3s_migration
+│   │   ├── Makefile
+│   │   ├── archive
+│   │   │   ├── k9s-fav
+│   │   │   │   └── homelab-test.yaml
+│   │   │   └── test ( `omission` )
+│   │   ├── bootstrap
+│   │   │   ├── ansible
+│   │   │   │   ├── ansible.cfg
+│   │   │   │   ├── group_vars
+│   │   │   │   │   └── all.yml
+│   │   │   │   ├── inventory.ini
+│   │   │   │   ├── playbooks
+│   │   │   │   │   ├── deploy_gateway.yml
+│   │   │   │   │   ├── deploy_k3s.yml
+│   │   │   │   │   ├── init_nodes.yml
+│   │   │   │   │   └── roles
+│   │   │   │   │       ├── init
+│   │   │   │   │       │   └── tasks
+│   │   │   │   │       │       └── main.yml
+│   │   │   │   │       ├── k3s-primary
+│   │   │   │   │       │   ├── handlers
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   ├── tasks
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   └── templates
+│   │   │   │   │       ├── k3s-secondary
+│   │   │   │   │       │   ├── handlers
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   ├── tasks
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   └── templates
+│   │   │   │   │       ├── k3s_agents
+│   │   │   │   │       │   ├── handlers
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   ├── tasks
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   └── templates
+│   │   │   │   │       ├── keepalived
+│   │   │   │   │       │   ├── handlers
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   ├── tasks
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   └── templates
+│   │   │   │   │       │       └── keepalived.conf.j2
+│   │   │   │   │       ├── nfs-common
+│   │   │   │   │       │   └── tasks
+│   │   │   │   │       │       └── main.yml
+│   │   │   │   │       ├── nfs-server
+│   │   │   │   │       │   ├── handlers
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   └── tasks
+│   │   │   │   │       │       └── main.yml
+│   │   │   │   │       ├── registries
+│   │   │   │   │       │   ├── tasks
+│   │   │   │   │       │   │   └── main.yml
+│   │   │   │   │       │   └── templates
+│   │   │   │   │       │       └── registries.yml.j2
+│   │   │   │   │       ├── validation-cluster
+│   │   │   │   │       │   └── tasks
+│   │   │   │   │       │       └── main.yml
+│   │   │   │   │       ├── validation-control-plane
+│   │   │   │   │       │   └── tasks
+│   │   │   │   │       │       └── main.yml
+│   │   │   │   │       └── validation-vip
+│   │   │   │   │           └── tasks
+│   │   │   │   │               └── main.yml
+│   │   │   │   └── site.yml
+│   │   │   ├── files
+│   │   │   │   ├── init_packages
+│   │   │   │   ├── iso_images
+│   │   │   │   ├── k3s_packages
+│   │   │   │   ├── keepalived_packages
+│   │   │   │   ├── nfs_packages
+│   │   │   │   └── nfs_server_packages
+│   │   │   └── terraform
+│   │   │       ├── cloud_init.cfg
+│   │   │       ├── env_tfvars
+│   │   │       │   ├── homelab-beta.tfvars
+│   │   │       │   └── homelab-test.tfvars
+│   │   │       ├── inventory.tftpl
+│   │   │       ├── main.tf
+│   │   │       ├── outputs.tf
+│   │   │       ├── terraform.tfstate
+│   │   │       ├── terraform.tfstate.backup
+│   │   │       └── variables.tf
+│   │   └── infra-live
+│   │       ├── README.md
+│   │       ├── argocd
+│   │       │   ├── applications
+│   │       │   │   ├── databases
+│   │       │   │   │   └── postgresql-appset.yaml
+│   │       │   │   ├── observability
+│   │       │   │   │   ├── grafana-appset.yaml
+│   │       │   │   │   ├── loki-appset.yaml
+│   │       │   │   │   ├── prometheus-appset.yaml
+│   │       │   │   │   ├── prometheus-stack-appset.yaml
+│   │       │   │   │   ├── promtail-appset.yaml
+│   │       │   │   │   ├── tempo-appset.yaml
+│   │       │   │   │   └── tempo-distributed-appset.yaml
+│   │       │   │   ├── other
+│   │       │   │   │   └── kustomization.yaml
+│   │       │   │   ├── pg-apps
+│   │       │   │   │   ├── cp-appset.yaml
+│   │       │   │   │   └── inst-appset.yaml
+│   │       │   │   ├── platform
+│   │       │   │   │   ├── harbor-appset.yaml
+│   │       │   │   │   ├── ingress-nginx-appset.yaml
+│   │       │   │   │   └── registry-appset.yaml
+│   │       │   │   ├── security
+│   │       │   │   │   └── vault-appset.yaml
+│   │       │   │   └── storage
+│   │       │   │       └── nfs-storage-appset.yaml
+│   │       │   ├── kustomization.yaml
+│   │       │   ├── projects
+│   │       │   │   ├── databases.yaml
+│   │       │   │   ├── observability.yaml
+│   │       │   │   ├── pg-apps.yaml
+│   │       │   │   ├── platform.yaml
+│   │       │   │   ├── security.yaml
+│   │       │   │   └── storage.yaml
+│   │       │   └── root-app.yaml
+│   │       ├── bootstrap
+│   │       │   └── cluster
+│   │       │       ├── argocd
+│   │       │       │   ├── ingress.yaml
+│   │       │       │   ├── namespace.yaml
+│   │       │       │   ├── repo-secret.yaml
+│   │       │       │   └── values.yaml
+│   │       │       ├── cert-manager
+│   │       │       │   ├── cluster-issuer.yaml
+│   │       │       │   ├── namespace.yaml
+│   │       │       │   └── values.yaml
+│   │       │       ├── ingress-nginx
+│   │       │       │   ├── namespace.yaml
+│   │       │       │   └── values.yaml
+│   │       │       ├── scripts
+│   │       │       │   └── bootstrap-cluster.sh
+│   │       │       └── sealed-secrets
+│   │       │           ├── namespace.yaml
+│   │       │           └── values.yaml
+│   │       ├── charts
+│   │       │   ├── databases
+│   │       │   │   └── postgresql
+│   │       │   │       ├── Chart.lock
+│   │       │   │       ├── Chart.yaml
+│   │       │   │       ├── charts
+│   │       │   │       │   └── postgresql
+│   │       │   │       ├── templates
+│   │       │   │       │   ├── postgres-init-configmap.yaml
+│   │       │   │       │   └── secret.yaml
+│   │       │   │       └── values
+│   │       │   │           └── common.yaml
+│   │       │   ├── observability
+│   │       │   │   ├── grafana
+│   │       │   │   │   ├── Chart.lock
+│   │       │   │   │   ├── Chart.yaml
+│   │       │   │   │   ├── charts
+│   │       │   │   │   │   └── grafana
+│   │       │   │   │   └── values
+│   │       │   │   │       └── common.yaml
+│   │       │   │   ├── loki
+│   │       │   │   │   ├── Chart.lock
+│   │       │   │   │   ├── Chart.yaml
+│   │       │   │   │   ├── charts
+│   │       │   │   │   │   └── loki
+│   │       │   │   │   └── values
+│   │       │   │   │       └── common.yaml
+│   │       │   │   ├── prometheus
+│   │       │   │   │   ├── Chart.yaml
+│   │       │   │   │   └── values
+│   │       │   │   │       └── common.yaml
+│   │       │   │   ├── prometheus-stack
+│   │       │   │   │   ├── Chart.lock
+│   │       │   │   │   ├── Chart.yaml
+│   │       │   │   │   ├── charts
+│   │       │   │   │   │   └── kube-prometheus-stack
+│   │       │   │   │   └── values
+│   │       │   │   │       └── common.yaml
+│   │       │   │   ├── promtail
+│   │       │   │   │   ├── Chart.lock
+│   │       │   │   │   ├── Chart.yaml
+│   │       │   │   │   ├── charts
+│   │       │   │   │   │   └── promtail
+│   │       │   │   │   └── values
+│   │       │   │   │       └── common.yaml
+│   │       │   │   ├── tempo
+│   │       │   │   │   ├── Chart.lock
+│   │       │   │   │   ├── Chart.yaml
+│   │       │   │   │   ├── charts
+│   │       │   │   │   │   └── tempo
+│   │       │   │   │   ├── templates
+│   │       │   │   │   │   └── ingress.yaml
+│   │       │   │   │   └── values
+│   │       │   │   │       └── common.yaml
+│   │       │   │   └── tempo-distributed
+│   │       │   │       ├── Chart.yaml
+│   │       │   │       ├── templates
+│   │       │   │       │   └── ingress.yaml
+│   │       │   │       └── values
+│   │       │   │           └── common.yaml
+│   │       │   ├── pg-apps
+│   │       │   │   ├── cp
+│   │       │   │   │   ├── Chart.yaml
+│   │       │   │   │   ├── templates
+│   │       │   │   │   │   └── deployment.yaml
+│   │       │   │   │   └── values
+│   │       │   │   │       └── common.yaml
+│   │       │   │   └── inst
+│   │       │   │       ├── Chart.yaml
+│   │       │   │       ├── templates
+│   │       │   │       │   ├── deployment.yaml
+│   │       │   │       │   └── hpa.yaml
+│   │       │   │       └── values
+│   │       │   │           └── common.yaml
+│   │       │   ├── platform
+│   │       │   │   ├── harbor
+│   │       │   │   │   ├── Chart.yaml
+│   │       │   │   │   └── values
+│   │       │   │   │       └── common.yaml
+│   │       │   │   ├── ingress-nginx
+│   │       │   │   │   ├── Chart.lock
+│   │       │   │   │   ├── Chart.yaml
+│   │       │   │   │   ├── charts
+│   │       │   │   │   │   └── ingress-nginx
+│   │       │   │   │   └── values
+│   │       │   │   │       └── common.yaml
+│   │       │   │   └── registry
+│   │       │   │       ├── Chart.yaml
+│   │       │   │       ├── output.log
+│   │       │   │       ├── templates
+│   │       │   │       │   ├── deployment.yaml
+│   │       │   │       │   ├── ingress.yaml
+│   │       │   │       │   ├── pvc.yaml
+│   │       │   │       │   └── service.yaml
+│   │       │   │       └── values
+│   │       │   │           └── common.yaml
+│   │       │   ├── security
+│   │       │   │   └── vault
+│   │       │   │       ├── Chart.lock
+│   │       │   │       ├── Chart.yaml
+│   │       │   │       ├── charts
+│   │       │   │       │   └── vault
+│   │       │   │       └── values
+│   │       │   │           └── common.yaml
+│   │       │   └── storage
+│   │       │       └── nfs-storage
+│   │       │           ├── Chart.yaml
+│   │       │           ├── templates
+│   │       │           │   ├── patch-pv-job.yaml
+│   │       │           │   ├── pv.yaml
+│   │       │           │   ├── pvc.yaml
+│   │       │           │   └── storageclass.yaml
+│   │       │           └── values
+│   │       │               └── common.yaml
+│   │       ├── environments
+│   │       │   ├── homelab-prod
+│   │       │   │   ├── cp-values.yaml
+│   │       │   │   ├── grafana-values.yaml
+│   │       │   │   ├── ingress-nginx-values.yaml
+│   │       │   │   ├── inst-values.yaml
+│   │       │   │   ├── loki-values.yaml
+│   │       │   │   ├── nfs-storage-values.yaml
+│   │       │   │   ├── postgresql-values.yaml
+│   │       │   │   ├── prometheus-stack-values.yaml
+│   │       │   │   ├── prometheus-values.yaml
+│   │       │   │   ├── promtail-values.yaml
+│   │       │   │   ├── registry-values.yaml
+│   │       │   │   ├── tempo-distributed-values.yaml
+│   │       │   │   ├── tempo-values.yaml
+│   │       │   │   └── vault-values.yaml
+│   │       │   ├── homelab-stage
+│   │       │   │   ├── cp-values.yaml
+│   │       │   │   ├── grafana-values.yaml
+│   │       │   │   ├── ingress-nginx-values.yaml
+│   │       │   │   ├── inst-values.yaml
+│   │       │   │   ├── loki-values.yaml
+│   │       │   │   ├── nfs-storage-values.yaml
+│   │       │   │   ├── postgresql-values.yaml
+│   │       │   │   ├── prometheus-stack-values.yaml
+│   │       │   │   ├── prometheus-values.yaml
+│   │       │   │   ├── promtail-values.yaml
+│   │       │   │   ├── registry-values.yaml
+│   │       │   │   ├── tempo-distributed-values.yaml
+│   │       │   │   ├── tempo-values.yaml
+│   │       │   │   └── vault-values.yaml
+│   │       │   └── homelab-test
+│   │       │       ├── cp-values.yaml
+│   │       │       ├── grafana-values.yaml
+│   │       │       ├── ingress-nginx-values.yaml
+│   │       │       ├── inst-values.yaml
+│   │       │       ├── loki-values.yaml
+│   │       │       ├── nfs-storage-values.yaml
+│   │       │       ├── postgresql-values.yaml
+│   │       │       ├── prometheus-stack-values.yaml
+│   │       │       ├── prometheus-values.yaml
+│   │       │       ├── promtail-values.yaml
+│   │       │       ├── registry-values.yaml
+│   │       │       ├── tempo-distributed-values.yaml
+│   │       │       ├── tempo-values.yaml
+│   │       │       └── vault-values.yaml
+│   │       ├── policies
+│   │       │   ├── deny-privileged-pods.yaml
+│   │       │   └── network-isolation.yaml
+│   │       └── templates
+│   │           ├── app-deployment.yaml
+│   │           └── ingress-template.yaml
+│   ├── kubeadm ( `TBD` )
+│   └── minikube ( `omission` )
+└── templates
+    ├── alert
+    │   └── fastapi-delay-alert
+    │       ├── message.txt
+    │       └── rules.txt
+    ├── gitlab-runner
+    │   └── config.toml
+    ├── grafana
+    │   ├── htap.json
+    │   ├── observability-test.json
+    │   └── observability.json
+    ├── ingress_bridge
+    │   ├── k3s
+    │   │   ├── k8s-http-proxy.service
+    │   │   ├── k8s-https-proxy.service
+    │   │   ├── portainer-agent-proxy.service
+    │   │   └── postgresql-proxy.service
+    │   └── k3s_migration
+    │       ├── k8s-http-proxy.service
+    │       ├── k8s-https-proxy.service
+    │       ├── portainer-agent-proxy.service
+    │       └── postgresql-proxy.service
+    ├── scripts
+    │   └── vm-power.sh
+    ├── win_hosts
+    │   ├── k3s
+    │   └── k3s_migration
+    └── wsl2
 ```
 
 </ul>
