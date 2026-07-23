@@ -507,7 +507,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 <summary><b><i>　b.1.　Data Core & Orchestration </i></b></summary>
 <ul>
 
-|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/Stateless**_|
+|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/ Stateless**_|
 |--:|:--|:--:|:--:|:--:|
 | _**PostgreSQL**_ | _OLTP Primary Business DB_ | [5432](http://127.0.0.1:5432) | [8080](http://postgresql.k8s.local:8080) | O |
 | _**PostgreSQL**_ | _Metadata DB for Airflow_ | [5433](http://127.0.0.1:5433) | △ | O |
@@ -523,7 +523,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 <summary><b><i>　b.2.　Event Streaming & IoT Platform </i></b></summary>
 <ul>
 
-|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/Stateless**_|
+|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/ Stateless**_|
 |--:|:--|:--:|:--:|:--:|
 | _**MQTT**_ | _High-concurrency IoT Message Ingestion_ | [1883](http://127.0.0.1:1883) | △ | X |
 | _**Apache Kafka**_ | _Distributed Streaming Platform Backbone_ | [9092](http://127.0.0.1:9092) | * | O |
@@ -538,7 +538,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 <summary><b><i>　b.3.　Lakehouse Architecture </i></b></summary>
 <ul>
 
-|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/Stateless**_|
+|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/ Stateless**_|
 |--:|:--|:--:|:--:|:--:|
 | _**MinIO**_ | _Object Storage High-performance AWS S3<br>Compatible Data Lakehouse_ | `TBD` | △ | O |
 | _**Debezium**_ | _CDC from Postgres_ | `TBD` | △ | X |
@@ -553,7 +553,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 <summary><b><i>　b.4.　Observability </i></b></summary>
 <ul>
 
-|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/Stateless**_|
+|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/ Stateless**_|
 |--:|:--|:--:|:--:|:--:|
 | _**PoWA**_ | - | X | X | X |
 | _**Postgres Exporter**_ | _Database Performance Metrics_ | [9187](http://127.0.0.1:9187) | - | X |
@@ -575,7 +575,7 @@ tree -I 'venv|.git|__pycache__|docs|logs|assets|kafka_data|charts|files'
 <summary><b><i>　b.5.　DevOps & Security </i></b></summary>
 <ul>
 
-|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/Stateless**_|
+|_**Service**_|_**Description**_|_**Docker**_|_**K8s**_|_**Stateful<br>/ Stateless**_|
 |--:|:--|:--:|:--:|:--:|
 | _**GitLab**_ | _Self-hosted SCM CI/CD<br>Project Management_ | [8090](http://127.0.0.1:8090) | * | O |
 | _**Jenkins**_ | _Continuous Delivery_ | X | X | X |
